@@ -49,6 +49,7 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 private val LC = YurdunuBilColors
@@ -62,7 +63,7 @@ data class ProfileGate(
     val display_name: String = "Öğrenci",
     val username: String? = null,
     val avatar_id: String = "atlas-01",
-    val onboarding_completed: Boolean = false
+    @SerialName("onboarding_complete") val onboarding_completed: Boolean = false
 )
 
 class LaunchActivity : ComponentActivity() {
@@ -149,43 +150,45 @@ private fun AuthGate(mode: Boolean, onModeChange: (Boolean) -> Unit, onSignedIn:
                 busy = true; error = null
                 scope.launch {
                     try {
-                        if (mode) SupabaseClientProvider.client.auth.signUpWith(Email) { this.email = email.trim(); this.password = password }
-                        else SupabaseClientProvider.client.auth.signInWith(Email) { this.email = email.trim(); this.password = password }
-                        if (SupabaseClientProvider.client.auth.currentSessionOrNull() != null) onSignedIn()
-                        else if (mode) error = "E-postanı doğrula. Ardından giriş yapabilirsin."
-                    } catch (e: Exception) { error = e.message ?: "İşlem tamamlanamadı." }
-                    finally { busy = false }
+                        if (mode) {
+                            SupabaseClientProvider.client.auth.signUpWith(Email) { this.email = email.trim(); this.password = password }
+                        } else {
+                            SupabaseClientProvider.client.auth.signInWith(Email) { this.email = email.trim(); this.password = password }
+                        }
+                        onSignedIn()
+                    } catch (e: Exception) {
+                        error = e.message ?: "Giriş işlemi başarısız."
+                    } finally { busy = false }
                 }
             },
-            enabled = !busy && email.contains("@") && password.length >= 8,
+            enabled = !busy && email.contains("@") && password.length >= 6,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = LC.NaturalGreen)
         ) { Text(if (busy) "Bekleyin…" else if (mode) "Hesap Oluştur" else "Giriş Yap") }
         Spacer(Modifier.height(8.dp))
-        Button(onClick = { onModeChange(!mode); error = null }, Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = LC.SurfaceSoft, contentColor = LC.Forest)) {
-            Text(if (mode) "Zaten hesabım var" else "Yeni hesap oluştur")
-        }
-        Spacer(Modifier.height(12.dp))
-        Text("Şifre en az 8 karakter olmalı. Hesabın ve ilerlemen Supabase Auth + RLS ile korunur.", color = Color(0xFF687B71), fontSize = 11.sp)
+        Button(onClick = { onModeChange(!mode) }, modifier = Modifier.fillMaxWidth()) { Text(if (mode) "Zaten hesabım var" else "Yeni hesap oluştur") }
     }
 }
 
 private val AVATARS = listOf(
-    "atlas-01" to "🧭", "atlas-02" to "🏔️", "atlas-03" to "🌊", "atlas-04" to "🌲",
-    "atlas-05" to "🗺️", "atlas-06" to "⛰️", "atlas-07" to "☀️", "atlas-08" to "🌿",
-    "atlas-09" to "🦅", "atlas-10" to "🧿", "atlas-11" to "🚀", "atlas-12" to "🎯"
+    "atlas-01" to "🧭", "atlas-02" to "🌍", "atlas-03" to "🏔️", "atlas-04" to "🌊",
+    "atlas-05" to "🌲", "atlas-06" to "☀️", "atlas-07" to "🗺️", "atlas-08" to "🦅",
+    "atlas-09" to "🌿", "atlas-10" to "⛰️", "atlas-11" to "🏕️", "atlas-12" to "⭐"
 )
 
 @Composable
 private fun ProfileOnboarding(existing: ProfileGate?, onComplete: () -> Unit) {
-    var username by remember { mutableStateOf(existing?.username ?: "") }
-    var displayName by remember { mutableStateOf(existing?.display_name ?: "") }
+    var displayName by remember { mutableStateOf(existing?.display_name.orEmpty()) }
+    var username by remember { mutableStateOf(existing?.username.orEmpty()) }
     var avatar by remember { mutableStateOf(existing?.avatar_id ?: AVATARS.first().first) }
     var error by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    LazyColumn(Modifier.fillMaxSize().padding(22.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    LazyColumn(
+        Modifier.fillMaxSize().padding(22.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
         item {
             Text("Şimdi seni tanıyalım", color = LC.Forest, fontSize = 30.sp, fontWeight = FontWeight.Black)
             Text("Arena'da kullanacağın ad ve avatarı seç.", color = LC.NaturalGreen)
@@ -209,7 +212,7 @@ private fun ProfileOnboarding(existing: ProfileGate?, onComplete: () -> Unit) {
                     busy = true; error = null
                     scope.launch {
                         try {
-                            SupabaseClientProvider.client.postgrest.rpc("complete_onboarding", OnboardingRpc(username.trim(), displayName.trim(), avatar)).decodeSingle<ProfileGate>()
+                            SupabaseClientProvider.client.postgrest.rpc("complete_onboarding", OnboardingRpc(username.trim(), displayName.trim(), avatar))
                             onComplete()
                         } catch (e: Exception) {
                             error = if (e.message?.contains("username_taken") == true) "Bu kullanıcı adı zaten alınmış." else e.message ?: "Profil kaydedilemedi."
