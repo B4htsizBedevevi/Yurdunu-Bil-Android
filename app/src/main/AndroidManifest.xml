@@ -9,7 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.YurdunuBil">
         <activity
-            android:name=".NatureMainActivity"
+            android:name=".RetentionMainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
