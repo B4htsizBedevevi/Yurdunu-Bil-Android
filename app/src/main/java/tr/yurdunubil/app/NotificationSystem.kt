@@ -45,7 +45,7 @@ class DailyStudyReceiver : BroadcastReceiver() {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) return
         val notification = android.app.Notification.Builder(context, YurdunuBilNotifications.CHANNEL_DAILY)
-            .setSmallIcon(tr.yurdunubil.app.R.drawable.ic_yurdunubil)
+            .setSmallIcon(tr.yurdunubil.app.R.drawable.ic_yurdunu_bil)
             .setContentTitle("Yurdunu Bil • Günlük görev")
             .setContentText("Bugün 10 soru çöz, serini koru ve XP kazan.")
             .setAutoCancel(true)
