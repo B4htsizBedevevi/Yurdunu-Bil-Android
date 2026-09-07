@@ -1,51 +1,34 @@
 package tr.yurdunubil.app
 
-data class Question(
-    val id: Int,
-    val subject: String,
-    val topic: String,
-    val text: String,
-    val options: List<String>,
-    val correctIndex: Int,
-    val explanation: String
-)
-
-data class QuizResult(
-    val correct: Int,
-    val wrong: Int,
-    val blank: Int,
-    val xp: Int
-) {
-    val total: Int get() = correct + wrong + blank
-}
+data class Question(val id: Int, val subject: String = "Coğrafya", val topic: String, val text: String, val options: List<String>, val correctIndex: Int, val explanation: String)
+data class QuizResult(val correct: Int, val wrong: Int, val blank: Int, val xp: Int) { val total: Int get() = correct + wrong + blank }
 
 class QuizEngine(private val questions: List<Question>) {
-    private var index = 0
-    private var correct = 0
-    private var wrong = 0
-    private var blank = 0
-
-    val current: Question get() = questions[index]
-    val currentIndex: Int get() = index
-    val size: Int get() = questions.size
-
-    fun answer(optionIndex: Int?) {
-        if (optionIndex == null) blank++
-        else if (optionIndex == current.correctIndex) correct++
-        else wrong++
-        if (index < questions.lastIndex) index++
-    }
-
-    fun result(): QuizResult = QuizResult(correct, wrong, blank, correct * 10)
+    private var index = 0; private var correct = 0; private var wrong = 0; private var blank = 0
+    val current get() = questions[index]; val currentIndex get() = index; val size get() = questions.size
+    fun answer(optionIndex: Int?) { if (optionIndex == null) blank++ else if (optionIndex == current.correctIndex) correct++ else wrong++; if (index < questions.lastIndex) index++ }
+    fun result() = QuizResult(correct, wrong, blank, correct * 10)
 }
 
 object SampleQuestions {
     val all = listOf(
-        Question(1, "Coğrafya", "Türkiye'nin Coğrafi Konumu", "Türkiye'nin üç tarafının denizlerle çevrili olması aşağıdakilerden hangisini doğrudan etkiler?", listOf("Kıyı turizmi potansiyelini", "Meridyen sayısını", "Matematik konumunu", "Yükselti ortalamasını", "Yerel saat farkını"), 0, "Denizlerle çevrili olmak kıyıların uzunluğu, iklim ve kıyı turizmi gibi özellikleri doğrudan etkiler."),
-        Question(2, "Coğrafya", "Dağlar", "Türkiye'de dağların genel olarak doğu-batı doğrultusunda uzanmasının sonuçlarından biri aşağıdakilerden hangisidir?", listOf("Kuzey-güney yönlü ulaşımın bazı yerlerde zorlaşması", "Yerel saat farkının artması", "Güneş ışınlarının geliş açısının değişmesi", "Meridyen sayısının artması", "Gece-gündüz sürelerinin eşitlenmesi"), 0, "Kuzey Anadolu ve Toros dağlarının uzanışı, kıyı ile iç kesimler arasındaki ulaşımı bazı geçitlerde zorlaştırır."),
-        Question(3, "Coğrafya", "Akarsular", "Türkiye akarsularının rejimlerinin genellikle düzensiz olmasının temel nedeni aşağıdakilerden hangisidir?", listOf("Yağışın yıl içine düzensiz dağılması", "Ülkenin üç tarafının denizlerle çevrili olması", "Meridyen farkının fazla olması", "Nüfusun kıyılarda yoğunlaşması", "Maden çeşitliliğinin fazla olması"), 0, "Türkiye'de yağışın mevsimlere göre değişmesi ve kar erimeleri akarsu debilerinin yıl içinde dalgalanmasına neden olur."),
-        Question(4, "Coğrafya", "Bölgeler", "Türkiye'nin en fazla yağış alan bölgesi aşağıdakilerden hangisidir?", listOf("Karadeniz", "İç Anadolu", "Güneydoğu Anadolu", "Doğu Anadolu", "Marmara"), 0, "Karadeniz kıyıları, özellikle Doğu Karadeniz, yıl boyunca nemli hava ve orografik yağışların etkisiyle çok yağış alır."),
-        Question(5, "Coğrafya", "Madenler", "Türkiye'de bor minerallerinin önemli rezervlere sahip olduğu alanlardan biri aşağıdakilerden hangisidir?", listOf("Eskişehir-Kırka", "Rize-Hopa", "Mersin-Silifke", "Şanlıurfa-Harran", "Muğla-Bodrum"), 0, "Eskişehir Kırka, Türkiye'nin önemli bor yataklarından biridir."
-        )
+        Question(1, topic = "Coğrafi Konum", text = "Türkiye'nin üç tarafının denizlerle çevrili olması aşağıdakilerden hangisini doğrudan etkiler?", options = listOf("Kıyı turizmi potansiyelini", "Meridyen sayısını", "Matematik konumunu", "Yükselti ortalamasını", "Yerel saat farkını"), correctIndex = 0, explanation = "Denizlerle çevrili olmak kıyıların özelliklerini ve kıyı turizmi potansiyelini doğrudan etkiler."),
+        Question(2, topic = "İklim ve Bitki Örtüsü", text = "Türkiye'de maki bitki örtüsünün doğal olarak en yaygın görüldüğü iklim hangisidir?", options = listOf("Karadeniz", "Akdeniz", "Sert karasal", "Step", "Tundra"), correctIndex = 1, explanation = "Maki, Akdeniz ikliminin doğal bitki örtüsü içindeki çalı formasyonudur."),
+        Question(3, topic = "Yer Şekilleri", text = "Karadeniz ve Akdeniz kıyılarında kıyı ile iç kesimler arasındaki ulaşımın bazı yerlerde zor olmasının temel nedeni nedir?", options = listOf("Dağların kıyıya paralel uzanması", "Ovaların çok geniş olması", "Akarsuların kısa olması", "Kıyıların tamamen düz olması", "Göllerin fazla olması"), correctIndex = 0, explanation = "Kuzey Anadolu Dağları ve Toroslar kıyıya paralel uzanır; bu durum kıyı-iç kesim ulaşımını zorlaştırabilir."),
+        Question(4, topic = "Su Varlığı", text = "Aşağıdakilerden hangisi Türkiye sınırları içinde doğup yine Türkiye'den denize ulaşan önemli akarsulardandır?", options = listOf("Kızılırmak", "Tuna", "Ren", "Nil", "Volga"), correctIndex = 0, explanation = "Kızılırmak Türkiye'de doğar ve Karadeniz'e dökülür."),
+        Question(5, topic = "Nüfus ve Yerleşme", text = "Türkiye'de nüfusun bazı kıyı bölgelerinde yoğun olmasında aşağıdakilerden hangisinin etkisi daha sınırlıdır?", options = listOf("Ilıman iklim", "Ekonomik faaliyet çeşitliliği", "Ulaşım olanakları", "Deniz etkisi", "Matematik konumun ülke genelinde ortak olması"), correctIndex = 4, explanation = "Matematik konum ülke genelinde ortak bir özelliktir; bölgesel nüfus yoğunluğu farkını tek başına açıklamaz."),
+        Question(6, topic = "Tarım", text = "Türkiye'de çay tarımının en fazla yapıldığı alan hangisidir?", options = listOf("Doğu Karadeniz", "Konya Ovası", "Harran Ovası", "Gediz Ovası", "Ergene Havzası"), correctIndex = 0, explanation = "Çay, yıl boyunca nemli ve yağışlı koşullar nedeniyle Doğu Karadeniz'de yoğunlaşmıştır."),
+        Question(7, topic = "Maden ve Enerji", text = "Zonguldak aşağıdaki madenlerden hangisiyle özellikle tanınır?", options = listOf("Taş kömürü", "Bor", "Boksit", "Krom", "Petrol"), correctIndex = 0, explanation = "Zonguldak çevresindeki taş kömürü yatakları Türkiye madenciliğinde önemlidir."),
+        Question(8, topic = "Bölgeler", text = "Türkiye'nin yüzölçümü bakımından en büyük coğrafi bölgesi hangisidir?", options = listOf("Marmara", "Ege", "Doğu Anadolu", "Akdeniz", "Güneydoğu Anadolu"), correctIndex = 2, explanation = "Doğu Anadolu Bölgesi yüzölçümü bakımından Türkiye'nin en büyük coğrafi bölgesidir."),
+        Question(9, topic = "Sanayi ve Ulaşım", text = "İzmir aşağıdaki denizlerden hangisinin kıyısında yer alır?", options = listOf("Karadeniz", "Akdeniz", "Ege Denizi", "Marmara Denizi", "Van Gölü"), correctIndex = 2, explanation = "İzmir, Ege Denizi kıyısında önemli bir liman ve ticaret merkezidir."),
+        Question(10, topic = "Turizm", text = "Pamukkale travertenleri hangi ilimizdedir?", options = listOf("Muğla", "Denizli", "Antalya", "Aydın", "İzmir"), correctIndex = 1, explanation = "Pamukkale travertenleri Denizli'dedir."),
+        Question(11, topic = "Harita Bilgisi", text = "Aynı yükseltiye sahip noktaları birleştiren eğrilere ne ad verilir?", options = listOf("Meridyen", "Paralel", "İzohips", "Ekvator", "Lejant"), correctIndex = 2, explanation = "İzohipsler eş yükselti eğrileridir."),
+        Question(12, topic = "Doğal Afetler", text = "Heyelan riskinin artmasında aşağıdakilerden hangileri özellikle etkilidir?", options = listOf("Eğim ve yağış", "Kuraklık ve tuzluluk", "Enlem ve boylam", "Güneşlenme ve basınç", "Gelgit ve okyanus akıntıları"), correctIndex = 0, explanation = "Eğimli arazinin yağışla suya doyması kütle hareketlerini kolaylaştırır."),
+        Question(13, topic = "Coğrafi Konum", text = "Türkiye'nin Asya ile Avrupa arasında bulunması aşağıdakilerden hangisini güçlendiren bir özelliktir?", options = listOf("Jeopolitik önemini", "Meridyen sayısını", "Yerel saat farkını ortadan kaldırmasını", "Yükseltiyi", "Akarsu rejimlerini"), correctIndex = 0, explanation = "Kıtalar arası konum Türkiye'nin ulaşım, ticaret ve jeopolitik önemini artırır."),
+        Question(14, topic = "İklim ve Bitki Örtüsü", text = "Karadeniz kıyılarında doğal bitki örtüsünün gür olmasında en etkili faktör hangisidir?", options = listOf("Yağışın fazla olması", "Yükseltinin her yerde düşük olması", "Kuraklığın şiddetli olması", "Günlük sıcaklık farkının çok büyük olması", "Çöl rüzgarları"), correctIndex = 0, explanation = "Nemli iklim ve yıl içine yayılan yağış doğal bitki örtüsünün gürleşmesini sağlar."),
+        Question(15, topic = "Maden ve Enerji", text = "Eskişehir-Kırka aşağıdaki madenlerden hangisiyle öne çıkar?", options = listOf("Bor", "Taş kömürü", "Petrol", "Linyit", "Demir"), correctIndex = 0, explanation = "Kırka, Türkiye'nin önemli bor yataklarından birine ev sahipliği yapar."),
+        Question(16, topic = "Tarım", text = "Harran Ovası'nda sulama yatırımlarıyla üretimi artan önemli ürünlerden biri hangisidir?", options = listOf("Pamuk", "Çay", "Fındık", "Zeytin", "Kivi"), correctIndex = 0, explanation = "GAP kapsamında sulama olanaklarının gelişmesi Şanlıurfa çevresinde pamuk tarımını desteklemiştir."),
+        Question(17, topic = "Bölgeler", text = "Türkiye'de zeytin üretiminin özellikle yoğunlaştığı iki bölge hangileridir?", options = listOf("Ege ve Marmara", "Doğu Anadolu ve İç Anadolu", "Karadeniz ve Doğu Anadolu", "Güneydoğu Anadolu ve Doğu Anadolu", "İç Anadolu ve Karadeniz"), correctIndex = 0, explanation = "Ege başta olmak üzere Marmara'nın güney kesimleri zeytin üretiminde öne çıkar."),
+        Question(18, topic = "Su Varlığı", text = "Van Gölü hangi bölgemizde bulunur?", options = listOf("Marmara", "Ege", "Doğu Anadolu", "Akdeniz", "İç Anadolu"), correctIndex = 2, explanation = "Van Gölü Doğu Anadolu Bölgesi'nde yer alır ve Türkiye'nin en büyük gölüdür.")
     )
 }
