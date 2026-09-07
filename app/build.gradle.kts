@@ -43,7 +43,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.2.1")
 
     val supabaseVersion = "3.5.0"
-    implementation(platform("io.github.jan-tennert.supabase:bom:$supabaseVersion))
+    implementation(platform("io.github.jan-tennert.supabase:bom:$supabaseVersion"))
     implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:realtime-kt")
