@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,20 +43,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import io.github.jan.supabase.auth.providers.Email
 
 private val LC = YurdunuBilColors
 
 @Serializable
-data class OnboardingRpc(
-    val p_username: String,
-    val p_display_name: String,
-    val p_avatar_id: String
-)
+data class OnboardingRpc(val p_username: String, val p_display_name: String, val p_avatar_id: String)
 
 @Serializable
 data class ProfileGate(
@@ -102,11 +99,7 @@ private fun LaunchGate(onReady: () -> Unit) {
     Surface(Modifier.fillMaxSize(), color = LC.Background) {
         when {
             loading -> LoadingGate()
-            !session -> AuthGate(
-                mode = authMode,
-                onModeChange = { authMode = it },
-                onSignedIn = { session = true; profile = null }
-            )
+            !session -> AuthGate(mode = authMode, onModeChange = { authMode = it }, onSignedIn = { session = true; profile = null })
             profile?.onboarding_completed != true -> ProfileOnboarding(existing = profile, onComplete = onReady)
             else -> onReady()
         }
@@ -156,16 +149,12 @@ private fun AuthGate(mode: Boolean, onModeChange: (Boolean) -> Unit, onSignedIn:
                 busy = true; error = null
                 scope.launch {
                     try {
-                        if (mode) {
-                            SupabaseClientProvider.client.auth.signUpWith(Email) { this.email = email.trim(); this.password = password }
-                        } else {
-                            SupabaseClientProvider.client.auth.signInWith(Email) { this.email = email.trim(); this.password = password }
-                        }
+                        if (mode) SupabaseClientProvider.client.auth.signUpWith(Email) { this.email = email.trim(); this.password = password }
+                        else SupabaseClientProvider.client.auth.signInWith(Email) { this.email = email.trim(); this.password = password }
                         if (SupabaseClientProvider.client.auth.currentSessionOrNull() != null) onSignedIn()
                         else if (mode) error = "E-postanı doğrula. Ardından giriş yapabilirsin."
-                    } catch (e: Exception) {
-                        error = e.message ?: "İşlem tamamlanamadı."
-                    } finally { busy = false }
+                    } catch (e: Exception) { error = e.message ?: "İşlem tamamlanamadı." }
+                    finally { busy = false }
                 }
             },
             enabled = !busy && email.contains("@") && password.length >= 8,
