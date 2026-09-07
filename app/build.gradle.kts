@@ -15,10 +15,10 @@ android {
         applicationId = "tr.yurdunubil.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
-        buildConfigField("String", "SUPABASE_URL", "\"https://rdgefzwvfqvzmpfoiprj.supabase.co\"")
-        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_LjA0E5FY6t6ID0YMwjJpxA_vCRNCuY7\"")
+        versionCode = 2
+        versionName = "0.2.0"
+        buildConfigField("String", "SUPABASE_URL", "\"https://phcdfnvqhhwkhrxsmuar.supabase.co\"")
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_vwk3J5ag16XmMOm3x734MQ_-mMsJVe2\"")
     }
 
     buildFeatures {
