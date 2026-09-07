@@ -1,6 +1,7 @@
 package tr.yurdunubil.app
 
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.FlowType
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.postgrest.Postgrest
@@ -17,7 +18,12 @@ object SupabaseClientProvider {
         supabaseUrl = BuildConfig.SUPABASE_URL,
         supabaseKey = BuildConfig.SUPABASE_PUBLISHABLE_KEY
     ) {
-        install(Auth)
+        install(Auth) {
+            // PKCE is required for secure mobile OAuth / email-link recovery flows.
+            flowType = FlowType.PKCE
+            scheme = "yurdunubil"
+            host = "auth"
+        }
         install(Postgrest)
         install(Realtime)
         install(Functions)
