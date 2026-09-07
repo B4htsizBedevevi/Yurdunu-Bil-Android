@@ -30,52 +30,22 @@ class QuizEngine(private val questions: List<Question>) {
     val size: Int get() = questions.size
 
     fun answer(optionIndex: Int?) {
-        if (optionIndex == null) {
-            blank++
-        } else if (optionIndex == current.correctIndex) {
-            correct++
-        } else {
-            wrong++
-        }
+        if (optionIndex == null) blank++
+        else if (optionIndex == current.correctIndex) correct++
+        else wrong++
         if (index < questions.lastIndex) index++
     }
 
-    fun result(): QuizResult = QuizResult(
-        correct = correct,
-        wrong = wrong,
-        blank = blank,
-        xp = correct * 10
-    )
+    fun result(): QuizResult = QuizResult(correct, wrong, blank, correct * 10)
 }
 
 object SampleQuestions {
     val all = listOf(
-        Question(
-            id = 1,
-            subject = "Coğrafya",
-            topic = "Türkiye'nin Coğrafi Konumu",
-            text = "Türkiye'nin üç tarafının denizlerle çevrili olması aşağıdakilerden hangisini doğrudan etkiler?",
-            options = listOf("Kıyı turizmi potansiyelini", "Meridyen sayısını", "Matematik konumunu", "Yükselti ortalamasını", "Yerel saat farkını"),
-            correctIndex = 0,
-            explanation = "Denizlerle çevrili olmak kıyıların uzunluğu ve kıyı turizmi gibi beşerî ve ekonomik özellikleri doğrudan etkiler."
-        ),
-        Question(
-            id = 2,
-            subject = "Tarih",
-            topic = "Kurtuluş Savaşı",
-            text = "Milli Mücadele döneminde ulusal egemenlik düşüncesini en açık biçimde yansıtan gelişme hangisidir?",
-            options = listOf("Amasya Genelgesi", "Mudanya Ateşkesi", "Lozan Antlaşması", "Tekalif-i Milliye", "Gümrü Antlaşması"),
-            correctIndex = 0,
-            explanation = "Amasya Genelgesi'nde milletin bağımsızlığını yine milletin azim ve kararı kurtaracaktır anlayışı vurgulanmıştır."
-        ),
-        Question(
-            id = 3,
-            subject = "Türkçe",
-            topic = "Cümlede Anlam",
-            text = "Aşağıdaki cümlelerin hangisinde neden-sonuç ilişkisi vardır?",
-            options = listOf("Sınavı kazanmak için düzenli çalışıyor.", "Yağmur yağdığı için maç ertelendi.", "Akşam seni arayacağım.", "Bu kitabı geçen hafta aldım.", "Daha sonra birlikte konuşuruz."),
-            correctIndex = 1,
-            explanation = "Maçın ertelenmesinin nedeni yağmurun yağmasıdır; 'için' burada neden anlamı vermektedir."
+        Question(1, "Coğrafya", "Türkiye'nin Coğrafi Konumu", "Türkiye'nin üç tarafının denizlerle çevrili olması aşağıdakilerden hangisini doğrudan etkiler?", listOf("Kıyı turizmi potansiyelini", "Meridyen sayısını", "Matematik konumunu", "Yükselti ortalamasını", "Yerel saat farkını"), 0, "Denizlerle çevrili olmak kıyıların uzunluğu, iklim ve kıyı turizmi gibi özellikleri doğrudan etkiler."),
+        Question(2, "Coğrafya", "Dağlar", "Türkiye'de dağların genel olarak doğu-batı doğrultusunda uzanmasının sonuçlarından biri aşağıdakilerden hangisidir?", listOf("Kuzey-güney yönlü ulaşımın bazı yerlerde zorlaşması", "Yerel saat farkının artması", "Güneş ışınlarının geliş açısının değişmesi", "Meridyen sayısının artması", "Gece-gündüz sürelerinin eşitlenmesi"), 0, "Kuzey Anadolu ve Toros dağlarının uzanışı, kıyı ile iç kesimler arasındaki ulaşımı bazı geçitlerde zorlaştırır."),
+        Question(3, "Coğrafya", "Akarsular", "Türkiye akarsularının rejimlerinin genellikle düzensiz olmasının temel nedeni aşağıdakilerden hangisidir?", listOf("Yağışın yıl içine düzensiz dağılması", "Ülkenin üç tarafının denizlerle çevrili olması", "Meridyen farkının fazla olması", "Nüfusun kıyılarda yoğunlaşması", "Maden çeşitliliğinin fazla olması"), 0, "Türkiye'de yağışın mevsimlere göre değişmesi ve kar erimeleri akarsu debilerinin yıl içinde dalgalanmasına neden olur."),
+        Question(4, "Coğrafya", "Bölgeler", "Türkiye'nin en fazla yağış alan bölgesi aşağıdakilerden hangisidir?", listOf("Karadeniz", "İç Anadolu", "Güneydoğu Anadolu", "Doğu Anadolu", "Marmara"), 0, "Karadeniz kıyıları, özellikle Doğu Karadeniz, yıl boyunca nemli hava ve orografik yağışların etkisiyle çok yağış alır."),
+        Question(5, "Coğrafya", "Madenler", "Türkiye'de bor minerallerinin önemli rezervlere sahip olduğu alanlardan biri aşağıdakilerden hangisidir?", listOf("Eskişehir-Kırka", "Rize-Hopa", "Mersin-Silifke", "Şanlıurfa-Harran", "Muğla-Bodrum"), 0, "Eskişehir Kırka, Türkiye'nin önemli bor yataklarından biridir."
         )
     )
 }
