@@ -8,6 +8,6 @@ import androidx.activity.compose.setContent
 class RetentionMainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { MajorUpgradeApp() }
+        setContent { NextGenerationApp() }
     }
 }
