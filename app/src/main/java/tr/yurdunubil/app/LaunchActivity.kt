@@ -51,11 +51,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 private val LC = YurdunuBilColors
-
-@Serializable
-data class OnboardingRpc(val p_username: String, val p_display_name: String, val p_avatar_id: String)
 
 @Serializable
 data class ProfileGate(
@@ -212,7 +211,12 @@ private fun ProfileOnboarding(existing: ProfileGate?, onComplete: () -> Unit) {
                     busy = true; error = null
                     scope.launch {
                         try {
-                            SupabaseClientProvider.client.postgrest.rpc("complete_onboarding", OnboardingRpc(username.trim(), displayName.trim(), avatar))
+                            val params = buildJsonObject {
+                                put("p_username", username.trim())
+                                put("p_display_name", displayName.trim())
+                                put("p_avatar_id", avatar)
+                            }
+                            SupabaseClientProvider.client.postgrest.rpc("complete_onboarding", params)
                             onComplete()
                         } catch (e: Exception) {
                             error = if (e.message?.contains("username_taken") == true) "Bu kullanıcı adı zaten alınmış." else e.message ?: "Profil kaydedilemedi."
