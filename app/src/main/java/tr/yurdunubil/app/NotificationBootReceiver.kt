@@ -7,7 +7,7 @@ import android.content.Intent
 class NotificationBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
-            YurdunuBilNotifications.scheduleDaily(context)
+            StudyNotificationScheduler.schedule(context)
         }
     }
 }
