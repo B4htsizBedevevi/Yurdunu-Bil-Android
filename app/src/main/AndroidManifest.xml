@@ -9,6 +9,9 @@
         android:label="Yurdunu Bil"
         android:supportsRtl="true"
         android:theme="@style/Theme.YurdunuBil">
+        <receiver
+            android:name=".DailyStudyReceiver"
+            android:exported="false" />
         <activity
             android:name=".RetentionMainActivity"
             android:exported="false" />
