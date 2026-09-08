@@ -17,6 +17,9 @@
             android:name=".LaunchActivity"
             android:exported="false" />
         <activity
+            android:name=".ModernAuthActivity"
+            android:exported="false" />
+        <activity
             android:name=".ModernLaunchActivity"
             android:exported="true">
             <intent-filter>
