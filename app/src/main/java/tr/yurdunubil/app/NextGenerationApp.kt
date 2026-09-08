@@ -73,7 +73,7 @@ fun NextGenerationApp() {
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (tab) {
-                0 -> HomeScreen(state, ::start, onPlanner = { plannerOpen = true })
+                0 -> PremiumHomeScreen(state, ::start, onPlanner = { plannerOpen = true })
                 1 -> LibraryScreen(::start)
                 2 -> AtlasScreen(::start)
                 3 -> ArenaScreen(::start)
