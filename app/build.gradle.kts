@@ -15,8 +15,8 @@ android {
         applicationId = "tr.yurdunubil.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 20
-        versionName = "1.0.8"
+        versionCode = 21
+        versionName = "1.0.9"
         buildConfigField("String", "SUPABASE_URL", "\"https://phcdfnvqhhwkhrxsmuar.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_vwk3J5ag16XmMOm3x734MQ_-mMsJVe2\"")
     }
@@ -24,6 +24,22 @@ android {
     buildFeatures { compose = true; buildConfig = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+
+    val iconSourceDir = layout.projectDirectory.dir("src/main/icon_source").asFile
+    val generatedIcon = layout.projectDirectory.file("src/main/res/drawable/yurdunu_bil_official_generated.webp").asFile
+    val generateOfficialIcon = tasks.register("generateOfficialIcon") {
+        inputs.files(fileTree(iconSourceDir) { include("*.b64") })
+        outputs.file(generatedIcon)
+        doLast {
+            val chunks = iconSourceDir.listFiles { file -> file.extension == "b64" }
+                ?.sortedBy { it.name }
+                ?.joinToString("") { it.readText().trim() }
+                ?: error("Official icon source chunks are missing")
+            generatedIcon.parentFile.mkdirs()
+            generatedIcon.writeBytes(java.util.Base64.getDecoder().decode(chunks))
+        }
+    }
+    tasks.named("preBuild").configure { dependsOn(generateOfficialIcon) }
 
     val keystorePath = System.getenv("RELEASE_KEYSTORE_FILE")
     val keystorePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
