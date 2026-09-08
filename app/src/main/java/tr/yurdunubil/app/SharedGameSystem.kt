@@ -20,9 +20,16 @@ object SharedQuestionPool {
         .distinctBy { it.id }
 
     fun pick(mode: SharedGameMode, seed: Long = System.currentTimeMillis()): List<Question> {
-        val source = if (mode.topics.isEmpty()) all else all.filter { it.topic in mode.topics }
-        val safeSource = if (source.size >= mode.questions) source else all
-        return safeSource.shuffled(Random(seed)).take(mode.questions.coerceAtMost(safeSource.size))
+        val source = if (mode.topics.isEmpty()) {
+            all
+        } else {
+            all.filter { it.topic in mode.topics }
+        }
+        if (source.isEmpty()) return emptyList()
+        // Topic/arena modes must stay inside their declared syllabus. If a topic
+        // has fewer questions than requested, return all available questions
+        // instead of silently mixing unrelated subjects into the quiz.
+        return source.shuffled(Random(seed)).take(mode.questions.coerceAtMost(source.size))
     }
 
     fun topicForLibrary(title: String): Set<String> = when (title) {
