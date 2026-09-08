@@ -1,5 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/ic_launcher_background" />
-    <foreground android:drawable="@drawable/ic_yurdunu_bil_foreground" />
-</adaptive-icon>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Crisp in-app brand mark. This is intentionally a VectorDrawable,
+         not an AdaptiveIcon: Compose painterResource can render it safely. -->
+    <path
+        android:fillColor="#061914"
+        android:pathData="M22,2 L86,2 C97,2 106,11 106,22 L106,86 C106,97 97,106 86,106 L22,106 C11,106 2,97 2,86 L2,22 C2,11 11,2 22,2 Z" />
+    <path
+        android:fillColor="#0C3D31"
+        android:pathData="M23,5 L85,5 C94,5 103,14 103,23 L103,85 C103,94 94,103 85,103 L23,103 C14,103 5,94 5,85 L5,23 C5,14 14,5 23,5 Z" />
+    <path
+        android:fillColor="#25D99A"
+        android:fillAlpha="0.18"
+        android:pathData="M23,8 L85,8 C92,8 100,16 100,23 L100,37 C85,30 72,27 54,27 C36,27 23,31 8,38 L8,23 C8,16 16,8 23,8 Z" />
+
+    <!-- Compass ring -->
+    <path
+        android:fillColor="#69F3C1"
+        android:fillAlpha="0.34"
+        android:pathData="M54,16 A38,38 0,1 0,54,92 A38,38 0,1 0,54,16 Z M54,20 A34,34 0,1 1,54,88 A34,34 0,1 1,54,20 Z" />
+    <path
+        android:fillColor="#E4C968"
+        android:fillAlpha="0.72"
+        android:pathData="M54,13 L55.8,18.5 L54,17.3 L52.2,18.5 Z M94.5,53 L89,54.8 L90.2,53 L89,51.2 Z M54,95 L52.2,89.5 L54,90.7 L55.8,89.5 Z M13.5,53 L19,51.2 L17.8,53 L19,54.8 Z" />
+
+    <!-- Simplified Turkey relief silhouette -->
+    <path
+        android:fillColor="#0F8060"
+        android:pathData="M13,47 L20,42 L27,43 L33,38 L40,40 L47,36 L54,38 L62,35 L69,39 L77,37 L85,42 L94,44 L89,49 L92,53 L85,57 L80,63 L72,61 L66,67 L58,64 L51,69 L44,64 L36,66 L31,61 L24,62 L20,56 L13,54 Z" />
+    <path
+        android:fillColor="#36D9A0"
+        android:fillAlpha="0.78"
+        android:pathData="M17,47 L23,44 L29,45 L35,41 L41,43 L48,39 L55,42 L62,39 L68,43 L76,41 L82,44 L89,46 L85,50 L87,53 L81,55 L77,60 L70,58 L65,63 L59,60 L52,65 L45,60 L37,62 L32,58 L26,59 L23,54 L17,53 Z" />
+
+    <!-- Location pin -->
+    <path
+        android:fillColor="#F7FFFB"
+        android:pathData="M54,31 C44,31 37,38 37,49 C37,61 54,77 54,77 C54,77 71,61 71,49 C71,38 64,31 54,31 Z" />
+    <path
+        android:fillColor="#07523E"
+        android:pathData="M54,39 A10,10 0,1 0,54,59 A10,10 0,1 0,54,39" />
+    <path
+        android:fillColor="#35E7A1"
+        android:pathData="M54,44 A5,5 0,1 0,54,54 A5,5 0,1 0,54,44" />
+
+    <!-- Open book -->
+    <path
+        android:fillColor="#FFFDF4"
+        android:pathData="M15,68 C27,62 40,63 52,71 L52,93 C39,84 27,84 15,89 Z" />
+    <path
+        android:fillColor="#E4F5EA"
+        android:pathData="M93,68 C81,62 68,63 56,71 L56,93 C69,84 81,84 93,89 Z" />
+    <path
+        android:fillColor="#39C98E"
+        android:pathData="M19,71 C29,67 39,68 49,75 L49,87 C39,81 29,81 19,85 Z" />
+    <path
+        android:fillColor="#1BA875"
+        android:pathData="M89,71 C79,67 69,68 59,75 L59,87 C69,81 79,81 89,85 Z" />
+
+    <!-- Graduation cap -->
+    <path
+        android:fillColor="#FFF6CF"
+        android:pathData="M40,26 L54,18 L68,26 L54,34 Z" />
+    <path
+        android:fillColor="#E5C65C"
+        android:pathData="M45,28 L54,34 L63,28 L63,34 C58,38 50,38 45,34 Z" />
+    <path
+        android:fillColor="#E5C65C"
+        android:pathData="M67,26 L67,36 L70,38 L70,27 Z" />
+
+    <!-- Star / achievement spark -->
+    <path
+        android:fillColor="#F4D46A"
+        android:pathData="M86,18 L88,23 L94,23 L89,27 L91,33 L86,29 L81,33 L83,27 L78,23 L84,23 Z" />
+</vector>
