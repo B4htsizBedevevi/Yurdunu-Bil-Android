@@ -57,7 +57,7 @@ class ModernLaunchActivity : ComponentActivity() {
     }
 
     private fun openAuth(register: Boolean) {
-        startActivity(Intent(this, LaunchActivity::class.java).putExtra("register", register))
+        startActivity(Intent(this, ModernAuthActivity::class.java).putExtra("register", register))
     }
 }
 
