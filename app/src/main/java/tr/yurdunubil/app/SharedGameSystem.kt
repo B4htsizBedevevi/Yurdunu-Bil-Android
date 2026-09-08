@@ -20,16 +20,11 @@ object SharedQuestionPool {
         .distinctBy { it.id }
 
     fun pick(mode: SharedGameMode, seed: Long = System.currentTimeMillis()): List<Question> {
-        val source = if (mode.topics.isEmpty()) {
-            all
-        } else {
-            all.filter { it.topic in mode.topics }
-        }
+        val source = if (mode.topics.isEmpty()) all else all.filter { it.topic in mode.topics }
         if (source.isEmpty()) return emptyList()
-        // Topic/arena modes must stay inside their declared syllabus. If a topic
-        // has fewer questions than requested, return all available questions
-        // instead of silently mixing unrelated subjects into the quiz.
-        return source.shuffled(Random(seed)).take(mode.questions.coerceAtMost(source.size))
+        val count = mode.questions.coerceAtMost(source.size)
+        // Keep a single quiz free of duplicate question ids even when banks grow.
+        return source.distinctBy { it.id }.shuffled(Random(seed)).take(count)
     }
 
     fun topicForLibrary(title: String): Set<String> = when (title) {
@@ -57,6 +52,9 @@ object SharedGameModes {
     val regions = SharedGameMode("regions", "Bölge Avı", "Bölgelerden gelen sorularla seri yap", "🧭", 10, 150, 120, setOf("Bölgeler", "Tarım", "İklim ve Bitki Örtüsü", "Nüfus ve Yerleşme"))
     val mines = SharedGameMode("mines", "Maden Avı", "Maden • merkez • enerji eşleştir", "⛏️", 10, 150, 120, setOf("Maden ve Enerji"))
     val agriculture = SharedGameMode("agriculture", "Tarım Avı", "Ürünleri iklim ve bölgeyle eşleştir", "🌾", 10, 150, 120, setOf("Tarım", "Ekonomik Coğrafya"))
+    val climate = SharedGameMode("climate", "İklim Avı", "İklim • bitki • sıcaklık ilişkilerini yakala", "🌦️", 10, 150, 120, setOf("İklim ve Bitki Örtüsü"))
+    val water = SharedGameMode("water", "Su Varlığı Avı", "Akarsu • göl • baraj sorularında hızlan", "💧", 10, 150, 120, setOf("Su Varlığı"))
+    val population = SharedGameMode("population", "Nüfus Avı", "Nüfus ve yerleşme ilişkilerini çöz", "👥", 10, 150, 120, setOf("Nüfus ve Yerleşme"))
     val chain = SharedGameMode("chain", "Bilgi Zinciri", "Arka arkaya doğru cevaplarla çarpanı artır", "🔥", 12, 180, 160)
     val master = SharedGameMode("master", "Türkiye Ustası", "Karışık, zorlayıcı KPSS coğrafya turu", "🏆", 18, 240, 250)
     val duel = SharedGameMode("duel", "1v1 Bilgi Düellosu", "Aynı soru havuzunda rakibinden hızlı ol", "⚔️", 10, 150, 200, arena = true)
@@ -65,15 +63,18 @@ object SharedGameModes {
     val hardArena = SharedGameMode("master-arena", "Türkiye Ustası Arena", "Zor karışık sorularla lig puanı kovala", "🏆", 15, 180, 300, arena = true)
 
     fun daily(date: LocalDate): SharedGameMode {
-        return when (date.dayOfYear % 4) {
+        return when (date.dayOfYear % 7) {
             0 -> quick
             1 -> regions
             2 -> agriculture
+            3 -> climate
+            4 -> water
+            5 -> population
             else -> chain
         }
     }
 
-    val games = listOf(map, quick, regions, mines, agriculture, chain, master)
+    val games = listOf(map, quick, regions, mines, agriculture, climate, water, population, chain, master)
     val arenaModes = listOf(duel, regionArena, speedArena, hardArena)
 
     fun eventForToday(): SharedGameMode = when (LocalDate.now().dayOfYear % 4) {
