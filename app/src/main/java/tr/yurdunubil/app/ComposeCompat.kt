@@ -1,9 +1,8 @@
 package tr.yurdunubil.app
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedButton as MaterialOutlinedButton
 import androidx.compose.material3.Button as MaterialButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.SaveableStateHolder
@@ -20,5 +19,5 @@ fun Button(onClick: () -> Unit, modifier: Modifier, shape: Shape, colors: Button
 
 @Composable
 fun OutlinedButton(onClick: () -> Unit, modifier: Modifier, shape: Shape, colors: ButtonColors = ButtonDefaults.outlinedButtonColors(), content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {
-    OutlinedButton(onClick = onClick, modifier = modifier, shape = shape, colors = colors, content = content)
+    MaterialOutlinedButton(onClick = onClick, modifier = modifier, shape = shape, colors = colors, content = content)
 }
