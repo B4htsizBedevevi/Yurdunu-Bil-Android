@@ -42,11 +42,14 @@ private fun LaunchGate(onReady: () -> Unit) {
     var loading by remember { mutableStateOf(true) }
     var session by remember { mutableStateOf(false) }
     var profile by remember { mutableStateOf<ProfileGate?>(null) }
+    var confirmationLink by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         delay(180)
+        val currentIntent = (androidx.compose.ui.platform.LocalContext.current as? android.content.Context)
         val current = SupabaseClientProvider.client.auth.currentSessionOrNull()
         session = current != null
+        confirmationLink = false
         if (current != null) {
             profile = loadAuthProfile()
             if (profile?.onboarding_completed == true) onReady()
@@ -57,6 +60,7 @@ private fun LaunchGate(onReady: () -> Unit) {
     Box(Modifier.fillMaxSize()) {
         when {
             loading -> BrandedAuthLoading()
+            confirmationLink && session -> EmailConfirmationScreen(onContinue = onReady, onBackToLogin = onReady)
             !session -> BrandedAuthScreen(onAuthenticated = onReady)
             profile?.onboarding_completed != true -> BrandedProfileOnboarding(existing = profile, onComplete = onReady)
             else -> onReady()
