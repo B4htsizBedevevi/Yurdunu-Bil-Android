@@ -6,8 +6,8 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_yurdunu_bil"
-        android:roundIcon="@drawable/ic_yurdunu_bil"
+        android:icon="@drawable/yurdunu_bil_official"
+        android:roundIcon="@drawable/yurdunu_bil_official"
         android:label="Yurdunu Bil"
         android:supportsRtl="true"
         android:theme="@style/Theme.YurdunuBil">
