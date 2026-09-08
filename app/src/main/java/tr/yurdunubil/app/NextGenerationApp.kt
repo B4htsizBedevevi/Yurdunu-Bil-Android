@@ -38,6 +38,7 @@ fun NextGenerationApp() {
     var tab by remember { mutableIntStateOf(0) }
     var quiz by remember { mutableStateOf<List<Question>?>(null) }
     var quizTitle by remember { mutableStateOf("") }
+    var plannerOpen by remember { mutableStateOf(false) }
 
     fun start(title: String, questions: List<Question>) {
         val safe = questions.filter { it.text.isNotBlank() && it.options.size >= 2 && it.correctIndex in it.options.indices }
@@ -50,6 +51,10 @@ fun NextGenerationApp() {
 
     if (quiz != null) {
         QuizScreen(title = quizTitle, questions = quiz!!, store = store) { quiz = null }
+        return
+    }
+    if (plannerOpen) {
+        StudyPlannerScreen(state, ::start) { plannerOpen = false }
         return
     }
 
@@ -68,7 +73,7 @@ fun NextGenerationApp() {
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (tab) {
-                0 -> HomeScreen(state, ::start)
+                0 -> HomeScreen(state, ::start, onPlanner = { plannerOpen = true })
                 1 -> LibraryScreen(::start)
                 2 -> AtlasScreen(::start)
                 3 -> ArenaScreen(::start)
@@ -79,7 +84,7 @@ fun NextGenerationApp() {
 }
 
 @Composable
-private fun HomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Question>) -> Unit) {
+private fun HomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Question>) -> Unit, onPlanner: () -> Unit) {
     val accuracy = if (state.solved == 0) 0 else (state.correct * 100f / state.solved).roundToInt()
     val wrong = SharedQuestionPool.all.filter { it.id in state.wrongIds }
     val recommended = recommendedQuestions(state, 10)
@@ -87,7 +92,6 @@ private fun HomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Qu
     val dailyGoal = 10
     val today = state.todaySolved.coerceAtMost(dailyGoal)
     val goalDone = state.todaySolved >= dailyGoal
-    val fact = CurrentFactFeed.all[(state.solved + state.todaySolved).mod(CurrentFactFeed.all.size)]
 
     LazyColumn(contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
@@ -108,8 +112,9 @@ private fun HomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Qu
             }
         }
         item {
-            SectionTitle("Bugünün hedefi", if (goalDone) "Bugünlük görev tamam! İstersen devam edelim." else "Az ama düzenli: bugün ${dailyGoal - today} soru daha yeter.")
+            ActionCard("🧭", "Bana bugün ne çalışacağımı söyle", "Kişisel çalışma rotanı hazırla", Gold, Modifier.fillMaxWidth().padding(horizontal = 18.dp), onPlanner)
         }
+        item { SectionTitle("Bugünün hedefi", if (goalDone) "Bugünlük görev tamam! İstersen devam edelim." else "Az ama düzenli: bugün ${dailyGoal - today} soru daha yeter.") }
         item {
             Row(Modifier.padding(horizontal = 18.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 ActionCard("⚡", "Hızlı 10", "Karışık soru", Green, Modifier.weight(1f)) { start("Hızlı 10", SharedQuestionPool.all.shuffled().take(10)) }
@@ -121,7 +126,6 @@ private fun HomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Qu
                 if (wrong.isNotEmpty()) start("Yanlışlarım", wrong.take(20))
             }
         }
-        item { DailyFactCard(fact) }
         item {
             Panel(Mint) {
                 Text("📊 PERFORMANS", color = Green, fontWeight = FontWeight.Black)
@@ -160,25 +164,6 @@ private fun DailyMissionCard(today: Int, goal: Int, done: Boolean, streak: Int, 
                 Text(if (done) "Biraz daha çözelim" else "Bugünün sorularına başla", fontWeight = FontWeight.ExtraBold)
             }
         }
-    }
-}
-
-@Composable
-private fun DailyFactCard(fact: CurrentFact) {
-    Panel(Color.White) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(fact.icon, fontSize = 27.sp)
-            Spacer(Modifier.width(10.dp))
-            Column(Modifier.weight(1f)) {
-                Text("GÜNÜN COĞRAFYA BİLGİSİ", color = Green, fontSize = 11.sp, fontWeight = FontWeight.Black)
-                Text(fact.title, color = Deep, fontSize = 16.sp, fontWeight = FontWeight.Black)
-            }
-            Text(fact.year, color = Color.Gray, fontSize = 11.sp)
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(fact.value, color = Deep, fontSize = 22.sp, fontWeight = FontWeight.Black)
-        Text(fact.detail, color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
-        Text("Kaynak: ${fact.source}", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
     }
 }
 
@@ -279,6 +264,21 @@ private fun ArenaScreen(start: (String, List<Question>) -> Unit) {
                             Text(game.subtitle, color = Color.Gray, fontSize = 12.sp)
                         }
                         Icon(Icons.Default.PlayArrow, null, tint = Green)
+                    }
+                }
+            }
+        }
+        GeographyData.arena.forEach { mode ->
+            item {
+                Panel(Deep, onClick = { start(mode.title, SharedQuestionPool.all.shuffled().take(10)) }) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(mode.icon, fontSize = 27.sp)
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(mode.title, color = Color.White, fontWeight = FontWeight.Black)
+                            Text(mode.subtitle, color = Mint, fontSize = 12.sp)
+                        }
+                        Text(mode.reward, color = Gold, fontWeight = FontWeight.Black)
                     }
                 }
             }
