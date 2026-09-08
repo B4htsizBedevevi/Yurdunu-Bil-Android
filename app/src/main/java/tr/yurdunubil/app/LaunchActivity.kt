@@ -48,16 +48,29 @@ private fun LaunchGate(onReady: () -> Unit, showConfirmation: Boolean) {
     var loading by remember { mutableStateOf(true) }
     var session by remember { mutableStateOf(false) }
     var profile by remember { mutableStateOf<ProfileGate?>(null) }
+    var authCheckFailed by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         delay(250)
-        val current = SupabaseClientProvider.client.auth.currentSessionOrNull()
+        val current = runCatching {
+            SupabaseClientProvider.client.auth.currentSessionOrNull()
+        }.getOrNull()
         session = current != null
         if (current != null) {
             profile = loadAuthProfile()
-            if (profile?.onboarding_completed == true && !showConfirmation) onReady()
+        } else if (authCheckFailed) {
+            authCheckFailed = true
         }
         loading = false
+    }
+
+    // Navigation is deliberately performed from an effect, never directly from
+    // the composition. This prevents repeated startActivity() calls during
+    // recomposition, which can cause the launcher activity to open/close in a loop.
+    LaunchedEffect(loading, session, profile?.onboarding_completed, showConfirmation) {
+        if (!loading && session && !showConfirmation && profile?.onboarding_completed == true) {
+            onReady()
+        }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -66,7 +79,7 @@ private fun LaunchGate(onReady: () -> Unit, showConfirmation: Boolean) {
             showConfirmation && session -> EmailConfirmationScreen(onContinue = onReady, onBackToLogin = onReady)
             !session -> BrandedAuthScreen(onAuthenticated = onReady)
             profile?.onboarding_completed != true -> BrandedProfileOnboarding(existing = profile, onComplete = onReady)
-            else -> onReady()
+            else -> BrandedAuthLoading()
         }
     }
 }
