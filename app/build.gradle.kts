@@ -1,3 +1,4 @@
+import java.util.Base64
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -36,7 +37,7 @@ android {
                 ?.joinToString("") { it.readText().trim() }
                 ?: error("Official icon source chunks are missing")
             generatedIcon.parentFile.mkdirs()
-            generatedIcon.writeBytes(java.util.Base64.getDecoder().decode(chunks))
+            generatedIcon.writeBytes(Base64.getDecoder().decode(chunks))
         }
     }
     tasks.named("preBuild").configure { dependsOn(generateOfficialIcon) }
