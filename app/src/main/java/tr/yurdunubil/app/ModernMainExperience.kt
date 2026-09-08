@@ -1,0 +1,351 @@
+package tr.yurdunubil.app
+
+import android.app.Activity
+import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
+
+private data class YBPalette(
+    val bg: Color, val card: Color, val elevated: Color, val text: Color, val muted: Color,
+    val green: Color, val mint: Color, val gold: Color, val red: Color, val line: Color
+)
+
+private val Light = YBPalette(Color(0xFFF2F7F4), Color.White, Color(0xFFE8F2ED), Color(0xFF08241C), Color(0xFF71847C), Color(0xFF16C98A), Color(0xFFC9F8E1), Color(0xFFFFC857), Color(0xFFE65353), Color(0xFFDCEAE4))
+private val Dark = YBPalette(Color(0xFF061512), Color(0xFF0D211C), Color(0xFF133129), Color(0xFFF2FBF7), Color(0xFF9AB3A9), Color(0xFF24D995), Color(0xFF163D31), Color(0xFFFFC857), Color(0xFFFF6B6B), Color(0xFF23483D))
+
+@Composable
+fun YurdunuBilModernApp() {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("yurdunu_bil_native", 0) }
+    var darkMode by remember { mutableStateOf(prefs.getBoolean("dark_theme", false)) }
+    val p = if (darkMode) Dark else Light
+    var tab by rememberSaveable { mutableIntStateOf(0) }
+    var studyTopic by remember { mutableStateOf<Topic?>(null) }
+    var province by remember { mutableStateOf<Province?>(null) }
+    var quiz by remember { mutableStateOf<List<Question>?>(null) }
+    var quizTitle by remember { mutableStateOf("") }
+    var arenaFocus by rememberSaveable { mutableStateOf(false) }
+    val holder = rememberSaveableStateHolder()
+
+    fun launchQuiz(title: String, mode: SharedGameMode) {
+        val picked = SharedQuestionPool.pick(mode)
+        if (picked.isNotEmpty()) {
+            quizTitle = title
+            quiz = picked
+            prefs.edit().putString("last_activity", title).apply()
+        }
+    }
+
+    BackHandler(enabled = studyTopic != null || province != null || quiz != null || tab != 0) {
+        when {
+            quiz != null -> quiz = null
+            studyTopic != null -> studyTopic = null
+            province != null -> province = null
+            tab != 0 -> tab = 0
+        }
+    }
+
+    if (studyTopic != null) {
+        DeepLessonScreen(studyTopic!!, p, prefs, onBack = { studyTopic = null }) {
+            studyTopic = null
+            launchQuiz(studyTopic?.title ?: "Konu Testi", SharedGameMode("study", "Konu Testi", "", "📚", 10, 180, 100, SharedQuestionPool.topicForLibrary(studyTopic?.title ?: "")))
+        }
+        return
+    }
+    if (province != null) {
+        ProvinceDetailModern(province!!, p, onBack = { province = null })
+        return
+    }
+    if (quiz != null) {
+        QuizModern(quizTitle, quiz!!, p, prefs, onDone = { quiz = null })
+        return
+    }
+
+    MaterialTheme(colorScheme = if (darkMode) darkColorScheme(primary = p.green, background = p.bg, surface = p.card, onSurface = p.text) else lightColorScheme(primary = p.green, background = p.bg, surface = p.card, onSurface = p.text)) {
+        Scaffold(
+            containerColor = p.bg,
+            bottomBar = {
+                NavigationBar(containerColor = p.card, tonalElevation = 8.dp) {
+                    val nav = listOf("Ana Sayfa" to Icons.Default.Home, "Kütüphane" to Icons.Default.MenuBook, "Etkinlikler" to Icons.Default.SportsEsports, "Ayarlar" to Icons.Default.Settings)
+                    nav.forEachIndexed { i, item ->
+                        NavigationBarItem(selected = tab == i, onClick = { tab = i; if (i != 2) arenaFocus = false }, icon = { Icon(item.second, item.first) }, label = { Text(item.first, fontSize = 10.sp) }, colors = NavigationBarItemDefaults.colors(selectedIconColor = p.text, selectedTextColor = p.text, indicatorColor = p.green.copy(alpha = .18f), unselectedIconColor = p.muted, unselectedTextColor = p.muted))
+                    }
+                }
+            }
+        ) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding)) {
+                holder.SaveableStateProvider("tab-$tab") {
+                    when (tab) {
+                        0 -> HomeModern(p, prefs, onQuick = { launchQuiz("Hızlı 10", SharedGameModes.quick) }, onArena = { arenaFocus = true; tab = 2 })
+                        1 -> LibraryModern(p, onStudy = { studyTopic = it }, onProvince = { province = it })
+                        2 -> EventsModern(p, focusArena = arenaFocus, onLaunch = { launchQuiz(it.title, it) })
+                        else -> SettingsModern(p, prefs, darkMode, onDark = { value -> darkMode = value; prefs.edit().putBoolean("dark_theme", value).apply() })
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeModern(p: YBPalette, prefs: SharedPreferences, onQuick: () -> Unit, onArena: () -> Unit) {
+    val list = rememberLazyListState()
+    val solved = prefs.getInt("solved", 0)
+    val correct = prefs.getInt("correct", 0)
+    val xp = prefs.getInt("xp", 0)
+    val streak = prefs.getInt("streak", 0)
+    val accuracy = if (solved == 0) 0 else (correct * 100f / solved).roundToInt()
+    LazyColumn(state = list, contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+        item { HomeHeader(p, xp, solved, streak) }
+        item {
+            ModernCard(p, modifier = Modifier.padding(horizontal = 16.dp), dark = false) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("🎯", fontSize = 34.sp)
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) { SmallEyebrow("BUGÜNÜN GÖREVİ", p.green); Text(SharedQuestionPool.dailyMode().title, color = p.text, fontSize = 20.sp, fontWeight = FontWeight.Black); Text("Kısa bir coğrafya turuyla ritmini koru.", color = p.muted, fontSize = 12.sp) }
+                }
+                Spacer(Modifier.height(13.dp))
+                PrimaryButton("Başla • 10 Soru", p, onQuick)
+            }
+        }
+        item {
+            Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
+                MiniModernCard(p, "⚡", "Hızlı 10", "10 soru", onQuick, Modifier.weight(1f))
+                MiniModernCard(p, "🔥", "Bilgi Zinciri", "Serini büyüt", { onQuick() }, Modifier.weight(1f))
+            }
+        }
+        item {
+            ModernCard(p, modifier = Modifier.padding(horizontal = 16.dp), dark = true, darkBrush = listOf(Color(0xFF05251D), Color(0xFF0B4B3A))) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("⚔️", fontSize = 34.sp)
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) { SmallEyebrow("ARENA", p.gold); Text("Bilgini sahaya çıkar.", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black); Text("1v1 • hız • bölge • Türkiye Ustası", color = Color.White.copy(alpha = .68f), fontSize = 12.sp) }
+                }
+                Spacer(Modifier.height(13.dp))
+                Button(onClick = onArena, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = p.gold, contentColor = Color(0xFF142117))) { Text("Arena'ya Git", fontWeight = FontWeight.Black) }
+            }
+        }
+        item {
+            ModernCard(p, modifier = Modifier.padding(horizontal = 16.dp)) {
+                SmallEyebrow("GELİŞİMİN", p.green)
+                Text("%$accuracy genel doğruluk", color = p.text, fontSize = 21.sp, fontWeight = FontWeight.Black)
+                Text(if (solved == 0) "İlk testini çöz ve ilerlemeni başlat." else "$correct doğru cevapla devam ediyorsun.", color = p.muted, fontSize = 12.sp)
+                Spacer(Modifier.height(11.dp))
+                LinearProgressIndicator(progress = { accuracy / 100f }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(8.dp)), color = p.green, trackColor = p.elevated)
+            }
+        }
+        item {
+            ModernCard(p, modifier = Modifier.padding(horizontal = 16.dp)) {
+                SmallEyebrow("DEVAM ET", p.gold)
+                val last = prefs.getString("last_activity", "Henüz çalışma yok") ?: "Henüz çalışma yok"
+                Text(last, color = p.text, fontSize = 17.sp, fontWeight = FontWeight.Black)
+                Text("Son yaptığın çalışmaya kaldığın yerden devam et.", color = p.muted, fontSize = 12.sp)
+            }
+        }
+    }
+}
+
+@Composable private fun HomeHeader(p: YBPalette, xp: Int, solved: Int, streak: Int) {
+    Box(Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(Color(0xFF06241C), Color(0xFF0A4A39), Color(0xFF0D7253))), RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)).statusBarsPadding().padding(horizontal = 22.dp, vertical = 22.dp)) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) { Text("Yurdunu Bil", color = Color.White, fontSize = 29.sp, fontWeight = FontWeight.Black); Text("KPSS Önlisans • Türkiye Coğrafyası", color = p.mint, fontSize = 11.sp) }
+                Surface(shape = RoundedCornerShape(12.dp), color = Color.White.copy(alpha = .10f)) { Text("Lv.${1 + xp / 500}", color = Color.White, fontWeight = FontWeight.Black, modifier = Modifier.padding(horizontal = 11.dp, vertical = 8.dp)) }
+            }
+            Spacer(Modifier.height(19.dp))
+            Text("Bugün Türkiye'yi biraz daha çöz. ✨", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
+            Spacer(Modifier.height(14.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) { HeaderStat("$solved", "SORU"); HeaderStat("$xp", "XP"); HeaderStat("$streak", "SERİ") }
+        }
+    }
+}
+
+@Composable private fun HeaderStat(value: String, label: String) { Column(Modifier.clip(RoundedCornerShape(13.dp)).background(Color.White.copy(alpha = .09f)).padding(horizontal = 12.dp, vertical = 8.dp)) { Text(value, color = Color.White, fontWeight = FontWeight.Black, fontSize = 15.sp); Text(label, color = Color.White.copy(alpha = .58f), fontSize = 7.sp) } }
+@Composable private fun SmallEyebrow(text: String, color: Color) { Text(text, color = color, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp) }
+
+@Composable private fun MiniModernCard(p: YBPalette, icon: String, title: String, subtitle: String, onClick: () -> Unit, modifier: Modifier) {
+    ModernCard(p, modifier = modifier.clickable(onClick = onClick)) { Text(icon, fontSize = 28.sp); Spacer(Modifier.height(7.dp)); Text(title, color = p.text, fontSize = 15.sp, fontWeight = FontWeight.Black); Text(subtitle, color = p.green, fontSize = 10.sp, fontWeight = FontWeight.Bold) }
+}
+
+@Composable private fun ModernCard(p: YBPalette, modifier: Modifier = Modifier, dark: Boolean = false, darkBrush: List<Color> = listOf(Color(0xFF06241C), Color(0xFF0B4B3A)), content: @Composable ColumnScope.() -> Unit) {
+    Card(modifier = modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp), colors = CardDefaults.cardColors(containerColor = if (dark) Color.Transparent else p.card)) {
+        if (dark) Column(Modifier.background(Brush.linearGradient(darkBrush)).padding(17.dp), content = content) else Column(Modifier.padding(17.dp), content = content)
+    }
+}
+
+@Composable private fun PrimaryButton(text: String, p: YBPalette, onClick: () -> Unit) { Button(onClick = onClick, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = p.green, contentColor = Color(0xFF052219))) { Text(text, fontWeight = FontWeight.Black) } }
+
+@Composable
+private fun LibraryModern(p: YBPalette, onStudy: (Topic) -> Unit, onProvince: (Province) -> Unit) {
+    var search by rememberSaveable { mutableStateOf("") }
+    val list = rememberLazyListState()
+    val topics = GeographyData.topics.filter { it.title.contains(search, true) || it.subtitle.contains(search, true) }
+    LazyColumn(state = list, contentPadding = PaddingValues(16.dp, 10.dp, 16.dp, 28.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
+        item { Text("Kütüphane", color = p.text, fontSize = 29.sp, fontWeight = FontWeight.Black); Text("Önce oku → anla → sonra test et.", color = p.green, fontSize = 12.sp, fontWeight = FontWeight.Bold); Spacer(Modifier.height(8.dp)); OutlinedTextField(value = search, onValueChange = { search = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, shape = RoundedCornerShape(17.dp), label = { Text("Konu ara") }, leadingIcon = { Icon(Icons.Default.Search, null) }, colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = p.green, unfocusedBorderColor = p.line, focusedLabelColor = p.green, cursorColor = p.green, focusedTextColor = p.text, unfocusedTextColor = p.text)) }
+        item { ModernCard(p, dark = true) { SmallEyebrow("ÇALIŞMA KÜTÜPHANESİ", p.mint); Text("12 ana konu • derinlemesine çalışma", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black); Text("Her konu artık uzun anlatım, temel kavramlar, sınav tuzakları ve hatırlama kartlarıyla açılıyor.", color = Color.White.copy(alpha = .70f), fontSize = 12.sp, lineHeight = 18.sp) } }
+        item { Text("Konu Bankası", color = p.text, fontSize = 19.sp, fontWeight = FontWeight.Black) }
+        items(topics, key = { it.title }) { topic -> TopicModernCard(p, topic) { onStudy(topic) } }
+        item { Spacer(Modifier.height(8.dp)); Text("İl Keşfi", color = p.text, fontSize = 19.sp, fontWeight = FontWeight.Black); Text("İl → bölge → özellik bağlantısını kur.", color = p.muted, fontSize = 11.sp) }
+        items(GeographyData.provinces, key = { it.name }) { city -> ProvinceModernCard(p, city) { onProvince(city) } }
+    }
+}
+
+@Composable private fun TopicModernCard(p: YBPalette, topic: Topic, onClick: () -> Unit) {
+    ModernCard(p, modifier = Modifier.clickable(onClick = onClick)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Surface(shape = RoundedCornerShape(15.dp), color = p.elevated) { Text(topic.icon, fontSize = 27.sp, modifier = Modifier.padding(10.dp)) }
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) { Text(topic.title, color = p.text, fontWeight = FontWeight.Black, fontSize = 16.sp); Text(topic.subtitle, color = p.muted, fontSize = 11.sp, maxLines = 2, overflow = TextOverflow.Ellipsis); Spacer(Modifier.height(5.dp)); Text("Ders sayfasını aç →", color = p.green, fontSize = 10.sp, fontWeight = FontWeight.Bold) }
+            Icon(Icons.Default.ChevronRight, null, tint = p.green)
+        }
+    }
+}
+
+@Composable private fun ProvinceModernCard(p: YBPalette, city: Province, onClick: () -> Unit) {
+    ModernCard(p, modifier = Modifier.clickable(onClick = onClick)) {
+        Row(verticalAlignment = Alignment.CenterVertically) { Text("📍", fontSize = 24.sp); Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text(city.name, color = p.text, fontWeight = FontWeight.Black); Text(city.region, color = p.green, fontSize = 10.sp, fontWeight = FontWeight.Bold); Text(city.clue, color = p.muted, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis) }; Icon(Icons.Default.ChevronRight, null, tint = p.green) }
+    }
+}
+
+@Composable
+private fun DeepLessonScreen(topic: Topic, p: YBPalette, prefs: SharedPreferences, onBack: () -> Unit, onQuiz: () -> Unit) {
+    val lesson = remember(topic.title) { DeepLibrary.forTopic(topic) }
+    val scroll = rememberScrollState()
+    val readSet = prefs.getStringSet("read_topics", emptySet()) ?: emptySet()
+    val read = topic.title in readSet
+    Column(Modifier.fillMaxSize().background(p.bg).statusBarsPadding().navigationBarsPadding()) {
+        Row(Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Geri", tint = p.text) }; Column(Modifier.weight(1f)) { SmallEyebrow("DERS SAYFASI", p.green); Text(topic.title, color = p.text, fontSize = 21.sp, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis) }; Text(topic.icon, fontSize = 21.sp) }
+        Column(Modifier.fillMaxSize().verticalScroll(scroll).padding(horizontal = 16.dp, vertical = 5.dp)) {
+            ModernCard(p, dark = true) { Text(lesson.title, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(6.dp)); Text(lesson.subtitle, color = p.mint, fontSize = 12.sp, fontWeight = FontWeight.Bold); Spacer(Modifier.height(10.dp)); Text(lesson.summary, color = Color.White.copy(alpha = .86f), fontSize = 14.sp, lineHeight = 21.sp) }
+            Spacer(Modifier.height(12.dp))
+            lesson.sections.forEach { section ->
+                ModernCard(p) { Text(section.title, color = p.text, fontSize = 17.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(6.dp)); Text(section.body, color = p.muted, fontSize = 13.sp, lineHeight = 20.sp); section.bullets.forEach { bullet -> Spacer(Modifier.height(6.dp)); Row(verticalAlignment = Alignment.Top) { Text("•", color = p.green, fontWeight = FontWeight.Black); Spacer(Modifier.width(8.dp)); Text(bullet, color = p.text, fontSize = 12.sp, lineHeight = 18.sp, modifier = Modifier.weight(1f)) } } }
+                Spacer(Modifier.height(11.dp))
+            }
+            ModernCard(p) { Row(verticalAlignment = Alignment.Top) { Icon(Icons.Default.Warning, null, tint = p.gold); Spacer(Modifier.width(10.dp)); Column { SmallEyebrow("ÖSYM / KPSS TUZAĞI", p.gold); Spacer(Modifier.height(5.dp)); Text(lesson.examTrap, color = p.text, fontSize = 13.sp, lineHeight = 20.sp) } } }
+            Spacer(Modifier.height(11.dp))
+            ModernCard(p) { SmallEyebrow("KENDİNİ YOKLA", p.green); lesson.recall.forEachIndexed { i, q -> Spacer(Modifier.height(8.dp)); Text("${i + 1}. $q", color = p.text, fontSize = 13.sp, lineHeight = 19.sp) } }
+            Spacer(Modifier.height(12.dp))
+            Button(onClick = { val next = readSet.toMutableSet(); if (!read) next.add(topic.title) else next.remove(topic.title); prefs.edit().putStringSet("read_topics", next).apply() }, modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = if (read) p.elevated else p.green, contentColor = if (read) p.text else Color(0xFF052219))) { Icon(if (read) Icons.Default.CheckCircle else Icons.Default.MenuBook, null); Spacer(Modifier.width(7.dp)); Text(if (read) "Konu okundu • Tekrar işaretle" else "Bu konuyu okudum", fontWeight = FontWeight.Black) }
+            Spacer(Modifier.height(9.dp))
+            PrimaryButton("Şimdi Konuyu Test Et", p, onQuiz)
+            Spacer(Modifier.height(22.dp))
+        }
+    }
+}
+
+@Composable
+private fun ProvinceDetailModern(city: Province, p: YBPalette, onBack: () -> Unit) {
+    val list = rememberLazyListState()
+    LazyColumn(state = list, contentPadding = PaddingValues(16.dp, 5.dp, 16.dp, 28.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
+        item { Row(verticalAlignment = Alignment.CenterVertically) { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Geri", tint = p.text) }; Column { Text(city.name, color = p.text, fontSize = 25.sp, fontWeight = FontWeight.Black); Text(city.region, color = p.green, fontWeight = FontWeight.Bold) } } }
+        item { ModernCard(p, dark = true) { SmallEyebrow("COĞRAFYA KARTI", p.mint); Text(city.clue, color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Black, lineHeight = 25.sp) } }
+        item { Text("Bilmen Gerekenler", color = p.text, fontSize = 19.sp, fontWeight = FontWeight.Black) }
+        items(city.facts) { fact -> ModernCard(p) { Row(verticalAlignment = Alignment.Top) { Text("✓", color = p.green, fontWeight = FontWeight.Black); Spacer(Modifier.width(10.dp)); Text(fact, color = p.text, fontSize = 13.sp, lineHeight = 19.sp) } } }
+    }
+}
+
+@Composable
+private fun EventsModern(p: YBPalette, focusArena: Boolean, onLaunch: (SharedGameMode) -> Unit) {
+    val list = rememberLazyListState()
+    val games = SharedGameModes.games
+    val arena = SharedGameModes.arenaModes
+    LazyColumn(state = list, contentPadding = PaddingValues(16.dp, 10.dp, 16.dp, 28.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
+        item { Text("Etkinlikler", color = p.text, fontSize = 29.sp, fontWeight = FontWeight.Black); Text("Öğren, yarış, tekrar et.", color = p.green, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+        item { ModernCard(p, dark = true) { SmallEyebrow("ARENA", p.gold); Text("Sahaya çık, puanını yükselt.", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black); Text("Buradan doğrudan arena modunu seç. Ana sayfadaki Arena kartı da artık buraya gelir.", color = Color.White.copy(alpha = .72f), fontSize = 12.sp, lineHeight = 18.sp) } }
+        item { Text("Arena Modları", color = p.text, fontSize = 19.sp, fontWeight = FontWeight.Black) }
+        items(arena, key = { it.id }) { mode -> EventCard(p, mode, onLaunch) }
+        item { Spacer(Modifier.height(5.dp)); Text("Çalışma Oyunları", color = p.text, fontSize = 19.sp, fontWeight = FontWeight.Black) }
+        items(games, key = { it.id }) { mode -> EventCard(p, mode, onLaunch) }
+    }
+}
+
+@Composable private fun EventCard(p: YBPalette, mode: SharedGameMode, onLaunch: (SharedGameMode) -> Unit) {
+    ModernCard(p, modifier = Modifier.clickable { onLaunch(mode) }) { Row(verticalAlignment = Alignment.CenterVertically) { Surface(shape = RoundedCornerShape(15.dp), color = if (mode.arena) p.gold.copy(alpha = .14f) else p.elevated) { Text(mode.icon, fontSize = 27.sp, modifier = Modifier.padding(10.dp)) }; Spacer(Modifier.width(12.dp)); Column(Modifier.weight(1f)) { Text(mode.title, color = p.text, fontSize = 16.sp, fontWeight = FontWeight.Black); Text(mode.subtitle, color = p.muted, fontSize = 11.sp, lineHeight = 17.sp); Spacer(Modifier.height(4.dp)); Text("${mode.questions} soru • +${mode.rewardXp} XP", color = if (mode.arena) p.gold else p.green, fontSize = 10.sp, fontWeight = FontWeight.Black) }; Icon(Icons.Default.PlayArrow, null, tint = p.green) } }
+}
+
+@Composable
+private fun SettingsModern(p: YBPalette, prefs: SharedPreferences, darkMode: Boolean, onDark: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+    var notifications by remember { mutableStateOf(prefs.getBoolean("notifications_enabled", false)) }
+    val solved = prefs.getInt("solved", 0); val xp = prefs.getInt("xp", 0)
+    LazyColumn(contentPadding = PaddingValues(16.dp, 10.dp, 16.dp, 28.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
+        item { Text("Ayarlar", color = p.text, fontSize = 29.sp, fontWeight = FontWeight.Black); Text("Uygulamayı kendi çalışma düzenine göre ayarla.", color = p.muted, fontSize = 12.sp) }
+        item { ModernCard(p) { SettingLine(p, "🌙", "Karanlık tema", "Göz yormayan koyu arayüz", Switch(checked = darkMode, onCheckedChange = onDark, colors = SwitchDefaults.colors(checkedThumbColor = p.green, checkedTrackColor = p.green.copy(alpha = .28f)))) } }
+        item {
+            ModernCard(p) {
+                SettingLine(p, "🔔", "Bildirimler", "Günlük 20:00 çalışma hatırlatması", Switch(checked = notifications, onCheckedChange = { enabled ->
+                    if (enabled && android.os.Build.VERSION.SDK_INT >= 33 && activity?.checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) activity.requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 9001)
+                    notifications = enabled
+                    prefs.edit().putBoolean("notifications_enabled", enabled).apply()
+                    if (enabled) NotificationHelper.scheduleDaily(context) else NotificationHelper.cancelDaily(context)
+                }, colors = SwitchDefaults.colors(checkedThumbColor = p.green, checkedTrackColor = p.green.copy(alpha = .28f))))
+                Spacer(Modifier.height(9.dp))
+                OutlinedButton(onClick = { if (NotificationHelper.canNotify(context)) NotificationHelper.sendTest(context) else if (android.os.Build.VERSION.SDK_INT >= 33) activity?.requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 9001) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(15.dp), colors = ButtonDefaults.outlinedButtonColors(contentColor = p.green)) { Icon(Icons.Default.NotificationsActive, null); Spacer(Modifier.width(7.dp)); Text("Test bildirimi gönder", fontWeight = FontWeight.Bold) }
+            }
+        }
+        item { ModernCard(p) { SmallEyebrow("İLERLEME", p.green); SettingText(p, "Çözülen soru", solved.toString()); SettingText(p, "Kazanılan XP", xp.toString()); SettingText(p, "Doğru cevap", prefs.getInt("correct", 0).toString()); SettingText(p, "Yanlış cevap", prefs.getInt("wrong", 0).toString()) } }
+        item { ModernCard(p) { SmallEyebrow("UYGULAMA", p.gold); Text("Yurdunu Bil • 0.3.0", color = p.text, fontSize = 16.sp, fontWeight = FontWeight.Black); Text("Stabil gezinme • kalıcı oturum • derin kütüphane • tema • bildirimler", color = p.muted, fontSize = 11.sp, lineHeight = 17.sp) } }
+    }
+}
+
+@Composable private fun SettingLine(p: YBPalette, icon: String, title: String, subtitle: String, control: @Composable () -> Unit) { Row(verticalAlignment = Alignment.CenterVertically) { Text(icon, fontSize = 23.sp); Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text(title, color = p.text, fontWeight = FontWeight.Black); Text(subtitle, color = p.muted, fontSize = 10.sp) }; control() } }
+@Composable private fun SettingText(p: YBPalette, title: String, value: String) { Row(Modifier.fillMaxWidth().padding(top = 9.dp), horizontalArrangement = Arrangement.SpaceBetween) { Text(title, color = p.muted, fontSize = 12.sp); Text(value, color = p.text, fontWeight = FontWeight.Black) } }
+
+@Composable
+private fun QuizModern(title: String, questions: List<Question>, p: YBPalette, prefs: SharedPreferences, onDone: () -> Unit) {
+    var index by rememberSaveable(title) { mutableIntStateOf(0) }
+    var selected by rememberSaveable(title) { mutableIntStateOf(-1) }
+    var correct by rememberSaveable(title) { mutableIntStateOf(0) }
+    var wrong by rememberSaveable(title) { mutableIntStateOf(0) }
+    var finished by rememberSaveable(title) { mutableStateOf(false) }
+    val q = questions.getOrNull(index)
+    Column(Modifier.fillMaxSize().background(p.bg).statusBarsPadding().navigationBarsPadding().padding(16.dp)) {
+        if (finished || q == null) {
+            ModernCard(p, dark = true) { Text("TEST TAMAMLANDI 🎉", color = p.mint, fontSize = 11.sp, fontWeight = FontWeight.Black); Text(title, color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(14.dp)); Text("$correct doğru • $wrong yanlış", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black); Text("${questions.size} soruda %${if (questions.isEmpty()) 0 else (correct * 100f / questions.size).roundToInt()} başarı", color = Color.White.copy(alpha = .72f), fontSize = 13.sp); Spacer(Modifier.height(15.dp)); PrimaryButton("Devam Et", p, onDone) }
+            return
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) { IconButton(onClick = onDone) { Icon(Icons.Default.ArrowBack, "Çık", tint = p.text) }; Column(Modifier.weight(1f)) { SmallEyebrow(title, p.green); Text("Soru ${index + 1} / ${questions.size}", color = p.text, fontWeight = FontWeight.Black) } }
+        LinearProgressIndicator(progress = { (index + 1f) / questions.size }, modifier = Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(7.dp)), color = p.green, trackColor = p.elevated)
+        Spacer(Modifier.height(13.dp))
+        ModernCard(p) { Text(q.text, color = p.text, fontSize = 17.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold) }
+        Spacer(Modifier.height(11.dp))
+        q.options.forEachIndexed { i, option ->
+            val chosen = selected == i
+            val isCorrect = q.correctIndex == i
+            val bg = when { selected == -1 -> p.card; chosen && isCorrect -> p.green.copy(alpha = .18f); chosen && !isCorrect -> p.red.copy(alpha = .16f); selected != -1 && isCorrect -> p.green.copy(alpha = .12f); else -> p.card }
+            Card(Modifier.fillMaxWidth().padding(bottom = 8.dp).clickable(enabled = selected == -1) { selected = i; if (i == q.correctIndex) correct++ else wrong++ }, shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = bg), border = if (selected != -1 && (chosen || isCorrect)) androidx.compose.foundation.BorderStroke(1.dp, if (isCorrect) p.green else p.red) else null) { Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) { Text("${('A'.code + i).toChar()}", color = p.green, fontWeight = FontWeight.Black); Spacer(Modifier.width(10.dp)); Text(option, color = p.text, fontSize = 13.sp, lineHeight = 19.sp, modifier = Modifier.weight(1f)) } }
+        }
+        if (selected != -1) {
+            ModernCard(p) { SmallEyebrow(if (selected == q.correctIndex) "DOĞRU" else "YANLIŞ", if (selected == q.correctIndex) p.green else p.red); Text(q.explanation, color = p.text, fontSize = 12.sp, lineHeight = 18.sp); Spacer(Modifier.height(9.dp)); PrimaryButton(if (index + 1 == questions.size) "Sonucu Gör" else "Sonraki Soru", p) { if (index + 1 == questions.size) { val total = questions.size; prefs.edit().putInt("solved", prefs.getInt("solved", 0) + total).putInt("correct", prefs.getInt("correct", 0) + correct).putInt("wrong", prefs.getInt("wrong", 0) + wrong).putInt("xp", prefs.getInt("xp", 0) + (correct * 10)).apply(); finished = true } else { index++; selected = -1 } } }
+        }
+    }
+}
