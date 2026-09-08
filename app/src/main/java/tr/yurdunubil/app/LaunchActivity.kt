@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -11,11 +13,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.handleDeeplinks
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 class LaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,4 +69,13 @@ private fun LaunchGate(onReady: () -> Unit, showConfirmation: Boolean) {
             else -> onReady()
         }
     }
+}
+
+private suspend fun loadAuthProfile(): ProfileGate? = withContext(Dispatchers.IO) {
+    runCatching {
+        val user = SupabaseClientProvider.client.auth.currentSessionOrNull()?.user ?: return@runCatching null
+        SupabaseClientProvider.client.postgrest["profiles"].select {
+            filter { eq("id", user.id) }
+        }.decodeList<ProfileGate>().firstOrNull()
+    }.getOrNull()
 }
