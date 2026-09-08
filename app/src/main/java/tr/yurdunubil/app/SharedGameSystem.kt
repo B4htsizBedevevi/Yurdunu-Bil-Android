@@ -19,7 +19,7 @@ data class SharedGameMode(
 object SharedQuestionPool {
     val all: List<Question> = (
         FullQuestionBank.all + ExpansionQuestionBank.all + NextQuestionBank.all +
-            SourceDerivedQuestionPool.all + SourceDerivedQuestionBank.all
+            SourceDerivedQuestionPool.all + SourceDerivedQuestionBankV2.all
     ).distinctBy { it.id }
 
     fun pick(mode: SharedGameMode, seed: Long = System.currentTimeMillis()): List<Question> {
