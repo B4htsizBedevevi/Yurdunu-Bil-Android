@@ -1,9 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#31E39D" android:pathData="M27,31 L44,24 L61,31 L78,24 L78,76 L61,84 L44,77 L27,84 Z" />
-    <path android:fillColor="#B9FFE1" android:pathData="M46,29 L59,35 L59,78 L46,73 Z" />
-    <path android:fillColor="#168A61" android:pathData="M63,35 L74,30 L74,73 L63,78 Z" />
-    <path android:fillColor="#FFFFFF" android:pathData="M54,37 C49,37 45,41 45,46 C45,53 54,62 54,62 C54,62 63,53 63,46 C63,41 59,37 54,37 Z" />
-    <path android:fillColor="#06231A" android:pathData="M54,42 A4,4 0,1 0,54 50 A4,4 0,1 0,54 42" />
-    <path android:fillColor="#F4D46A" android:pathData="M79,19 L81,24 L87,24 L82,28 L84,34 L79,30 L74,34 L76,28 L71,24 L77,24 Z" />
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Open atlas/book -->
+    <path android:fillColor="#F7FFF9" android:pathData="M18,31 C29,25 40,27 54,36 L54,82 C40,73 29,72 18,78 Z" />
+    <path android:fillColor="#D9F8E9" android:pathData="M90,31 C79,25 68,27 54,36 L54,82 C68,73 79,72 90,78 Z" />
+    <path android:fillColor="#7DE8B8" android:pathData="M20,34 C30,30 40,32 50,38 L50,73 C40,68 30,67 20,71 Z" />
+    <path android:fillColor="#43C991" android:pathData="M88,34 C78,30 68,32 58,38 L58,73 C68,68 78,67 88,71 Z" />
+
+    <!-- Turkey/map-inspired contour silhouette -->
+    <path android:fillColor="#0A5E45" android:pathData="M27,48 L34,44 L41,45 L47,42 L54,44 L60,41 L67,44 L75,43 L82,48 L76,53 L69,55 L65,61 L57,59 L51,63 L45,59 L38,61 L33,56 L27,55 Z" />
+    <path android:fillColor="#2BE0A0" android:pathData="M31,49 L37,47 L43,48 L48,45 L54,47 L60,44 L66,47 L73,46 L78,49 L72,52 L66,53 L62,58 L56,56 L51,60 L46,56 L39,58 L35,53 L30,53 Z" />
+
+    <!-- Location pin -->
+    <path android:fillColor="#FFFFFF" android:pathData="M54,38 C47,38 42,43 42,50 C42,59 54,69 54,69 C54,69 66,59 66,50 C66,43 61,38 54,38 Z" />
+    <path android:fillColor="#06271F" android:pathData="M54,44 A6,6 0,1 0,54,56 A6,6 0,1 0,54,44" />
+
+    <!-- Graduation cap -->
+    <path android:fillColor="#F4D46A" android:pathData="M42,29 L54,23 L66,29 L54,35 Z" />
+    <path android:fillColor="#D7AE3E" android:pathData="M46,31 L54,35 L62,31 L62,36 C57,40 51,40 46,36 Z" />
+    <path android:fillColor="#F4D46A" android:pathData="M65,29 L65,38 L68,40 L68,30 Z" />
+
+    <!-- Compass/route accent -->
+    <path android:fillColor="#F4D46A" android:pathData="M78,70 L84,65 L82,73 L74,77 Z" />
 </vector>
