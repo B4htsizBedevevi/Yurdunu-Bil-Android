@@ -19,12 +19,20 @@ object SharedQuestionPool {
     val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all)
         .distinctBy { it.id }
 
+    private fun shuffleOptions(question: Question, seed: Long): Question {
+        val pairs = question.options.mapIndexed { index, option -> index to option }.shuffled(Random(seed xor question.id.toLong()))
+        val correctIndex = pairs.indexOfFirst { it.first == question.correctIndex }
+        return question.copy(options = pairs.map { it.second }, correctIndex = correctIndex)
+    }
+
     fun pick(mode: SharedGameMode, seed: Long = System.currentTimeMillis()): List<Question> {
         val source = if (mode.topics.isEmpty()) all else all.filter { it.topic in mode.topics }
         if (source.isEmpty()) return emptyList()
         val count = mode.questions.coerceAtMost(source.size)
-        // Keep a single quiz free of duplicate question ids even when banks grow.
-        return source.distinctBy { it.id }.shuffled(Random(seed)).take(count)
+        return source.distinctBy { it.id }
+            .shuffled(Random(seed))
+            .take(count)
+            .map { shuffleOptions(it, seed) }
     }
 
     fun topicForLibrary(title: String): Set<String> = when (title) {
@@ -62,16 +70,14 @@ object SharedGameModes {
     val regionArena = SharedGameMode("region-arena", "Bölge Savaşı", "Seçilen bölge uzmanlığını puana çevir", "🗺️", 10, 150, 220, setOf("Bölgeler", "Tarım", "İklim ve Bitki Örtüsü"), arena = true)
     val hardArena = SharedGameMode("master-arena", "Türkiye Ustası Arena", "Zor karışık sorularla lig puanı kovala", "🏆", 15, 180, 300, arena = true)
 
-    fun daily(date: LocalDate): SharedGameMode {
-        return when (date.dayOfYear % 7) {
-            0 -> quick
-            1 -> regions
-            2 -> agriculture
-            3 -> climate
-            4 -> water
-            5 -> population
-            else -> chain
-        }
+    fun daily(date: LocalDate): SharedGameMode = when (date.dayOfYear % 7) {
+        0 -> quick
+        1 -> regions
+        2 -> agriculture
+        3 -> climate
+        4 -> water
+        5 -> population
+        else -> chain
     }
 
     val games = listOf(map, quick, regions, mines, agriculture, climate, water, population, chain, master)
