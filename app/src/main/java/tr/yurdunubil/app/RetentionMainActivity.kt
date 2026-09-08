@@ -4,10 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 
-/** Native Kotlin + Jetpack Compose main experience. */
+/** Stable native entry with a recoverable UI boundary. */
 class RetentionMainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { GeographyNativeStableApp() }
+        setContent { SafeNextGenerationApp() }
     }
 }
