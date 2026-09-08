@@ -61,12 +61,7 @@ fun NextGenerationApp() {
         bottomBar = {
             NavigationBar(containerColor = Color.White) {
                 labels.forEachIndexed { index, label ->
-                    NavigationBarItem(
-                        selected = tab == index,
-                        onClick = { tab = index },
-                        icon = { Icon(icons[index], contentDescription = label) },
-                        label = { Text(label, fontSize = 10.sp) }
-                    )
+                    NavigationBarItem(selected = tab == index, onClick = { tab = index }, icon = { Icon(icons[index], contentDescription = label) }, label = { Text(label, fontSize = 10.sp) })
                 }
             }
         }
@@ -89,6 +84,9 @@ private fun HomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Qu
     val wrong = SharedQuestionPool.all.filter { it.id in state.wrongIds }
     val recommended = recommendedQuestions(state, 10)
     val weakTopic = buildStudyInsights(state).firstOrNull()?.topic ?: "Henüz belirlenmedi"
+    val dailyGoal = 10
+    val today = state.todaySolved.coerceAtMost(dailyGoal)
+    val goalDone = state.todaySolved >= dailyGoal
 
     LazyColumn(contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
@@ -98,20 +96,21 @@ private fun HomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Qu
                 Spacer(Modifier.height(14.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Pill("${state.xp} XP")
-                    Pill("🔥 ${state.streak}")
+                    Pill("🔥 ${state.streak} gün")
                     Pill("%$accuracy")
                 }
             }
         }
-        item { SectionTitle("Bugünün hedefi", "Kısa ama düzenli çalışma") }
+        item {
+            DailyMissionCard(today, dailyGoal, goalDone, state.streak) {
+                start("Bugünün 10 Sorusu", recommended.ifEmpty { SharedQuestionPool.all.shuffled().take(10) })
+            }
+        }
+        item { SectionTitle("Bugünün hedefi", if (goalDone) "Bugünlük görev tamam! İstersen devam edelim." else "Az ama düzenli: bugün ${dailyGoal - today} soru daha yeter.") }
         item {
             Row(Modifier.padding(horizontal = 18.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                ActionCard("⚡", "Hızlı 10", "Karışık soru", Green, Modifier.weight(1f)) {
-                    start("Hızlı 10", SharedQuestionPool.all.shuffled().take(10))
-                }
-                ActionCard("🧠", "Akıllı Tekrar", "${recommended.size} hedef", Gold, Modifier.weight(1f)) {
-                    start("Akıllı Tekrar", recommended)
-                }
+                ActionCard("⚡", "Hızlı 10", "Karışık soru", Green, Modifier.weight(1f)) { start("Hızlı 10", SharedQuestionPool.all.shuffled().take(10)) }
+                ActionCard("🧠", "Akıllı Tekrar", "${recommended.size} hedef", Gold, Modifier.weight(1f)) { start("Akıllı Tekrar", recommended) }
             }
         }
         item {
@@ -137,6 +136,30 @@ private fun HomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Qu
 }
 
 @Composable
+private fun DailyMissionCard(today: Int, goal: Int, done: Boolean, streak: Int, onStart: () -> Unit) {
+    val progress = (today.toFloat() / goal).coerceIn(0f, 1f)
+    Card(colors = CardDefaults.cardColors(containerColor = Deep), shape = RoundedCornerShape(24.dp), modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp)) {
+        Column(Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(if (done) "🎉 BUGÜNÜN GÖREVİ TAMAM" else "🎯 BUGÜNÜN MİSYONU", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.height(4.dp))
+                    Text(if (done) "Helal! Seriyi koruduk." else "10 soru çöz, günün boş geçmesin.", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Black)
+                    Text(if (done) "İstersen biraz daha pratik yapabiliriz." else "🔥 ${streak} günlük serin devam ediyor.", color = Mint, fontSize = 12.sp)
+                }
+                Text("$today/$goal", color = Green, fontSize = 22.sp, fontWeight = FontWeight.Black)
+            }
+            Spacer(Modifier.height(12.dp))
+            LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(7.dp), color = Green, trackColor = Color.White.copy(alpha = .12f))
+            Spacer(Modifier.height(12.dp))
+            Button(onClick = onStart, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Green, contentColor = Deep)) {
+                Text(if (done) "Biraz daha çözelim" else "Bugünün sorularına başla", fontWeight = FontWeight.ExtraBold)
+            }
+        }
+    }
+}
+
+@Composable
 private fun LibraryScreen(start: (String, List<Question>) -> Unit) {
     var query by remember { mutableStateOf("") }
     val topics = GeographyData.topics.filter { it.title.contains(query, true) || it.subtitle.contains(query, true) }
@@ -145,14 +168,7 @@ private fun LibraryScreen(start: (String, List<Question>) -> Unit) {
             Text("Kütüphane", color = Deep, fontSize = 31.sp, fontWeight = FontWeight.Black)
             Text("Oku • bağlantı kur • test et", color = Green, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                leadingIcon = { Icon(Icons.Default.Search, null) },
-                placeholder = { Text("Dağ, ova, maden, nüfus…") }
-            )
+            OutlinedTextField(value = query, onValueChange = { query = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, leadingIcon = { Icon(Icons.Default.Search, null) }, placeholder = { Text("Dağ, ova, maden, nüfus…") })
         }
         item {
             Panel(Deep) {
@@ -162,9 +178,7 @@ private fun LibraryScreen(start: (String, List<Question>) -> Unit) {
             }
         }
         items(topics, key = { it.title }) { topic ->
-            Panel(Color.White, onClick = {
-                start(topic.title, SharedQuestionPool.all.filter { it.topic == topic.title }.shuffled().take(10))
-            }) {
+            Panel(Color.White, onClick = { start(topic.title, SharedQuestionPool.all.filter { it.topic == topic.title }.shuffled().take(10)) }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(topic.icon, fontSize = 27.sp)
                     Spacer(Modifier.width(12.dp))
@@ -185,16 +199,13 @@ private fun AtlasScreen(start: (String, List<Question>) -> Unit) {
     val regions = listOf("Tümü", "Marmara", "Ege", "Akdeniz", "İç Anadolu", "Karadeniz", "Doğu Anadolu", "Güneydoğu Anadolu")
     var region by remember { mutableStateOf("Tümü") }
     val provinces = GeographyData.provinces.filter { region == "Tümü" || it.region == region }
-
     LazyColumn(contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Text("Türkiye Atlası", color = Deep, fontSize = 31.sp, fontWeight = FontWeight.Black)
             Text("İl → bölge → özellik → soru", color = Green, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                regions.forEach { item ->
-                    FilterChip(selected = region == item, onClick = { region = item }, label = { Text(item) })
-                }
+                regions.forEach { item -> FilterChip(selected = region == item, onClick = { region = item }, label = { Text(item) }) }
             }
         }
         item {
@@ -204,9 +215,7 @@ private fun AtlasScreen(start: (String, List<Question>) -> Unit) {
             }
         }
         items(provinces, key = { it.name }) { province ->
-            Panel(Color.White, onClick = {
-                start("${province.name} Mini Test", SharedQuestionPool.all.shuffled().take(5))
-            }) {
+            Panel(Color.White, onClick = { start("${province.name} Mini Test", SharedQuestionPool.all.shuffled().take(5)) }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("📍", fontSize = 24.sp)
                     Spacer(Modifier.width(10.dp))
@@ -238,9 +247,7 @@ private fun ArenaScreen(start: (String, List<Question>) -> Unit) {
         }
         GeographyData.games.forEach { game ->
             item {
-                Panel(Color.White, onClick = {
-                    start(game.title, SharedQuestionPool.all.shuffled().take(10))
-                }) {
+                Panel(Color.White, onClick = { start(game.title, SharedQuestionPool.all.shuffled().take(10)) }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(game.icon, fontSize = 27.sp)
                         Spacer(Modifier.width(12.dp))
@@ -269,7 +276,8 @@ private fun ProfileScreen(state: AppProgressStore.Snapshot, start: (String, List
         item {
             Panel(Deep) {
                 Text("${state.xp} XP", color = Color.White, fontSize = 29.sp, fontWeight = FontWeight.Black)
-                Text("${state.solved} soru • ${state.correct} doğru • ${state.wrong} yanlış", color = Mint)
+                Text("🔥 ${state.streak} günlük seri", color = Gold, fontWeight = FontWeight.Bold)
+                Text("Bugün ${state.todaySolved} soru • ${state.solved} toplam soru", color = Mint)
             }
         }
         item {
@@ -316,15 +324,11 @@ private fun QuizScreen(title: String, questions: List<Question>, store: AppProgr
                 optionIndex == selected -> Color(0xFFFFE1E1)
                 else -> Color.White
             }
-            Card(
-                colors = CardDefaults.cardColors(containerColor = optionColor),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable(enabled = !answered) {
-                    selected = optionIndex
-                    answered = true
-                    scope.launch { store.record(question, optionIndex == question.correctIndex) }
-                }
-            ) {
+            Card(colors = CardDefaults.cardColors(containerColor = optionColor), shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable(enabled = !answered) {
+                selected = optionIndex
+                answered = true
+                scope.launch { store.record(question, optionIndex == question.correctIndex) }
+            }) {
                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("${('A'.code + optionIndex).toChar()}", color = Deep, fontWeight = FontWeight.Black)
                     Spacer(Modifier.width(12.dp))
@@ -336,24 +340,20 @@ private fun QuizScreen(title: String, questions: List<Question>, store: AppProgr
         if (answered) {
             Spacer(Modifier.height(12.dp))
             Panel(if (isCorrect) Mint else Color(0xFFFFEEEE)) {
-                Text(if (isCorrect) "✓ DOĞRU" else "✕ YANLIŞ", color = if (isCorrect) Green else Red, fontWeight = FontWeight.Black)
+                Text(if (isCorrect) "✓ BİLDİN! +10 XP" else "✕ BU SEFER OLMADI", color = if (isCorrect) Green else Red, fontWeight = FontWeight.Black)
                 Text("Dikkat Köşesi", color = Deep, fontWeight = FontWeight.Black)
                 Text(question.explanation, color = Color.Gray, fontSize = 13.sp)
             }
             Spacer(Modifier.weight(1f))
-            Button(
-                onClick = {
-                    if (index + 1 < questions.size) {
-                        index++
-                        selected = -1
-                        answered = false
-                    } else {
-                        done()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Green)
-            ) {
+            Button(onClick = {
+                if (index + 1 < questions.size) {
+                    index++
+                    selected = -1
+                    answered = false
+                } else {
+                    done()
+                }
+            }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Green)) {
                 Text(if (index + 1 < questions.size) "Sonraki Soru" else "Tamamla")
             }
         }
@@ -362,28 +362,18 @@ private fun QuizScreen(title: String, questions: List<Question>, store: AppProgr
 
 @Composable
 private fun HeaderCard(content: @Composable ColumnScope.() -> Unit) {
-    Box(
-        Modifier.fillMaxWidth()
-            .background(Deep, RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp))
-            .padding(22.dp)
-    ) { Column(content = content) }
+    Box(Modifier.fillMaxWidth().background(Deep, RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)).padding(22.dp)) { Column(content = content) }
 }
 
 @Composable
 private fun Panel(color: Color, onClick: (() -> Unit)? = null, content: @Composable ColumnScope.() -> Unit) {
-    val modifier = Modifier.fillMaxWidth().background(color, RoundedCornerShape(18.dp)).then(
-        if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
-    ).padding(17.dp)
+    val modifier = Modifier.fillMaxWidth().background(color, RoundedCornerShape(18.dp)).then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier).padding(17.dp)
     Box(modifier) { Column(content = content) }
 }
 
 @Composable
 private fun ActionCard(icon: String, title: String, subtitle: String, accent: Color, modifier: Modifier, onClick: () -> Unit) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(20.dp),
-        modifier = modifier.clickable(onClick = onClick)
-    ) {
+    Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(20.dp), modifier = modifier.clickable(onClick = onClick)) {
         Column(Modifier.padding(15.dp)) {
             Text(icon, fontSize = 25.sp)
             Text(title, color = Deep, fontWeight = FontWeight.Black)
