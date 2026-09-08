@@ -15,8 +15,8 @@ android {
         applicationId = "tr.yurdunubil.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.3.0"
         buildConfigField("String", "SUPABASE_URL", "\"https://phcdfnvqhhwkhrxsmuar.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_vwk3J5ag16XmMOm3x734MQ_-mMsJVe2\"")
     }
@@ -31,10 +31,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
 }
-
-kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2026.06.00")
