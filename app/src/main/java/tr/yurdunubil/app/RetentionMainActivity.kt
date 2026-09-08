@@ -4,10 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 
-/** Main native Kotlin + Compose experience. */
+/** Public app entry for the stable native experience. */
 class RetentionMainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { NextGenerationApp() }
+        setContent { ProductionYurdunuBilApp() }
     }
 }
