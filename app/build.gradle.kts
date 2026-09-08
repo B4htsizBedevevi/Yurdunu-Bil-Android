@@ -15,8 +15,8 @@ android {
         applicationId = "tr.yurdunubil.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.3.0"
+        versionCode = 4
+        versionName = "0.4.0"
         buildConfigField("String", "SUPABASE_URL", "\"https://phcdfnvqhhwkhrxsmuar.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_vwk3J5ag16XmMOm3x734MQ_-mMsJVe2\"")
     }
@@ -33,6 +33,22 @@ android {
 
     kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+}
+
+// Keep one canonical app icon source: the exact PNG already committed at repository root.
+// The task copies it into Android resources before any resource/compile task runs.
+val syncCanonicalAppIcon = tasks.register("syncCanonicalAppIcon") {
+    doLast {
+        val source = rootProject.file("file_00000000915c81f4882e3e45e01e1320.png")
+        val target = file("src/main/res/drawable/yurdunu_bil_app_icon.png")
+        require(source.exists()) { "Canonical app icon missing: ${source.absolutePath}" }
+        target.parentFile.mkdirs()
+        source.copyTo(target, overwrite = true)
+    }
+}
+
+tasks.matching { it.name.endsWith("PreBuild") }.configureEach {
+    dependsOn(syncCanonicalAppIcon)
 }
 
 dependencies {
