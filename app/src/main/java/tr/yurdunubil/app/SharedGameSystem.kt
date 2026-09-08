@@ -15,11 +15,24 @@ data class SharedGameMode(
     val arena: Boolean = false
 )
 
-/** Single source of truth: every quiz, game, event and Arena draws from one pool. */
+/** Single source of truth. The question bank is initialized lazily so startup never loads every question at launch. */
 object SharedQuestionPool {
-    val all: List<Question> = (
-        FullQuestionBank.all + ExpansionQuestionBank.all + UnifiedQuestionBank.all + MegaQuestionBank.all
-    ).distinctBy { it.id }
+    /**
+     * Startup-safe lazy pool. Each bank is isolated so one malformed optional bank
+     * cannot terminate the whole application during the first frame.
+     */
+    val all: List<Question> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        buildList {
+            addBankSafely { FullQuestionBank.all }
+            addBankSafely { ExpansionQuestionBank.all }
+            addBankSafely { UnifiedQuestionBank.all }
+            addBankSafely { MegaQuestionBank.all }
+        }.distinctBy { it.id }
+    }
+
+    private fun MutableList<Question>.addBankSafely(loader: () -> List<Question>) {
+        runCatching { loader() }.onSuccess { addAll(it) }
+    }
 
     fun pick(mode: SharedGameMode, seed: Long = System.currentTimeMillis()): List<Question> {
         val source = if (mode.topics.isEmpty()) all else all.filter { it.topic in mode.topics }
