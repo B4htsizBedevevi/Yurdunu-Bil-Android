@@ -33,6 +33,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,7 +57,7 @@ class ModernLaunchActivity : ComponentActivity() {
     }
 
     private fun openAuth(register: Boolean) {
-        startActivity(Intent(this, ModernAuthActivity::class.java).putExtra("register", register))
+        startActivity(Intent(this, LaunchActivity::class.java).putExtra("register", register))
     }
 }
 
@@ -70,7 +71,10 @@ private fun ModernLaunchScreen(onExplore: () -> Unit, onLogin: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         BrandLogo(60)
                         Spacer(Modifier.width(13.dp))
-                        Column { Text("Yurdunu Bil", color = Color.White, fontSize = 29.sp, fontWeight = FontWeight.Black); Text("Geleceğini Bil.", color = MLGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
+                        Column {
+                            Text("Yurdunu Bil", color = Color.White, fontSize = 29.sp, fontWeight = FontWeight.Black)
+                            Text("Geleceğini Bil.", color = MLGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
                 Spacer(Modifier.height(34.dp))
@@ -87,10 +91,14 @@ private fun ModernLaunchScreen(onExplore: () -> Unit, onLogin: () -> Unit) {
             }
             Column {
                 Button(onClick = onExplore, Modifier.fillMaxWidth().height(58.dp), shape = RoundedCornerShape(19.dp), colors = ButtonDefaults.buttonColors(containerColor = MLGreen, contentColor = MLDeep)) {
-                    Text("Keşfetmeye Başla", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold); Spacer(Modifier.width(8.dp)); Icon(Icons.Default.ArrowForward, null)
+                    Text("Keşfetmeye Başla", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                    Spacer(Modifier.width(8.dp))
+                    Icon(Icons.Default.ArrowForward, null)
                 }
                 Spacer(Modifier.height(9.dp))
-                Button(onClick = onLogin, Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(17.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = .08f), contentColor = Color.White)) { Text("Hesabımla giriş yap", fontWeight = FontWeight.Bold) }
+                Button(onClick = onLogin, Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(17.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = .08f), contentColor = Color.White)) {
+                    Text("Hesabımla giriş yap", fontWeight = FontWeight.Bold)
+                }
                 Spacer(Modifier.height(10.dp))
                 Text("Yeni hesap oluşturabilir veya mevcut hesabınla devam edebilirsin.", color = MLMute.copy(alpha = .78f), fontSize = 11.sp, modifier = Modifier.fillMaxWidth())
             }
@@ -107,8 +115,14 @@ private fun BrandLogo(sizeDp: Int) {
 private fun FeatureCard(icon: ImageVector, title: String, subtitle: String) {
     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(19.dp), colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = .065f))) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(40.dp).clip(RoundedCornerShape(13.dp)).background(MLGreen.copy(alpha = .16f)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = MLGreen, modifier = Modifier.size(22.dp)) }
-            Spacer(Modifier.width(12.dp)); Column { Text(title, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp); Text(subtitle, color = MLMute, fontSize = 11.sp, lineHeight = 16.sp) }
+            Box(Modifier.size(40.dp).clip(RoundedCornerShape(13.dp)).background(MLGreen.copy(alpha = .16f)), contentAlignment = Alignment.Center) {
+                Icon(icon, null, tint = MLGreen, modifier = Modifier.size(22.dp))
+            }
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text(title, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
+                Text(subtitle, color = MLMute, fontSize = 11.sp, lineHeight = 16.sp)
+            }
         }
     }
 }
