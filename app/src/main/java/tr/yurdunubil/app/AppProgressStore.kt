@@ -90,10 +90,11 @@ class AppProgressStore(private val context: Context) {
                 20 -> 50
                 else -> 0
             }
+            val baseXp = if (isCorrect) 10 else 2
             p[K.solved] = (p[K.solved] ?: 0) + 1
             p[K.correct] = (p[K.correct] ?: 0) + if (isCorrect) 1 else 0
             p[K.wrong] = (p[K.wrong] ?: 0) + if (isCorrect) 0 else 1
-            p[K.xp] = (p[K.xp] ?: 0) + if (isCorrect) 10 else 2 + milestoneBonus
+            p[K.xp] = (p[K.xp] ?: 0) + baseXp + milestoneBonus
             p[K.todaySolved] = newToday
             p[K.todayCorrect] = previousTodayCorrect + if (isCorrect) 1 else 0
             p[K.todayDay] = today
