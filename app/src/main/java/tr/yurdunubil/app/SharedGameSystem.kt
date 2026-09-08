@@ -18,7 +18,7 @@ data class SharedGameMode(
 /** Single source of truth: every quiz, game, event and Arena draws from one pool. */
 object SharedQuestionPool {
     val all: List<Question> = (
-        FullQuestionBank.all + ExpansionQuestionBank.all + UnifiedQuestionBank.all
+        FullQuestionBank.all + ExpansionQuestionBank.all + UnifiedQuestionBank.all + MegaQuestionBank.all
     ).distinctBy { it.id }
 
     fun pick(mode: SharedGameMode, seed: Long = System.currentTimeMillis()): List<Question> {
