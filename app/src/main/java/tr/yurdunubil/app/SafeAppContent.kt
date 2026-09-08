@@ -9,22 +9,25 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-/**
- * Prevents an initialization/composition exception from presenting as a silent
- * process death. The recovery screen gives the user a stable path back into
- * the app while the underlying issue can still be diagnosed from Logcat.
- */
 @Composable
 fun SafeNextGenerationApp() {
+    var retryToken by remember { mutableIntStateOf(0) }
     try {
-        NextGenerationApp()
-    } catch (error: Exception) {
-        AppRecoveryScreen(onRetry = { })
+        // Changing the key forces a clean composition after a recoverable init failure.
+        androidx.compose.runtime.key(retryToken) {
+            NextGenerationApp()
+        }
+    } catch (_: Exception) {
+        AppRecoveryScreen(onRetry = { retryToken++ })
     }
 }
 
