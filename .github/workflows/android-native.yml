@@ -26,6 +26,10 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      # Preflight: compile Kotlin before packaging. If source is broken, stop here.
+      - name: Preflight Kotlin compile
+        run: gradle --no-daemon :app:compileDebugKotlin
+
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug
 
