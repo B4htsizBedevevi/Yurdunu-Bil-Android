@@ -20,14 +20,17 @@ import kotlinx.coroutines.delay
 class LaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val isAuthDeepLink = intent?.data?.scheme == "yurdunubil" && intent?.data?.host == "auth"
         runCatching { SupabaseClientProvider.client.handleDeeplinks(intent) }
-        setContent { LaunchGate(onReady = ::openApp) }
+        setContent { LaunchGate(onReady = ::openApp, showConfirmation = isAuthDeepLink) }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         runCatching { SupabaseClientProvider.client.handleDeeplinks(intent) }
+        val isAuthDeepLink = intent.data?.scheme == "yurdunubil" && intent.data?.host == "auth"
+        setContent { LaunchGate(onReady = ::openApp, showConfirmation = isAuthDeepLink) }
     }
 
     private fun openApp() {
@@ -38,21 +41,18 @@ class LaunchActivity : ComponentActivity() {
 }
 
 @Composable
-private fun LaunchGate(onReady: () -> Unit) {
+private fun LaunchGate(onReady: () -> Unit, showConfirmation: Boolean) {
     var loading by remember { mutableStateOf(true) }
     var session by remember { mutableStateOf(false) }
     var profile by remember { mutableStateOf<ProfileGate?>(null) }
-    var confirmationLink by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        delay(180)
-        val currentIntent = (androidx.compose.ui.platform.LocalContext.current as? android.content.Context)
+        delay(250)
         val current = SupabaseClientProvider.client.auth.currentSessionOrNull()
         session = current != null
-        confirmationLink = false
         if (current != null) {
             profile = loadAuthProfile()
-            if (profile?.onboarding_completed == true) onReady()
+            if (profile?.onboarding_completed == true && !showConfirmation) onReady()
         }
         loading = false
     }
@@ -60,7 +60,7 @@ private fun LaunchGate(onReady: () -> Unit) {
     Box(Modifier.fillMaxSize()) {
         when {
             loading -> BrandedAuthLoading()
-            confirmationLink && session -> EmailConfirmationScreen(onContinue = onReady, onBackToLogin = onReady)
+            showConfirmation && session -> EmailConfirmationScreen(onContinue = onReady, onBackToLogin = onReady)
             !session -> BrandedAuthScreen(onAuthenticated = onReady)
             profile?.onboarding_completed != true -> BrandedProfileOnboarding(existing = profile, onComplete = onReady)
             else -> onReady()
