@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Base64
 
 plugins {
     id("com.android.application")
@@ -15,8 +16,8 @@ android {
         applicationId = "tr.yurdunubil.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 11
-        versionName = "0.11.0"
+        versionCode = 12
+        versionName = "1.0.0"
         buildConfigField("String", "SUPABASE_URL", "\"https://phcdfnvqhhwkhrxsmuar.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_vwk3J5ag16XmMOm3x734MQ_-mMsJVe2\"")
     }
@@ -24,6 +25,23 @@ android {
     buildFeatures { compose = true; buildConfig = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+
+    // Release builds remain usable in CI without shipping a private signing key.
+    // Set RELEASE_KEYSTORE_FILE, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS and
+    // RELEASE_KEY_PASSWORD in a secure environment to produce a signed Play bundle.
+    val keystorePath = System.getenv("RELEASE_KEYSTORE_FILE")
+    val keystorePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+    val keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+    val keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+    if (!keystorePath.isNullOrBlank() && !keystorePassword.isNullOrBlank() && !keyAlias.isNullOrBlank() && !keyPassword.isNullOrBlank()) {
+        signingConfigs.create("playRelease") {
+            storeFile = file(keystorePath)
+            storePassword = keystorePassword
+            this.keyAlias = keyAlias
+            this.keyPassword = keyPassword
+        }
+        buildTypes.getByName("release").signingConfig = signingConfigs.getByName("playRelease")
+    }
 }
 
 kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
