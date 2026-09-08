@@ -15,8 +15,8 @@ android {
         applicationId = "tr.yurdunubil.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 12
-        versionName = "1.0.0"
+        versionCode = 13
+        versionName = "1.0.1"
         buildConfigField("String", "SUPABASE_URL", "\"https://phcdfnvqhhwkhrxsmuar.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_vwk3J5ag16XmMOm3x734MQ_-mMsJVe2\"")
     }
@@ -25,8 +25,6 @@ android {
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
 
-    // A Play signing key must never live in the repository. CI can sign when the
-    // four RELEASE_* environment variables are supplied through secret storage.
     val keystorePath = System.getenv("RELEASE_KEYSTORE_FILE")
     val keystorePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
     val keyAlias = System.getenv("RELEASE_KEY_ALIAS")
