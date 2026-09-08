@@ -83,11 +83,18 @@ class AppProgressStore(private val context: Context) {
             }
             val previousToday = if ((p[K.todayDay] ?: -1L) == today) p[K.todaySolved] ?: 0 else 0
             val previousTodayCorrect = if ((p[K.todayDay] ?: -1L) == today) p[K.todayCorrect] ?: 0 else 0
+            val newToday = previousToday + 1
+            val milestoneBonus = when (newToday) {
+                5 -> 10
+                10 -> 25
+                20 -> 50
+                else -> 0
+            }
             p[K.solved] = (p[K.solved] ?: 0) + 1
             p[K.correct] = (p[K.correct] ?: 0) + if (isCorrect) 1 else 0
             p[K.wrong] = (p[K.wrong] ?: 0) + if (isCorrect) 0 else 1
-            p[K.xp] = (p[K.xp] ?: 0) + if (isCorrect) 10 else 2
-            p[K.todaySolved] = previousToday + 1
+            p[K.xp] = (p[K.xp] ?: 0) + if (isCorrect) 10 else 2 + milestoneBonus
+            p[K.todaySolved] = newToday
             p[K.todayCorrect] = previousTodayCorrect + if (isCorrect) 1 else 0
             p[K.todayDay] = today
             p[K.wrongIds] = currentWrong
