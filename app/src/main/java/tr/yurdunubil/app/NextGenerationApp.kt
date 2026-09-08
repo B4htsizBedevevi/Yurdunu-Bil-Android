@@ -87,6 +87,7 @@ private fun HomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Qu
     val dailyGoal = 10
     val today = state.todaySolved.coerceAtMost(dailyGoal)
     val goalDone = state.todaySolved >= dailyGoal
+    val fact = CurrentFactFeed.all[(state.solved + state.todaySolved).mod(CurrentFactFeed.all.size)]
 
     LazyColumn(contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
@@ -106,7 +107,9 @@ private fun HomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Qu
                 start("Bugünün 10 Sorusu", recommended.ifEmpty { SharedQuestionPool.all.shuffled().take(10) })
             }
         }
-        item { SectionTitle("Bugünün hedefi", if (goalDone) "Bugünlük görev tamam! İstersen devam edelim." else "Az ama düzenli: bugün ${dailyGoal - today} soru daha yeter.") }
+        item {
+            SectionTitle("Bugünün hedefi", if (goalDone) "Bugünlük görev tamam! İstersen devam edelim." else "Az ama düzenli: bugün ${dailyGoal - today} soru daha yeter.")
+        }
         item {
             Row(Modifier.padding(horizontal = 18.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 ActionCard("⚡", "Hızlı 10", "Karışık soru", Green, Modifier.weight(1f)) { start("Hızlı 10", SharedQuestionPool.all.shuffled().take(10)) }
@@ -118,6 +121,7 @@ private fun HomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Qu
                 if (wrong.isNotEmpty()) start("Yanlışlarım", wrong.take(20))
             }
         }
+        item { DailyFactCard(fact) }
         item {
             Panel(Mint) {
                 Text("📊 PERFORMANS", color = Green, fontWeight = FontWeight.Black)
@@ -156,6 +160,25 @@ private fun DailyMissionCard(today: Int, goal: Int, done: Boolean, streak: Int, 
                 Text(if (done) "Biraz daha çözelim" else "Bugünün sorularına başla", fontWeight = FontWeight.ExtraBold)
             }
         }
+    }
+}
+
+@Composable
+private fun DailyFactCard(fact: CurrentFact) {
+    Panel(Color.White) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(fact.icon, fontSize = 27.sp)
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Text("GÜNÜN COĞRAFYA BİLGİSİ", color = Green, fontSize = 11.sp, fontWeight = FontWeight.Black)
+                Text(fact.title, color = Deep, fontSize = 16.sp, fontWeight = FontWeight.Black)
+            }
+            Text(fact.year, color = Color.Gray, fontSize = 11.sp)
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(fact.value, color = Deep, fontSize = 22.sp, fontWeight = FontWeight.Black)
+        Text(fact.detail, color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+        Text("Kaynak: ${fact.source}", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
     }
 }
 
