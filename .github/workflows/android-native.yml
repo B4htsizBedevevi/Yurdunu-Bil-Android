@@ -2,7 +2,7 @@ name: Android Native CI
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "feature/major-2026-upgrade"]
   pull_request:
     branches: ["main"]
   workflow_dispatch:
