@@ -16,7 +16,7 @@ data class SharedGameMode(
 )
 
 object SharedQuestionPool {
-    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all)
+    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all)
         .distinctBy { it.id }
 
     private fun shuffleOptions(question: Question, seed: Long): Question {
@@ -29,10 +29,7 @@ object SharedQuestionPool {
         val source = if (mode.topics.isEmpty()) all else all.filter { it.topic in mode.topics }
         if (source.isEmpty()) return emptyList()
         val count = mode.questions.coerceAtMost(source.size)
-        return source.distinctBy { it.id }
-            .shuffled(Random(seed))
-            .take(count)
-            .map { shuffleOptions(it, seed) }
+        return source.distinctBy { it.id }.shuffled(Random(seed)).take(count).map { shuffleOptions(it, seed) }
     }
 
     fun topicForLibrary(title: String): Set<String> = when (title) {
@@ -71,22 +68,13 @@ object SharedGameModes {
     val hardArena = SharedGameMode("master-arena", "Türkiye Ustası Arena", "Zor karışık sorularla lig puanı kovala", "🏆", 15, 180, 300, arena = true)
 
     fun daily(date: LocalDate): SharedGameMode = when (date.dayOfYear % 7) {
-        0 -> quick
-        1 -> regions
-        2 -> agriculture
-        3 -> climate
-        4 -> water
-        5 -> population
-        else -> chain
+        0 -> quick; 1 -> regions; 2 -> agriculture; 3 -> climate; 4 -> water; 5 -> population; else -> chain
     }
 
     val games = listOf(map, quick, regions, mines, agriculture, climate, water, population, chain, master)
     val arenaModes = listOf(duel, regionArena, speedArena, hardArena)
 
     fun eventForToday(): SharedGameMode = when (LocalDate.now().dayOfYear % 4) {
-        0 -> map
-        1 -> mines
-        2 -> regions
-        else -> agriculture
+        0 -> map; 1 -> mines; 2 -> regions; else -> agriculture
     }
 }
