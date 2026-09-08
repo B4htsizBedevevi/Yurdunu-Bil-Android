@@ -15,11 +15,10 @@ data class SharedGameMode(
     val arena: Boolean = false
 )
 
-/** Single source of truth: every game, event and arena draws from this same bank. */
+/** Single source of truth: every quiz, game, event and Arena draws from one pool. */
 object SharedQuestionPool {
     val all: List<Question> = (
-        FullQuestionBank.all + ExpansionQuestionBank.all + NextQuestionBank.all +
-            SourceDerivedQuestionPool.all + SourceDerivedQuestionBankV2.all
+        FullQuestionBank.all + ExpansionQuestionBank.all + UnifiedQuestionBank.all
     ).distinctBy { it.id }
 
     fun pick(mode: SharedGameMode, seed: Long = System.currentTimeMillis()): List<Question> {
