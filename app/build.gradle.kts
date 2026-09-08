@@ -36,8 +36,9 @@ android {
 }
 
 // Keep one canonical app icon source: the exact PNG already committed at repository root.
-// The task copies it into Android resources before any resource/compile task runs.
+// Copy it into Android resources before Android's resource pipeline starts.
 val syncCanonicalAppIcon = tasks.register("syncCanonicalAppIcon") {
+    outputs.file(file("src/main/res/drawable/yurdunu_bil_app_icon.png"))
     doLast {
         val source = rootProject.file("file_00000000915c81f4882e3e45e01e1320.png")
         val target = file("src/main/res/drawable/yurdunu_bil_app_icon.png")
@@ -47,7 +48,7 @@ val syncCanonicalAppIcon = tasks.register("syncCanonicalAppIcon") {
     }
 }
 
-tasks.matching { it.name.endsWith("PreBuild") }.configureEach {
+tasks.named("preBuild") {
     dependsOn(syncCanonicalAppIcon)
 }
 
