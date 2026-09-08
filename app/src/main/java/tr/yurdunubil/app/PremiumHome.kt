@@ -25,11 +25,11 @@ private val PGold = Color(0xFFFFC857)
 private val PRed = Color(0xFFE45454)
 private val PBg = Color(0xFFF4F8F6)
 
+/** Startup-safe home: the large question pool is never touched while composing the first screen. */
 @Composable
 fun PremiumHomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Question>) -> Unit, onPlanner: () -> Unit) {
     val accuracy = if (state.solved == 0) 0 else (state.correct * 100f / state.solved).roundToInt()
-    val wrong = SharedQuestionPool.all.filter { it.id in state.wrongIds }
-    val recommended = recommendedQuestions(state, 10)
+    val wrongCount = state.wrongIds.size
     val weak = buildStudyInsights(state).firstOrNull()?.topic ?: "Başlangıç rotası"
     val today = state.todaySolved.coerceAtMost(10)
     val dailyProgress = (today / 10f).coerceIn(0f, 1f)
@@ -74,7 +74,11 @@ fun PremiumHomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Que
                         Text("${(dailyProgress * 100).roundToInt()}%", color = PGreen, fontSize = 24.sp, fontWeight = FontWeight.Black)
                     }
                     LinearProgressIndicator(progress = { dailyProgress }, modifier = Modifier.fillMaxWidth().height(8.dp), color = PGreen, trackColor = PMint)
-                    Button(onClick = { start("Bugünün 10 Sorusu", recommended.ifEmpty { SharedQuestionPool.all.shuffled().take(10) }) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(15.dp), colors = ButtonDefaults.buttonColors(containerColor = PDeep)) {
+                    Button(onClick = {
+                        val recommended = recommendedQuestions(state, 10)
+                        val questions = if (recommended.isNotEmpty()) recommended else SharedQuestionPool.all.shuffled().take(10)
+                        start("Bugünün 10 Sorusu", questions)
+                    }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(15.dp), colors = ButtonDefaults.buttonColors(containerColor = PDeep)) {
                         Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(6.dp)); Text(if (today >= 10) "Ekstra pratik yap" else "Hemen başla", fontWeight = FontWeight.ExtraBold)
                     }
                 }
@@ -83,7 +87,7 @@ fun PremiumHomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Que
         item {
             Row(Modifier.padding(horizontal = 18.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 ActionTile("⚡", "Hızlı 10", "Karışık test", PGreen, Modifier.weight(1f)) { start("Hızlı 10", SharedQuestionPool.all.shuffled().take(10)) }
-                ActionTile("🧠", "Akıllı Tekrar", "Sana özel", PGold, Modifier.weight(1f)) { start("Akıllı Tekrar", recommended.ifEmpty { SharedQuestionPool.all.shuffled().take(10) }) }
+                ActionTile("🧠", "Akıllı Tekrar", "Sana özel", PGold, Modifier.weight(1f)) { start("Akıllı Tekrar", recommendedQuestions(state, 10).ifEmpty { SharedQuestionPool.all.shuffled().take(10) }) }
             }
         }
         item { WideAction("🧭", "Bugün ne çalışmalıyım?", "Zayıf konuna göre çalışma rotası oluştur.", PGold, onPlanner) }
@@ -98,10 +102,15 @@ fun PremiumHomeScreen(state: AppProgressStore.Snapshot, start: (String, List<Que
         }
         item {
             Row(Modifier.padding(horizontal = 18.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Metric("📚", "${state.solved}", "Çözülen", Modifier.weight(1f)); Metric("✓", "${state.correct}", "Doğru", Modifier.weight(1f)); Metric("✕", "${wrong.size}", "Yanlış", Modifier.weight(1f))
+                Metric("📚", "${state.solved}", "Çözülen", Modifier.weight(1f)); Metric("✓", "${state.correct}", "Doğru", Modifier.weight(1f)); Metric("✕", "$wrongCount", "Yanlış", Modifier.weight(1f))
             }
         }
-        item { WideAction("🔁", "Yanlışlarını temizle", if (wrong.isEmpty()) "Henüz yanlış soru birikmedi. Böyle devam!" else "${wrong.size} yanlış soru tekrarını bekliyor.", PRed) { if (wrong.isNotEmpty()) start("Yanlışlarım", wrong.take(20)) } }
+        item { WideAction("🔁", "Yanlışlarını temizle", if (wrongCount == 0) "Henüz yanlış soru birikmedi. Böyle devam!" else "$wrongCount yanlış soru tekrarını bekliyor.", PRed) {
+            if (wrongCount > 0) {
+                val wrong = SharedQuestionPool.all.filter { it.id in state.wrongIds }
+                if (wrong.isNotEmpty()) start("Yanlışlarım", wrong.take(20))
+            }
+        } }
     }
 }
 
