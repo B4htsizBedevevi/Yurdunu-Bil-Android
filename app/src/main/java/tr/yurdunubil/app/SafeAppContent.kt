@@ -21,13 +21,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SafeNextGenerationApp() {
     var retryToken by remember { mutableIntStateOf(0) }
-    try {
-        // Changing the key forces a clean composition after a recoverable init failure.
-        androidx.compose.runtime.key(retryToken) {
-            NextGenerationApp()
-        }
-    } catch (_: Exception) {
-        AppRecoveryScreen(onRetry = { retryToken++ })
+    androidx.compose.runtime.key(retryToken) {
+        NextGenerationApp()
     }
 }
 
