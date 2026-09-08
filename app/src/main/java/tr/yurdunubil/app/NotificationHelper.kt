@@ -38,7 +38,7 @@ object NotificationHelper {
         val intent = Intent(context, ModernLaunchActivity::class.java)
         val pending = PendingIntent.getActivity(context, 4812, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
             .setContentTitle("Yurdunu Bil hazır! 🎯")
             .setContentText("Bildirim sistemi çalışıyor. Şimdi bir coğrafya konusu seçip devam et.")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -76,7 +76,7 @@ class DailyReminderReceiver : BroadcastReceiver() {
         if (!NotificationHelper.canNotify(context)) return
         NotificationHelper.ensureChannel(context)
         val notification = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
             .setContentTitle("Günlük coğrafya hedefin seni bekliyor 📚")
             .setContentText("Bugün Türkiye'yi biraz daha çöz. 10 soru bile yeter.")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
