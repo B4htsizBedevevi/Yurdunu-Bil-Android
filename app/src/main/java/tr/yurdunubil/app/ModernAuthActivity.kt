@@ -31,8 +31,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.alpha
-import androidx.compose.ui.clip
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -156,9 +156,9 @@ private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
                     Spacer(Modifier.height(5.dp))
                     Text(
                         if (register)
-                            "Coğrafyayı birlikte daha keyifli hale getirelim. İlerlemeni kaydet, görevlerini tamamla, Arena'da kendini dene."
+                            "KPSS'ye hazırlanırken Türkiye'yi birlikte daha iyi tanı. Konuları öğren, testlerle pekiştir, görevlerini tamamla ve Arena'da kendini dene."
                         else
-                            "Konuların, testlerin ve Arena ilerlemen seni bekliyor. Hesabınla kaldığın yerden devam et.",
+                            "Konuların, testlerin, görevlerin ve Arena ilerlemen seni bekliyor. Hesabınla kaldığın yerden devam et.",
                         color = AuthMuted,
                         fontSize = 12.sp,
                         lineHeight = 18.sp,
