@@ -1,1 +1,1 @@
-CI verification trigger for the current V4 startup revision. Clean composition entry.
+CI verification trigger for minimal native startup probe. No Compose, Supabase, auth, or main UI.
