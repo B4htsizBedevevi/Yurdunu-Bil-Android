@@ -15,6 +15,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,11 +28,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,8 +47,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -95,12 +97,6 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
         ),
         label = "logoGlow"
     )
-    val orbScale by pulse.animateFloat(
-        initialValue = 0.88f,
-        targetValue = 1.10f,
-        animationSpec = infiniteRepeatable(tween(2200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "orbScale"
-    )
     val logoScale by animateFloatAsState(
         targetValue = if (contentVisible) 1f else 0.72f,
         animationSpec = tween(720, easing = FastOutSlowInEasing),
@@ -120,25 +116,19 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
             .navigationBarsPadding()
             .padding(horizontal = 20.dp, vertical = 18.dp)
     ) {
-        // Slow ambient light makes the launch screen feel alive even after the entrance animation finishes.
-        Box(
-            Modifier
-                .size(230.dp)
-                .offset(x = 125.dp, y = (-80).dp)
-                .scale(orbScale)
-                .alpha(glowAlpha * 0.55f)
-                .clip(CircleShape)
-                .background(LaunchGreen)
-        )
-        Box(
-            Modifier
-                .size(190.dp)
-                .offset(x = (-110).dp, y = 250.dp)
-                .scale(orbScale)
-                .alpha(glowAlpha * 0.35f)
-                .clip(CircleShape)
-                .background(LaunchGreen)
-        )
+        // Geography-inspired contour lines: calmer and more meaningful than floating circles.
+        Canvas(Modifier.fillMaxSize()) {
+            repeat(10) { index ->
+                val y = size.height * (.08f + index * .083f)
+                val path = Path().apply {
+                    moveTo(-30f, y)
+                    cubicTo(size.width * .25f, y - 65f, size.width * .62f, y + 52f, size.width + 30f, y - 12f)
+                }
+                drawPath(path, LaunchGreen.copy(alpha = .045f), style = Stroke(width = 2f))
+            }
+            drawCircle(LaunchGreen.copy(alpha = .07f), radius = 3f, center = Offset(size.width * .10f, size.height * .16f))
+            drawCircle(LaunchGreen.copy(alpha = .05f), radius = 2.5f, center = Offset(size.width * .88f, size.height * .78f))
+        }
 
         Column(
             modifier = Modifier.fillMaxSize(),
