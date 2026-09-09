@@ -43,6 +43,7 @@ class ModernLaunchActivity : ComponentActivity() {
         setContent {
             LaunchExperience(
                 signedInHint = prefs.getBoolean("signed_in", false),
+                onSessionInvalid = { prefs.edit().putBoolean("signed_in", false).apply() },
                 onMain = ::openMain,
                 onRegister = { openAuth(true) },
                 onLogin = { openAuth(false) }
@@ -63,6 +64,7 @@ class ModernLaunchActivity : ComponentActivity() {
 @Composable
 private fun LaunchExperience(
     signedInHint: Boolean,
+    onSessionInvalid: () -> Unit,
     onMain: () -> Unit,
     onRegister: () -> Unit,
     onLogin: () -> Unit
@@ -76,21 +78,10 @@ private fun LaunchExperience(
         hasSession = runCatching {
             SupabaseClientProvider.client.auth.currentSessionOrNull()
         }.getOrNull() != null
+        if (!hasSession && signedInHint) onSessionInvalid()
         sessionChecked = true
         splashDone = true
-        if (hasSession) {
-            onMain()
-        }
-    }
-
-    // A stale local flag must never bypass authentication. Clear it when the
-    // remote Supabase session is gone so a deleted/expired session cannot
-    // route straight into the main screen.
-    LaunchedEffect(sessionChecked, hasSession, signedInHint) {
-        if (sessionChecked && !hasSession && signedInHint) {
-            // The activity owns the preference; this effect only controls routing.
-            // Auth screen is shown below, and a fresh login will set the flag again.
-        }
+        if (hasSession) onMain()
     }
 
     when {
@@ -104,7 +95,6 @@ private fun AnimatedSplash() {
     val scale = remember { Animatable(0.78f) }
     val alpha = remember { Animatable(0f) }
     val glow = remember { Animatable(0.2f) }
-
     LaunchedEffect(Unit) {
         kotlinx.coroutines.coroutineScope {
             launch { scale.animateTo(1f, tween(850, easing = FastOutSlowInEasing)) }
@@ -112,25 +102,9 @@ private fun AnimatedSplash() {
             launch { glow.animateTo(1f, tween(1000)) }
         }
     }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Color(0xFF071F1B), Color(0xFF0B4B3A), MLDeep)))
-            .statusBarsPadding()
-            .navigationBarsPadding(),
-        contentAlignment = Alignment.Center
-    ) {
+    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF071F1B), Color(0xFF0B4B3A), MLDeep))).statusBarsPadding().navigationBarsPadding(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier = Modifier
-                    .size(142.dp)
-                    .scale(scale.value)
-                    .alpha(alpha.value)
-                    .clip(RoundedCornerShape(38.dp))
-                    .background(MLGreen.copy(alpha = 0.07f + glow.value * 0.08f))
-                    .padding(10.dp)
-            ) {
+            Box(Modifier.size(142.dp).scale(scale.value).alpha(alpha.value).clip(RoundedCornerShape(38.dp)).background(MLGreen.copy(alpha = 0.07f + glow.value * 0.08f)).padding(10.dp)) {
                 Image(painterResource(R.drawable.yurdunu_bil_logo), "Yurdunu Bil", Modifier.fillMaxSize().clip(RoundedCornerShape(29.dp)))
             }
             Spacer(Modifier.height(19.dp))
