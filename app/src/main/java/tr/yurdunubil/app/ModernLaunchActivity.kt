@@ -6,14 +6,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.Quiz
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,11 +24,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val MLDeep = Color(0xFF041611)
-private val MLGreen = Color(0xFF27D996)
-private val MLMute = Color(0xFF9DB8AE)
+private val LaunchBgTop = Color(0xFF061A17)
+private val LaunchBgMid = Color(0xFF0A3027)
+private val LaunchBgBottom = Color(0xFF020B09)
+private val LaunchGreen = Color(0xFF27D996)
+private val LaunchText = Color(0xFFF2FBF7)
+private val LaunchMuted = Color(0xFFA5BCB4)
 
-/** Stable launcher: no Supabase/session work is performed during startup. */
+/** Startup-safe launcher. Authentication/database work intentionally starts only after a button press. */
 class ModernLaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,65 +44,145 @@ class ModernLaunchActivity : ComponentActivity() {
     }
 
     private fun openAuth(register: Boolean) {
-        startActivity(Intent(this, ModernAuthActivity::class.java).putExtra("register", register))
+        startActivity(
+            Intent(this, ModernAuthActivity::class.java)
+                .putExtra("register", register)
+        )
     }
 }
 
 @Composable
 private fun ModernLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
-    val background = Brush.verticalGradient(listOf(Color(0xFF061C20), Color(0xFF0A3A2E), Color(0xFF03120E)))
-    Box(Modifier.fillMaxSize().background(background).statusBarsPadding().navigationBarsPadding()) {
-        Column(Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp), verticalArrangement = Arrangement.SpaceBetween) {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(painterResource(R.drawable.yurdunu_bil_logo), "Yurdunu Bil", Modifier.size(58.dp).clip(RoundedCornerShape(17.dp)))
-                    Spacer(Modifier.width(12.dp))
-                    Column {
-                        Text("Yurdunu Bil", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Black)
-                        Text("Geleceğini Bil.", color = MLGreen, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-                Spacer(Modifier.height(28.dp))
-                Text("Türkiye coğrafyasını", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Black)
-                Text("oynayarak öğren.", color = MLGreen, fontSize = 28.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.height(9.dp))
-                Text("KPSS Önlisans için derin konu anlatımı, soru çözümü, günlük görevler ve Arena tek bir yerde.", color = MLMute, fontSize = 13.sp, lineHeight = 20.sp)
-                Spacer(Modifier.height(18.dp))
-                FeatureCard(Icons.Default.MenuBook, "Kütüphane", "Konuyu uzun uzun öğren, sonra test et.")
-                Spacer(Modifier.height(8.dp))
-                FeatureCard(Icons.Default.Quiz, "Testler", "KPSS tipi sorular ve anında açıklama.")
-                Spacer(Modifier.height(8.dp))
-                FeatureCard(Icons.Default.EmojiEvents, "Arena", "Hız, bölge ve Türkiye Ustası mücadeleleri.")
+    val background = Brush.verticalGradient(
+        0f to LaunchBgTop,
+        0.52f to LaunchBgMid,
+        1f to LaunchBgBottom
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(background)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.height(10.dp))
+
+            Image(
+                painter = painterResource(R.drawable.yurdunu_bil_logo),
+                contentDescription = "Yurdunu Bil",
+                modifier = Modifier
+                    .size(86.dp)
+                    .clip(RoundedCornerShape(25.dp))
+            )
+
+            Spacer(Modifier.height(16.dp))
+            Text("Yurdunu Bil", color = LaunchText, fontSize = 30.sp, fontWeight = FontWeight.Black)
+            Text("Geleceğini Bil.", color = LaunchGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+
+            Spacer(Modifier.height(26.dp))
+            Text(
+                "Türkiye coğrafyasını",
+                color = LaunchText,
+                fontSize = 29.sp,
+                fontWeight = FontWeight.Black
+            )
+            Text(
+                "oynayarak öğren.",
+                color = LaunchGreen,
+                fontSize = 29.sp,
+                fontWeight = FontWeight.Black
+            )
+
+            Spacer(Modifier.height(9.dp))
+            Text(
+                "KPSS Önlisans için konu anlatımı, testler, günlük görevler ve Arena.",
+                color = LaunchMuted,
+                fontSize = 13.sp,
+                lineHeight = 19.sp,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+
+            Spacer(Modifier.height(22.dp))
+            LaunchInfoPanel()
+
+            Spacer(Modifier.weight(1f))
+            Button(
+                onClick = onRegister,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp),
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = LaunchGreen,
+                    contentColor = LaunchBgTop
+                )
+            ) {
+                Text("Keşfetmeye Başla", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
             }
-            Column {
-                Button(onClick = onRegister, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(18.dp), colors = ButtonDefaults.buttonColors(containerColor = MLGreen, contentColor = MLDeep)) {
-                    Text("Keşfetmeye Başla", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
-                    Spacer(Modifier.width(8.dp))
-                    Icon(Icons.Default.ArrowForward, contentDescription = null)
-                }
-                Spacer(Modifier.height(8.dp))
-                OutlinedButton(onClick = onLogin, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(17.dp), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
-                    Text("Hesabımla giriş yap", fontWeight = FontWeight.Bold)
-                }
-                Spacer(Modifier.height(7.dp))
-                Text("Yeni hesap oluşturabilir veya mevcut hesabınla devam edebilirsin.", color = MLMute.copy(alpha = 0.78f), fontSize = 10.sp, modifier = Modifier.fillMaxWidth())
+
+            Spacer(Modifier.height(9.dp))
+            OutlinedButton(
+                onClick = onLogin,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(51.dp),
+                shape = RoundedCornerShape(17.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = LaunchText)
+            ) {
+                Text("Hesabımla giriş yap", fontWeight = FontWeight.Bold)
             }
+
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Ücretsiz başla • İlerlemeni kaydet • Arena'da yarış",
+                color = LaunchMuted.copy(alpha = 0.8f),
+                fontSize = 10.sp
+            )
         }
     }
 }
 
 @Composable
-private fun FeatureCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String) {
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.065f))) {
-        Row(Modifier.padding(13.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(39.dp).clip(RoundedCornerShape(12.dp)).background(MLGreen.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
-                Icon(icon, contentDescription = null, tint = MLGreen, modifier = Modifier.size(21.dp))
-            }
-            Spacer(Modifier.width(11.dp))
-            Column(Modifier.weight(1f)) {
-                Text(title, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
-                Text(subtitle, color = MLMute, fontSize = 10.sp, lineHeight = 15.sp)
-            }
-        }
+private fun LaunchInfoPanel() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color.White.copy(alpha = 0.055f))
+            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(20.dp))
+            .padding(vertical = 15.dp, horizontal = 8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        LaunchStat("12+", "Konu")
+        LaunchDivider()
+        LaunchStat("∞", "Test")
+        LaunchDivider()
+        LaunchStat("⚡", "Arena")
     }
+}
+
+@Composable
+private fun LaunchStat(value: String, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, color = LaunchGreen, fontSize = 18.sp, fontWeight = FontWeight.Black)
+        Text(label, color = LaunchMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun LaunchDivider() {
+    Box(
+        modifier = Modifier
+            .width(1.dp)
+            .height(31.dp)
+            .background(Color.White.copy(alpha = 0.1f))
+    )
 }
