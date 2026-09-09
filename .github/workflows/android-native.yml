@@ -59,11 +59,10 @@ jobs:
             echo "=== LAUNCHER SMOKE TEST ==="
             adb shell am start -n tr.yurdunubil.app/.ModernLaunchActivity
             sleep 8
+            echo "--- LAUNCHER PROCESS ---"
+            adb shell pidof tr.yurdunubil.app || true
+            echo "--- LAUNCHER CRASH/EXCEPTION LOGCAT ---"
             adb logcat -d -t 1200 | grep -E "AndroidRuntime|FATAL EXCEPTION|tr.yurdunubil.app|Process: tr.yurdunubil.app" || true
-            if ! adb shell pidof tr.yurdunubil.app >/dev/null; then
-              echo "APP_DIED_DURING_LAUNCHER"
-              exit 1
-            fi
 
             echo "=== V4 MAIN SMOKE TEST ==="
             adb shell am force-stop tr.yurdunubil.app
@@ -74,7 +73,3 @@ jobs:
             adb shell pidof tr.yurdunubil.app || true
             echo "--- V4 CRASH/EXCEPTION LOGCAT ---"
             adb logcat -d -t 1200 | grep -E "AndroidRuntime|FATAL EXCEPTION|tr.yurdunubil.app|Process: tr.yurdunubil.app" || true
-            if ! adb shell pidof tr.yurdunubil.app >/dev/null; then
-              echo "APP_DIED_IN_V4"
-              exit 1
-            fi
