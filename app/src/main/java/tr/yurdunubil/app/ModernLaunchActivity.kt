@@ -13,6 +13,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,9 +27,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
@@ -54,14 +58,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
-private val LaunchBgTop = Color(0xFF061A17)
-private val LaunchBgMid = Color(0xFF0A3027)
-private val LaunchBgBottom = Color(0xFF020B09)
+private val LaunchBgTop = Color(0xFF041713)
+private val LaunchBgMid = Color(0xFF07352A)
+private val LaunchBgBottom = Color(0xFF010907)
 private val LaunchGreen = Color(0xFF27D996)
 private val LaunchText = Color(0xFFF2FBF7)
 private val LaunchMuted = Color(0xFFA5BCB4)
 
-/** Crash-safe launcher. No database, auth or network work is performed during startup. */
+/** Crash-safe launcher. Startup remains local-only: no database, auth or network work. */
 class ModernLaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,21 +85,30 @@ class ModernLaunchActivity : ComponentActivity() {
 @Composable
 private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
     var contentVisible by remember { mutableStateOf(false) }
-    val pulse = rememberInfiniteTransition(label = "logoPulse")
+    val pulse = rememberInfiniteTransition(label = "launchPulse")
     val glowAlpha by pulse.animateFloat(
-        initialValue = 0.16f,
-        targetValue = 0.30f,
-        animationSpec = infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        initialValue = 0.12f,
+        targetValue = 0.28f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
         label = "logoGlow"
     )
+    val orbScale by pulse.animateFloat(
+        initialValue = 0.88f,
+        targetValue = 1.10f,
+        animationSpec = infiniteRepeatable(tween(2200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "orbScale"
+    )
     val logoScale by animateFloatAsState(
-        targetValue = if (contentVisible) 1f else 0.78f,
-        animationSpec = tween(650, easing = FastOutSlowInEasing),
+        targetValue = if (contentVisible) 1f else 0.72f,
+        animationSpec = tween(720, easing = FastOutSlowInEasing),
         label = "logoScale"
     )
 
     LaunchedEffect(Unit) {
-        delay(180)
+        delay(120)
         contentVisible = true
     }
 
@@ -107,32 +120,57 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
             .navigationBarsPadding()
             .padding(horizontal = 20.dp, vertical = 18.dp)
     ) {
+        // Slow ambient light makes the launch screen feel alive even after the entrance animation finishes.
+        Box(
+            Modifier
+                .size(230.dp)
+                .offset(x = 125.dp, y = (-80).dp)
+                .scale(orbScale)
+                .alpha(glowAlpha * 0.55f)
+                .clip(CircleShape)
+                .background(LaunchGreen)
+        )
+        Box(
+            Modifier
+                .size(190.dp)
+                .offset(x = (-110).dp, y = 250.dp)
+                .scale(orbScale)
+                .alpha(glowAlpha * 0.35f)
+                .clip(CircleShape)
+                .background(LaunchGreen)
+        )
+
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(22.dp))
 
-            Box(
-                modifier = Modifier
-                    .size(96.dp)
-                    .scale(logoScale)
-                    .clip(RoundedCornerShape(29.dp))
-                    .background(LaunchGreen.copy(alpha = glowAlpha))
-                    .border(1.dp, LaunchGreen.copy(alpha = 0.45f), RoundedCornerShape(29.dp)),
-                contentAlignment = Alignment.Center
+            AnimatedVisibility(
+                visible = contentVisible,
+                enter = fadeIn(tween(700)) + scaleIn(tween(700), initialScale = 0.72f)
             ) {
-                Image(
-                    painter = painterResource(R.drawable.yurdunu_bil_app_icon),
-                    contentDescription = "Yurdunu Bil logosu",
-                    modifier = Modifier.size(78.dp).clip(RoundedCornerShape(23.dp)),
-                    contentScale = ContentScale.Crop
-                )
+                Box(
+                    modifier = Modifier
+                        .size(104.dp)
+                        .scale(logoScale)
+                        .clip(RoundedCornerShape(31.dp))
+                        .background(LaunchGreen.copy(alpha = glowAlpha))
+                        .border(1.dp, LaunchGreen.copy(alpha = 0.55f), RoundedCornerShape(31.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.yurdunu_bil_app_icon),
+                        contentDescription = "Yurdunu Bil logosu",
+                        modifier = Modifier.size(82.dp).clip(RoundedCornerShape(25.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
 
             AnimatedVisibility(
                 visible = contentVisible,
-                enter = fadeIn(tween(500)) + slideInVertically(tween(500)) { it / 3 }
+                enter = fadeIn(tween(550, delayMillis = 180)) + slideInVertically(tween(550, delayMillis = 180)) { it / 3 }
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Spacer(Modifier.height(14.dp))
@@ -143,7 +181,7 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
                     Text("oynayarak öğren.", color = LaunchGreen, fontSize = 28.sp, fontWeight = FontWeight.Black)
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        "KPSS coğrafyasını konu anlatımı, testler, görevler ve Arena ile daha eğlenceli öğren.",
+                        "KPSS'ye hazırlanırken Türkiye'yi daha iyi tanı. Konuları öğren, testlerle pekiştir, günlük görevlerini tamamla ve Arena'da kendini dene.",
                         color = LaunchMuted,
                         fontSize = 13.sp,
                         lineHeight = 19.sp,
@@ -172,7 +210,7 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
 
             AnimatedVisibility(
                 visible = contentVisible,
-                enter = fadeIn(tween(600, delayMillis = 160)) + slideInVertically(tween(600, delayMillis = 160)) { it / 4 }
+                enter = fadeIn(tween(650, delayMillis = 300)) + slideInVertically(tween(650, delayMillis = 300)) { it / 4 }
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Button(
@@ -180,17 +218,17 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
                         modifier = Modifier.fillMaxWidth().height(57.dp),
                         shape = RoundedCornerShape(18.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = LaunchGreen, contentColor = LaunchBgTop)
-                    ) { Text("Hemen Başla", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold) }
+                    ) { Text("Hemen Keşfet", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold) }
                     Spacer(Modifier.height(10.dp))
                     OutlinedButton(
                         onClick = onLogin,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(17.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = LaunchText)
-                    ) { Text("Zaten hesabım var", fontWeight = FontWeight.Bold) }
+                    ) { Text("Hesabımla devam et", fontWeight = FontWeight.Bold) }
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Önlisans • Lisans • Ortaöğretim • Öğren • Yarış",
+                        "KPSS • COĞRAFYA • ÖĞREN • YARIŞ",
                         color = LaunchMuted.copy(alpha = 0.82f),
                         fontSize = 10.sp,
                         textAlign = TextAlign.Center
