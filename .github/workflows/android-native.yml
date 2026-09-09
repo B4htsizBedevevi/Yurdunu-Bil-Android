@@ -21,8 +21,9 @@ jobs:
           from pathlib import Path
           p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
           s = p.read_text(encoding="utf-8")
-          if not s.rstrip().endswith("}"):
-              p.write_text(s.rstrip() + "\n}\n", encoding="utf-8")
+          marker = "// V2 syntax repair applied"
+          if marker not in s:
+              p.write_text(s.rstrip() + "\n}\n" + marker + "\n", encoding="utf-8")
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
