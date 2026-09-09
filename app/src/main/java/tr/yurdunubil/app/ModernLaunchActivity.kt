@@ -1,18 +1,22 @@
 package tr.yurdunubil.app
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material3.Text
 
 /**
- * Runtime isolation entry point: V2 is rendered directly in the launcher activity.
- * This removes the extra Activity handoff while keeping Supabase/auth out of the test.
+ * Isolation launcher: uses only a plain Compose handoff to the production main Activity.
+ * Supabase/auth/launch UI are intentionally bypassed during runtime diagnosis.
  */
 class ModernLaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            YurdunuBilMainV2App()
+            Text("YURDUNU BİL")
         }
+        startActivity(Intent(this, RetentionMainActivity::class.java))
+        finish()
     }
 }
