@@ -5,12 +5,32 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Repair V2 Kotlin syntax
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
+          s = p.read_text(encoding="utf-8")
+          if not s.rstrip().endswith("}"):
+              p.write_text(s.rstrip() + "\n}\n", encoding="utf-8")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt; then
+            git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt
+            git commit -m "fix: close V2 composable syntax"
+            git push origin HEAD:main
+          fi
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
