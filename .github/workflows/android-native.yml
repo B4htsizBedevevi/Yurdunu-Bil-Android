@@ -42,14 +42,14 @@ jobs:
           name: yurdunu-bil-v0.4.0-test
           path: app/build/outputs/apk/debug/yurdunu-bil-v0.4.0-test.apk
 
-      # Real runtime check: install the exact APK, start from a clean app state,
-      # and fail with logcat if the process dies during launch.
+      # Runtime check: install the exact APK, start from a clean app state,
+      # verify the launcher survives, then start V4 directly and verify it survives.
       - name: Android emulator startup smoke test
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
           arch: x86_64
-          profile: Pixel_2
+          profile: Nexus_5X
           emulator-options: -no-window -no-audio -no-boot-anim
           disable-animations: true
           script: |
@@ -58,13 +58,26 @@ jobs:
             adb shell pm clear tr.yurdunubil.app
             adb shell am force-stop tr.yurdunubil.app
             adb logcat -c
+
+            echo "=== LAUNCHER SMOKE TEST ==="
             adb shell am start -n tr.yurdunubil.app/.ModernLaunchActivity
-            sleep 10
-            echo "--- PROCESS ---"
-            adb shell pidof tr.yurdunubil.app || true
-            echo "--- CRASH/EXCEPTION LOGCAT ---"
+            sleep 8
             adb logcat -d -t 1200 | grep -E "AndroidRuntime|FATAL EXCEPTION|tr.yurdunubil.app|Process: tr.yurdunubil.app" || true
             if ! adb shell pidof tr.yurdunubil.app >/dev/null; then
-              echo "APP_DIED_DURING_STARTUP"
+              echo "APP_DIED_DURING_LAUNCHER"
+              exit 1
+            fi
+
+            echo "=== V4 MAIN SMOKE TEST ==="
+            adb shell am force-stop tr.yurdunubil.app
+            adb logcat -c
+            adb shell am start -n tr.yurdunubil.app/.RetentionMainActivity
+            sleep 8
+            echo "--- V4 PROCESS ---"
+            adb shell pidof tr.yurdunubil.app || true
+            echo "--- V4 CRASH/EXCEPTION LOGCAT ---"
+            adb logcat -d -t 1200 | grep -E "AndroidRuntime|FATAL EXCEPTION|tr.yurdunubil.app|Process: tr.yurdunubil.app" || true
+            if ! adb shell pidof tr.yurdunubil.app >/dev/null; then
+              echo "APP_DIED_IN_V4"
               exit 1
             fi
