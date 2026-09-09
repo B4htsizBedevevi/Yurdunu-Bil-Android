@@ -4,9 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
@@ -27,7 +25,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -67,14 +64,13 @@ private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
     var register by remember { mutableStateOf(initialRegister) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var visible by remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var contentVisible by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
 
-    val screenAlpha by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(500, easing = FastOutSlowInEasing),
-        label = "authAlpha"
-    )
+    LaunchedEffect(Unit) {
+        contentVisible = true
+    }
 
     Box(
         Modifier
@@ -98,7 +94,7 @@ private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
             Spacer(Modifier.height(12.dp))
 
             AnimatedVisibility(
-                visible = screenAlpha > 0.9f,
+                visible = contentVisible,
                 enter = fadeIn(tween(450)) + slideInVertically(tween(450)) { it / 4 }
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -187,14 +183,14 @@ private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
                     placeholder = { Text("En az 6 karakter") },
                     leadingIcon = { Icon(Icons.Default.Lock, null) },
                     trailingIcon = {
-                        IconButton(onClick = { visible = !visible }) {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
-                                if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                                 "Şifreyi göster/gizle"
                             )
                         }
                     },
-                    visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     shape = RoundedCornerShape(16.dp),
                     colors = authColors()
