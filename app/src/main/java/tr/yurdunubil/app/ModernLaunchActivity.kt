@@ -4,9 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,34 +14,27 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.jan.supabase.auth.auth
-import kotlinx.coroutines.delay
 
 private val MLDeep = Color(0xFF041611)
 private val MLGreen = Color(0xFF27D996)
 private val MLMute = Color(0xFF9DB8AE)
 
+/** Stable launcher: no Supabase/session work is performed during startup. */
 class ModernLaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val prefs = getSharedPreferences("yurdunu_bil_native", 0)
         setContent {
-            LaunchExperience(
-                signedInHint = prefs.getBoolean("signed_in", false),
-                onSessionInvalid = { prefs.edit().putBoolean("signed_in", false).apply() },
-                onMain = ::openMain,
+            ModernLaunchScreen(
                 onRegister = { openAuth(true) },
                 onLogin = { openAuth(false) }
             )
@@ -53,66 +43,6 @@ class ModernLaunchActivity : ComponentActivity() {
 
     private fun openAuth(register: Boolean) {
         startActivity(Intent(this, ModernAuthActivity::class.java).putExtra("register", register))
-    }
-
-    private fun openMain() {
-        startActivity(Intent(this, RetentionMainActivity::class.java))
-        finish()
-    }
-}
-
-@Composable
-private fun LaunchExperience(
-    signedInHint: Boolean,
-    onSessionInvalid: () -> Unit,
-    onMain: () -> Unit,
-    onRegister: () -> Unit,
-    onLogin: () -> Unit
-) {
-    var splashDone by remember { mutableStateOf(false) }
-    var sessionChecked by remember { mutableStateOf(false) }
-    var hasSession by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        delay(1150)
-        hasSession = runCatching {
-            SupabaseClientProvider.client.auth.currentSessionOrNull()
-        }.getOrNull() != null
-        if (!hasSession && signedInHint) onSessionInvalid()
-        sessionChecked = true
-        splashDone = true
-        if (hasSession) onMain()
-    }
-
-    when {
-        !splashDone -> AnimatedSplash()
-        sessionChecked && !hasSession -> ModernLaunchScreen(onRegister, onLogin)
-    }
-}
-
-@Composable
-private fun AnimatedSplash() {
-    val scale = remember { Animatable(0.78f) }
-    val alpha = remember { Animatable(0f) }
-    val glow = remember { Animatable(0.2f) }
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.coroutineScope {
-            launch { scale.animateTo(1f, tween(850, easing = FastOutSlowInEasing)) }
-            launch { alpha.animateTo(1f, tween(650)) }
-            launch { glow.animateTo(1f, tween(1000)) }
-        }
-    }
-    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF071F1B), Color(0xFF0B4B3A), MLDeep))).statusBarsPadding().navigationBarsPadding(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.size(142.dp).scale(scale.value).alpha(alpha.value).clip(RoundedCornerShape(38.dp)).background(MLGreen.copy(alpha = 0.07f + glow.value * 0.08f)).padding(10.dp)) {
-                Image(painterResource(R.drawable.yurdunu_bil_logo), "Yurdunu Bil", Modifier.fillMaxSize().clip(RoundedCornerShape(29.dp)))
-            }
-            Spacer(Modifier.height(19.dp))
-            Text("Yurdunu Bil", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black, modifier = Modifier.alpha(alpha.value))
-            Text("Geleceğini Bil.", color = MLGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.alpha(alpha.value))
-            Spacer(Modifier.height(18.dp))
-            Text("KPSS Önlisans • Türkiye Coğrafyası", color = MLMute, fontSize = 11.sp, modifier = Modifier.alpha(alpha.value))
-        }
     }
 }
 
