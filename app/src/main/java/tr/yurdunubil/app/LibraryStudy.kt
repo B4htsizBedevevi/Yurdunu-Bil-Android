@@ -1,25 +1,27 @@
 package tr.yurdunubil.app
 
+import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +32,10 @@ private val LSMint = Color(0xFFC9F8E1)
 private val LSGold = Color(0xFFFFC857)
 private val LSBackground = Color(0xFFF3F8F5)
 private val LSMuted = Color(0xFF70847B)
+private val LSDarkBg = Color(0xFF07110E)
+private val LSDarkSurface = Color(0xFF10221C)
+private val LSDarkText = Color(0xFFF1F7F4)
+private val LSDarkMuted = Color(0xFF9AB4A9)
 
 data class StudyLesson(val title: String, val intro: String, val keyPoints: List<String>, val examTip: String)
 
@@ -53,23 +59,88 @@ object LibraryStudyData {
 
 @Composable
 fun LibraryStudyScreen(topic: Topic, onBack: () -> Unit, onQuiz: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val darkMode = remember { context.getSharedPreferences("yurdunu_bil_native", Context.MODE_PRIVATE).getBoolean("dark_mode", false) }
     val lesson = remember(topic.title) { LibraryStudyData.forTopic(topic) }
-    Box(Modifier.fillMaxSize().background(LSBackground).statusBarsPadding().navigationBarsPadding()) {
-        LazyColumn(contentPadding = PaddingValues(16.dp, 5.dp, 16.dp, 28.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    var cardIndex by remember { mutableIntStateOf(0) }
+    var revealed by remember { mutableStateOf(false) }
+    val total = lesson.keyPoints.size
+    val bg = if (darkMode) LSDarkBg else LSBackground
+    val surface = if (darkMode) LSDarkSurface else Color.White
+    val text = if (darkMode) LSDarkText else LSDeep
+    val muted = if (darkMode) LSDarkMuted else LSMuted
+
+    Column(Modifier.fillMaxSize().background(bg).statusBarsPadding().navigationBarsPadding()) {
+        Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Geri", tint = text) }
+            Column(Modifier.weight(1f)) {
+                Text("KARTLA ÇALIŞ", color = LSGreen, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.1.sp)
+                Text(topic.title, color = text, fontSize = 21.sp, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Text("${cardIndex + 1}/$total", color = LSGreen, fontWeight = FontWeight.Black, fontSize = 11.sp)
+        }
+        LinearProgressIndicator(progress = { (cardIndex + 1f) / total }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(6.dp).clip(RoundedCornerShape(8.dp)), color = LSGreen, trackColor = if (darkMode) Color(0xFF17372D) else LSMint)
+
+        LazyColumn(contentPadding = PaddingValues(16.dp, 14.dp, 16.dp, 28.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Geri", tint = LSDeep) }
-                    Column(Modifier.weight(1f)) { Text("ÇALIŞMA", color = LSGreen, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.2.sp); Text(topic.title, color = LSDeep, fontSize = 22.sp, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                    Text(topic.icon, fontSize = 18.sp)
+                Card(Modifier.fillMaxWidth(), RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = surface)) {
+                    Column(Modifier.padding(18.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(44.dp).clip(RoundedCornerShape(13.dp)).background(LSGreen.copy(alpha = .13f)), contentAlignment = Alignment.Center) { Icon(Icons.Default.AutoStories, null, tint = LSGreen) }
+                            Spacer(Modifier.width(10.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("ÖNCE ANLA", color = LSGreen, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                                Text(lesson.intro, color = muted, fontSize = 10.sp, lineHeight = 15.sp)
+                            }
+                        }
+                    }
                 }
             }
-            item { StudyCard(dark = true) { Row(verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(46.dp).clip(CircleShape).background(LSGreen.copy(alpha = .13f)), contentAlignment = Alignment.Center) { Icon(Icons.Default.AutoStories, null, tint = LSGreen) }; Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text("ÖNCE ANLA", color = LSMint, fontSize = 10.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(4.dp)); Text(lesson.intro, color = Color.White, fontSize = 15.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold) } } } }
-            item { Text("Temel Bilgiler", color = LSDeep, fontSize = 18.sp, fontWeight = FontWeight.Black) }
-            items(lesson.keyPoints) { point -> StudyCard { Row(verticalAlignment = Alignment.Top) { Text("✓", color = LSGreen, fontSize = 16.sp, fontWeight = FontWeight.Black); Spacer(Modifier.width(9.dp)); Text(point, color = LSDeep, fontSize = 13.sp, lineHeight = 19.sp, modifier = Modifier.weight(1f)) } } }
-            item { StudyCard { Row(verticalAlignment = Alignment.Top) { Icon(Icons.Default.Lightbulb, null, tint = LSGold); Spacer(Modifier.width(9.dp)); Column(Modifier.weight(1f)) { Text("KPSS İPUCU", color = LSGold, fontSize = 10.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(4.dp)); Text(lesson.examTip, color = LSDeep, fontSize = 13.sp, lineHeight = 19.sp, fontWeight = FontWeight.SemiBold) } } } }
-            item { Button(onClick = onQuiz, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(17.dp), colors = ButtonDefaults.buttonColors(containerColor = LSDeep)) { Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(7.dp)); Text("Konuyu Test Et", fontWeight = FontWeight.Bold) } }
+            item {
+                val point = lesson.keyPoints[cardIndex]
+                Card(Modifier.fillMaxWidth().heightIn(min = 210.dp).clickable { revealed = !revealed }, RoundedCornerShape(25.dp), colors = CardDefaults.cardColors(containerColor = if (revealed) LSDeep else surface)) {
+                    Column(Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        Text(if (revealed) "KPSS DİKKAT" else "KART ${cardIndex + 1}", color = if (revealed) LSGold else LSGreen, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.4.sp)
+                        Spacer(Modifier.height(16.dp))
+                        if (revealed) {
+                            Text(point, color = Color.White, fontSize = 18.sp, lineHeight = 27.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
+                            Spacer(Modifier.height(14.dp))
+                            Text("Dokun: karta geri dön", color = Color.White.copy(alpha = .58f), fontSize = 9.sp)
+                        } else {
+                            Text("Bu bilgiyi kendin hatırlamaya çalış.", color = text, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
+                            Spacer(Modifier.height(12.dp))
+                            Text("Cevabı görmek için karta dokun", color = muted, fontSize = 10.sp)
+                        }
+                    }
+                }
+            }
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(onClick = { if (cardIndex > 0) { cardIndex--; revealed = false } }, enabled = cardIndex > 0, modifier = Modifier.weight(1f).height(48.dp), shape = RoundedCornerShape(15.dp)) { Icon(Icons.Default.ArrowBack, null); Spacer(Modifier.width(5.dp)); Text("Önceki") }
+                    Button(onClick = { if (cardIndex < total - 1) { cardIndex++; revealed = false } else revealed = true }, modifier = Modifier.weight(1f).height(48.dp), shape = RoundedCornerShape(15.dp), colors = ButtonDefaults.buttonColors(containerColor = LSGreen, contentColor = LSDeep)) { Text(if (cardIndex == total - 1) "Tekrar Gör" else "Sonraki", fontWeight = FontWeight.Black); Spacer(Modifier.width(5.dp)); Icon(Icons.Default.ArrowForward, null) }
+                }
+            }
+            item {
+                Card(Modifier.fillMaxWidth(), RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = if (darkMode) Color(0xFF17372D) else LSMint)) {
+                    Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) {
+                        Icon(Icons.Default.Lightbulb, null, tint = LSGold)
+                        Spacer(Modifier.width(9.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("KPSS İPUCU", color = LSGold, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                            Spacer(Modifier.height(3.dp))
+                            Text(lesson.examTip, color = text, fontSize = 11.sp, lineHeight = 17.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+            }
+            item {
+                Button(onClick = onQuiz, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(17.dp), colors = ButtonDefaults.buttonColors(containerColor = if (darkMode) LSGreen else LSDeep, contentColor = if (darkMode) LSDeep else Color.White)) {
+                    Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(7.dp)); Text("Kartları Bitir → Konuyu Test Et", fontWeight = FontWeight.Black)
+                }
+            }
+            item {
+                TextButton(onClick = { cardIndex = 0; revealed = false }, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Replay, null); Spacer(Modifier.width(5.dp)); Text("Kartları baştan başlat") }
+            }
         }
     }
 }
-
-@Composable private fun StudyCard(dark: Boolean = false, content: @Composable ColumnScope.() -> Unit) { Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(if (dark) Brush.linearGradient(listOf(LSDeep, Color(0xFF0B342B))) else Brush.linearGradient(listOf(Color.White, Color.White))).padding(16.dp), content = content) }
