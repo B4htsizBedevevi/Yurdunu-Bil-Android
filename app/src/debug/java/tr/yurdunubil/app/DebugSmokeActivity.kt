@@ -3,7 +3,7 @@ package tr.yurdunubil.app
 import android.app.Activity
 import android.os.Bundle
 
-/** Debug-only entry point used by CI to exercise the real V4 activity without exporting it in production. */
+/** Debug-only entry point used by CI to exercise the stable V2 production activity without exporting it in production. */
 class DebugSmokeActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
