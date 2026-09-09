@@ -33,13 +33,13 @@ jobs:
         run: gradle --no-daemon :app:assembleDebug
 
       - name: Prepare test APK name
-        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/yurdunu-bil-v0.4.0-test.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/yurdunu-bil-v0.5.0-test.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: yurdunu-bil-v0.4.0-test
-          path: app/build/outputs/apk/debug/yurdunu-bil-v0.4.0-test.apk
+          name: yurdunu-bil-v0.5.0-test
+          path: app/build/outputs/apk/debug/yurdunu-bil-v0.5.0-test.apk
 
       - name: Android emulator startup smoke test
         uses: reactivecircus/android-emulator-runner@v2
@@ -59,15 +59,10 @@ jobs:
             echo "=== LAUNCHER SMOKE TEST ==="
             adb shell am start -n tr.yurdunubil.app/.ModernLaunchActivity
             sleep 8
-            echo "--- LAUNCHER PROCESS ---"
             pid="$(adb shell pidof tr.yurdunubil.app | tr -d '\r')"
             test -n "$pid"
             echo "Launcher process alive: $pid"
-            echo "--- LAUNCHER CRASH/EXCEPTION LOGCAT ---"
-            if adb logcat -d -t 1200 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then
-              echo "Launcher exception detected"
-              exit 1
-            fi
+            if adb logcat -d -t 1200 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then exit 1; fi
 
             echo "=== AUTH SCREEN SMOKE TEST ==="
             adb shell am force-stop tr.yurdunubil.app
@@ -77,22 +72,14 @@ jobs:
             pid="$(adb shell pidof tr.yurdunubil.app | tr -d '\r')"
             test -n "$pid"
             echo "Auth process alive: $pid"
-            if adb logcat -d -t 1600 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then
-              echo "Auth exception detected"
-              exit 1
-            fi
+            if adb logcat -d -t 1600 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then exit 1; fi
 
             echo "=== V2 MAIN SMOKE TEST ==="
             adb shell am force-stop tr.yurdunubil.app
             adb logcat -c
             adb shell am start -n tr.yurdunubil.app/.DebugSmokeActivity
             sleep 8
-            echo "--- V2 PROCESS ---"
             pid="$(adb shell pidof tr.yurdunubil.app | tr -d '\r')"
             test -n "$pid"
             echo "V2 process alive: $pid"
-            echo "--- V2 CRASH/EXCEPTION LOGCAT ---"
-            if adb logcat -d -t 2000 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then
-              echo "V2 exception detected"
-              exit 1
-            fi
+            if adb logcat -d -t 2000 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then exit 1; fi
