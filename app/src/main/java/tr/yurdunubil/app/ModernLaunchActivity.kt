@@ -1,26 +1,33 @@
 package tr.yurdunubil.app
 
-import android.app.Activity
-import android.graphics.Color
 import android.os.Bundle
-import android.view.Gravity
-import android.widget.TextView
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 /**
- * Minimal native diagnostic launcher.
- * No Compose, Supabase, notifications, or other app code is touched.
+ * Minimal Compose diagnostic launcher.
+ * No Supabase, app navigation, notifications, V2/V4 UI, or custom theme is touched.
  */
-class ModernLaunchActivity : Activity() {
+class ModernLaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        setContentView(TextView(this).apply {
-            text = "BOOT OK\n\nYurdunu Bil\nnative startup test"
-            textSize = 24f
-            setTextColor(Color.WHITE)
-            setBackgroundColor(Color.rgb(6, 20, 15))
-            gravity = Gravity.CENTER
-            setPadding(32, 32, 32, 32)
-        })
+        setContent {
+            ComposeBootProbe()
+        }
     }
+}
+
+@Composable
+private fun ComposeBootProbe() {
+    Text(
+        text = "COMPOSE OK\n\nYurdunu Bil\nCompose startup test",
+        color = Color.White,
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Normal
+    )
 }
