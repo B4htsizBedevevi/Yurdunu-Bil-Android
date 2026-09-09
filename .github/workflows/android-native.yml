@@ -60,16 +60,26 @@ jobs:
             adb shell am start -n tr.yurdunubil.app/.ModernLaunchActivity
             sleep 8
             echo "--- LAUNCHER PROCESS ---"
-            adb shell pidof tr.yurdunubil.app || true
+            pid="$(adb shell pidof tr.yurdunubil.app | tr -d '\r')"
+            test -n "$pid"
+            echo "Launcher process alive: $pid"
             echo "--- LAUNCHER CRASH/EXCEPTION LOGCAT ---"
-            adb logcat -d -t 1200 | grep -E "AndroidRuntime|FATAL EXCEPTION|tr.yurdunubil.app|Process: tr.yurdunubil.app" || true
+            if adb logcat -d -t 1200 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then
+              echo "Launcher exception detected"
+              exit 1
+            fi
 
             echo "=== V4 MAIN SMOKE TEST ==="
             adb shell am force-stop tr.yurdunubil.app
             adb logcat -c
-            adb shell am start -n tr.yurdunubil.app/.RetentionMainActivity
+            adb shell am start -n tr.yurdunubil.app/.DebugSmokeActivity
             sleep 8
             echo "--- V4 PROCESS ---"
-            adb shell pidof tr.yurdunubil.app || true
+            pid="$(adb shell pidof tr.yurdunubil.app | tr -d '\r')"
+            test -n "$pid"
+            echo "V4 process alive: $pid"
             echo "--- V4 CRASH/EXCEPTION LOGCAT ---"
-            adb logcat -d -t 1200 | grep -E "AndroidRuntime|FATAL EXCEPTION|tr.yurdunubil.app|Process: tr.yurdunubil.app" || true
+            if adb logcat -d -t 2000 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then
+              echo "V4 exception detected"
+              exit 1
+            fi
