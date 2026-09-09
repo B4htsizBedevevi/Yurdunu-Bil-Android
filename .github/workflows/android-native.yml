@@ -69,17 +69,30 @@ jobs:
               exit 1
             fi
 
-            echo "=== V4 MAIN SMOKE TEST ==="
+            echo "=== AUTH SCREEN SMOKE TEST ==="
+            adb shell am force-stop tr.yurdunubil.app
+            adb logcat -c
+            adb shell am start -n tr.yurdunubil.app/.ModernAuthActivity --ez register true
+            sleep 5
+            pid="$(adb shell pidof tr.yurdunubil.app | tr -d '\r')"
+            test -n "$pid"
+            echo "Auth process alive: $pid"
+            if adb logcat -d -t 1600 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then
+              echo "Auth exception detected"
+              exit 1
+            fi
+
+            echo "=== V2 MAIN SMOKE TEST ==="
             adb shell am force-stop tr.yurdunubil.app
             adb logcat -c
             adb shell am start -n tr.yurdunubil.app/.DebugSmokeActivity
             sleep 8
-            echo "--- V4 PROCESS ---"
+            echo "--- V2 PROCESS ---"
             pid="$(adb shell pidof tr.yurdunubil.app | tr -d '\r')"
             test -n "$pid"
-            echo "V4 process alive: $pid"
-            echo "--- V4 CRASH/EXCEPTION LOGCAT ---"
+            echo "V2 process alive: $pid"
+            echo "--- V2 CRASH/EXCEPTION LOGCAT ---"
             if adb logcat -d -t 2000 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then
-              echo "V4 exception detected"
+              echo "V2 exception detected"
               exit 1
             fi
