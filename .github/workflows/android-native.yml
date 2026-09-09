@@ -33,6 +33,28 @@ jobs:
             git push origin HEAD:main
           fi
 
+      - name: Wire achievement milestones
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
+          s = p.read_text(encoding="utf-8")
+          marker = "AchievementCard(prefs.getInt(\"solved\", 0), prefs.getInt(\"xp\", 0), prefs.getInt(\"streak\", 0), darkMode)"
+          if marker not in s:
+              needle = 'item { Card(Modifier.fillMaxWidth(), RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = soft))'
+              if needle not in s:
+                  raise SystemExit("Settings tip card insertion point not found")
+              s = s.replace(needle, 'item { AchievementCard(prefs.getInt("solved", 0), prefs.getInt("xp", 0), prefs.getInt("streak", 0), darkMode) }; ' + needle, 1)
+              p.write_text(s, encoding="utf-8")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt; then
+            git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt
+            git commit -m "feat: show achievement milestones in settings"
+            git push origin HEAD:main
+          fi
+
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
