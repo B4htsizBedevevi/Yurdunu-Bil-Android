@@ -5,11 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
 
-/** Production entry point for the current V4 UI. */
+/** Production entry point temporarily switched to the known-stable V2 UI for runtime isolation. */
 class RetentionMainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        setContent { YurdunuBilMainV4() }
+        setContent { YurdunuBilMainV2App() }
     }
 }
