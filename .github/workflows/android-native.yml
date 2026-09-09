@@ -26,7 +26,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # Preflight: compile Kotlin before packaging. If source is broken, stop here.
       - name: Preflight Kotlin compile
         run: gradle --no-daemon :app:compileDebugKotlin
 
@@ -42,14 +41,12 @@ jobs:
           name: yurdunu-bil-v0.4.0-test
           path: app/build/outputs/apk/debug/yurdunu-bil-v0.4.0-test.apk
 
-      # Runtime check: install the exact APK, start from a clean app state,
-      # verify the launcher survives, then start V4 directly and verify it survives.
       - name: Android emulator startup smoke test
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
           arch: x86_64
-          profile: Nexus_5X
+          target: google_apis
           emulator-options: -no-window -no-audio -no-boot-anim
           disable-animations: true
           script: |
