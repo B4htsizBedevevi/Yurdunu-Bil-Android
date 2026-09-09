@@ -1,11 +1,10 @@
 package tr.yurdunubil.app
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -13,6 +12,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -56,333 +57,219 @@ private val AuthMuted = Color(0xFF9CB9AD)
 private val AuthGreen = Color(0xFF2BE29B)
 private val AuthGreenDark = Color(0xFF0D4032)
 
-/** Runtime-isolated auth UI. Database/network work remains disabled until this screen is proven stable. */
 class ModernAuthActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val initialRegister = intent.getBooleanExtra("register", false)
-        setContent { SafeAuthScreen(initialRegister = initialRegister, onBack = { finish() }) }
+        setContent {
+            SafeAuthScreen(
+                initialRegister = initialRegister,
+                onBack = { finish() },
+                onContinue = {
+                    startActivity(Intent(this, RetentionMainActivity::class.java))
+                    finish()
+                }
+            )
+        }
     }
 }
 
 @Composable
-private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
+private fun SafeAuthScreen(
+    initialRegister: Boolean,
+    onBack: () -> Unit,
+    onContinue: () -> Unit
+) {
     var register by remember { mutableStateOf(initialRegister) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var contentVisible by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
-    var forgotRequested by remember { mutableStateOf(false) }
 
     val ambient = rememberInfiniteTransition(label = "authAmbient")
     val logoScale by ambient.animateFloat(
-        initialValue = 0.97f,
+        initialValue = .97f,
         targetValue = 1.035f,
-        animationSpec = infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        animationSpec = infiniteRepeatable(
+            tween(1500, easing = FastOutSlowInEasing), RepeatMode.Reverse
+        ),
         label = "logoPulse"
     )
-
     LaunchedEffect(Unit) { contentVisible = true }
 
     Box(
-        Modifier
-            .fillMaxSize()
+        Modifier.fillMaxSize()
             .background(Brush.verticalGradient(listOf(Color(0xFF061C17), AuthBgMid, AuthBg)))
-            .statusBarsPadding()
-            .navigationBarsPadding()
+            .statusBarsPadding().navigationBarsPadding()
     ) {
-        // Subtle topographic lines replace the distracting floating circles.
         Canvas(Modifier.fillMaxSize()) {
-            val lineColor = AuthGreen.copy(alpha = .055f)
             repeat(9) { index ->
                 val y = size.height * (.12f + index * .075f)
                 val path = Path().apply {
                     moveTo(-20f, y)
                     cubicTo(size.width * .28f, y - 55f, size.width * .64f, y + 45f, size.width + 20f, y - 10f)
                 }
-                drawPath(path, lineColor, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f))
+                drawPath(path, AuthGreen.copy(alpha = .055f), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f))
             }
-            drawCircle(AuthGreen.copy(alpha = .08f), radius = 2.5f, center = Offset(size.width * .12f, size.height * .20f))
-            drawCircle(AuthGreen.copy(alpha = .06f), radius = 2f, center = Offset(size.width * .86f, size.height * .70f))
+            drawCircle(AuthGreen.copy(alpha = .08f), 2.5f, Offset(size.width * .12f, size.height * .20f))
+            drawCircle(AuthGreen.copy(alpha = .06f), 2f, Offset(size.width * .86f, size.height * .70f))
         }
 
         Column(
-            Modifier
-                .fillMaxSize()
-                .padding(horizontal = 18.dp, vertical = 10.dp),
+            Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, "Geri", tint = AuthText)
-                }
+                IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Geri", tint = AuthText) }
                 Text("Yurdunu Bil", color = AuthText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
-
             Spacer(Modifier.height(8.dp))
 
             AnimatedVisibility(
-                visible = contentVisible,
+                contentVisible,
                 enter = fadeIn(tween(550)) + slideInVertically(tween(550)) { it / 4 }
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(
-                        Modifier
-                            .size(92.dp)
-                            .scale(logoScale)
-                            .clip(RoundedCornerShape(29.dp))
+                        Modifier.size(92.dp).scale(logoScale).clip(RoundedCornerShape(29.dp))
                             .background(AuthGreen.copy(alpha = .10f))
                             .border(1.dp, AuthGreen.copy(alpha = .50f), RoundedCornerShape(29.dp)),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.yurdunu_bil_app_icon),
-                            contentDescription = "Yurdunu Bil logosu",
-                            modifier = Modifier.size(74.dp).clip(RoundedCornerShape(22.dp)),
+                            painterResource(R.drawable.yurdunu_bil_app_icon),
+                            "Yurdunu Bil logosu",
+                            Modifier.size(74.dp).clip(RoundedCornerShape(22.dp)),
                             contentScale = ContentScale.Crop
                         )
                     }
                     Spacer(Modifier.height(14.dp))
                     Text(
                         if (register) "KPSS yolculuğuna katıl" else "Kaldığın yerden devam et",
-                        color = AuthText,
-                        fontSize = 27.sp,
-                        fontWeight = FontWeight.Black,
+                        color = AuthText, fontSize = 27.sp, fontWeight = FontWeight.Black,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(5.dp))
                     Text(
-                        if (register)
-                            "KPSS'ye hazırlanırken Türkiye'yi birlikte daha iyi tanı. Konuları öğren, testlerle pekiştir, görevlerini tamamla ve Arena'da kendini dene."
-                        else
-                            "Konuların, testlerin, görevlerin ve Arena ilerlemen seni bekliyor. Hesabınla kaldığın yerden devam et.",
-                        color = AuthMuted,
-                        fontSize = 12.sp,
-                        lineHeight = 18.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        "KPSS'ye hazırlanırken Türkiye'yi daha iyi tanı. Konuları öğren, testlerle pekiştir, günlük görevlerini tamamla ve Arena'da kendini dene.",
+                        color = AuthMuted, fontSize = 12.sp, lineHeight = 18.sp,
+                        textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
 
             Spacer(Modifier.height(18.dp))
-
             AnimatedVisibility(
-                visible = contentVisible,
+                contentVisible,
                 enter = fadeIn(tween(600, delayMillis = 120)) + slideInVertically(tween(600, delayMillis = 120)) { it / 5 }
             ) {
                 Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(28.dp))
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp))
                         .background(AuthSurface.copy(alpha = .98f))
                         .border(1.dp, AuthGreen.copy(alpha = .14f), RoundedCornerShape(28.dp))
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(18.dp))
-                            .background(Color.White.copy(alpha = .045f))
-                            .padding(4.dp)
+                        Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp))
+                            .background(Color.White.copy(alpha = .045f)).padding(4.dp)
                     ) {
-                        AuthTab("Giriş Yap", !register, Modifier.weight(1f)) {
-                            register = false
-                            message = null
-                            forgotRequested = false
-                        }
-                        AuthTab("Yeni Hesap", register, Modifier.weight(1f)) {
-                            register = true
-                            message = null
-                            forgotRequested = false
-                        }
+                        AuthTab("Giriş Yap", !register, Modifier.weight(1f)) { register = false; message = null }
+                        AuthTab("Yeni Hesap", register, Modifier.weight(1f)) { register = true; message = null }
                     }
-
                     Text(
                         if (register) "Yeni hesabını oluştur" else "Hesabına giriş yap",
-                        color = AuthText,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                        color = AuthText, fontSize = 14.sp, fontWeight = FontWeight.Bold
                     )
-
                     OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it; message = null; forgotRequested = false },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        label = { Text("E-posta adresi") },
-                        placeholder = { Text("ornek@mail.com") },
+                        value = email, onValueChange = { email = it; message = null },
+                        modifier = Modifier.fillMaxWidth(), singleLine = true,
+                        label = { Text("E-posta adresi") }, placeholder = { Text("ornek@mail.com") },
                         leadingIcon = { Icon(Icons.Default.Email, null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        shape = RoundedCornerShape(17.dp),
-                        colors = authColors()
+                        shape = RoundedCornerShape(17.dp), colors = authColors()
                     )
-
                     OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it; message = null },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        label = { Text("Şifre") },
-                        placeholder = { Text(if (register) "En az 6 karakter" else "Şifreni gir") },
+                        value = password, onValueChange = { password = it; message = null },
+                        modifier = Modifier.fillMaxWidth(), singleLine = true,
+                        label = { Text("Şifre") }, placeholder = { Text("En az 6 karakter") },
                         leadingIcon = { Icon(Icons.Default.Lock, null) },
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(
-                                    if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    "Şifreyi göster/gizle"
-                                )
+                                Icon(if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, "Şifreyi göster/gizle")
                             }
                         },
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        shape = RoundedCornerShape(17.dp),
-                        colors = authColors()
+                        shape = RoundedCornerShape(17.dp), colors = authColors()
                     )
-
                     if (!register) {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Şifremi unuttum?",
-                                color = AuthGreen,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.clickable {
-                                    forgotRequested = true
-                                    message = "Şifre yenileme bağlantısı gerçek hesap sistemi açıldığında kullanılabilecek."
-                                }
-                            )
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            Text("Şifremi unuttum?", color = AuthGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable { message = "Şifre yenileme, gerçek hesap sistemi açıldığında aktif olacak." })
                         }
-                    } else if (password.isNotEmpty()) {
-                        PasswordStrength(password)
-                    }
+                    } else if (password.isNotEmpty()) PasswordStrength(password)
 
-                    if (message != null) {
-                        Text(message!!, color = AuthGreen, fontSize = 12.sp, lineHeight = 17.sp)
-                    }
+                    if (message != null) Text(message!!, color = AuthGreen, fontSize = 12.sp, lineHeight = 17.sp)
 
                     Button(
-                        onClick = {
-                            message = if (register)
-                                "Hesap bağlantısı bir sonraki adımda açılacak. Şimdilik tasarım ve akış hazır."
-                            else
-                                "Giriş bağlantısı bir sonraki adımda açılacak. Şimdilik tasarım ve akış hazır."
-                        },
+                        onClick = onContinue,
                         enabled = email.contains("@") && email.contains(".") && password.length >= 6,
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         shape = RoundedCornerShape(18.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = AuthGreen,
-                            contentColor = Color(0xFF03251A),
+                            containerColor = AuthGreen, contentColor = Color(0xFF03251A),
                             disabledContainerColor = AuthGreenDark,
                             disabledContentColor = AuthMuted.copy(alpha = .80f)
                         )
                     ) {
-                        Text(if (register) "Hesap Oluştur" else "Giriş Yap", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
-                        Spacer(Modifier.width(8.dp))
-                        Icon(Icons.Default.ArrowForward, null)
+                        Text(if (register) "Hesap Oluştur ve Başla" else "Giriş Yap ve Devam Et", fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+                        Spacer(Modifier.width(8.dp)); Icon(Icons.Default.ArrowForward, null)
                     }
-
                     Text(
-                        if (register)
-                            "Şimdilik hesabın yerel akışını test ediyoruz. Gerçek hesap bağlantısını stabil sürümden sonra açacağız."
-                        else
-                            "Giriş sistemi henüz aktif değil; bu sürümde hiçbir şifre sunucuya gönderilmiyor.",
-                        color = AuthMuted.copy(alpha = .78f),
-                        fontSize = 10.sp,
-                        lineHeight = 15.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        "Bu sürümde giriş bilgileri sunucuya gönderilmiyor. Buton, stabil V2 deneyimine geçiş için yerel test akışını açar.",
+                        color = AuthMuted.copy(alpha = .78f), fontSize = 10.sp, lineHeight = 15.sp,
+                        textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
-
             Spacer(Modifier.weight(1f))
-            Text(
-                "KPSS • COĞRAFYA • ÖĞREN • YARIŞ",
-                color = AuthGreen.copy(alpha = .82f),
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text("KPSS • COĞRAFYA • ÖĞREN • YARIŞ", color = AuthGreen.copy(alpha = .82f), fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
 private fun PasswordStrength(password: String) {
-    val score = listOf(
-        password.length >= 6,
-        password.length >= 10,
-        password.any { it.isUpperCase() },
-        password.any { it.isDigit() }
-    ).count { it }
-    val label = when (score) {
-        0, 1 -> "Şifre zayıf"
-        2 -> "Şifre orta"
-        3 -> "Şifre iyi"
-        else -> "Şifre güçlü"
-    }
+    val score = listOf(password.length >= 6, password.length >= 10, password.any { it.isUpperCase() }, password.any { it.isDigit() }).count { it }
+    val label = when (score) { 0, 1 -> "Şifre zayıf"; 2 -> "Şifre orta"; 3 -> "Şifre iyi"; else -> "Şifre güçlü" }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         repeat(4) { index ->
-            Box(
-                Modifier
-                    .weight(1f)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(if (index < score) AuthGreen else Color.White.copy(alpha = .10f))
-            )
+            Box(Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(3.dp)).background(if (index < score) AuthGreen else Color.White.copy(alpha = .10f)))
             if (index != 3) Spacer(Modifier.width(4.dp))
         }
-        Spacer(Modifier.width(10.dp))
-        Text(label, color = AuthMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.width(10.dp)); Text(label, color = AuthMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
     }
 }
 
 @Composable
 private fun AuthTab(text: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    val tabScale by animateFloatAsState(
-        targetValue = if (selected) 1f else .97f,
-        animationSpec = tween(220),
-        label = "tabScale"
-    )
+    val scale by animateFloatAsState(if (selected) 1f else .97f, tween(220), label = "tabScale")
     Box(
-        modifier
-            .scale(tabScale)
-            .clip(RoundedCornerShape(15.dp))
+        modifier.scale(scale).clip(RoundedCornerShape(15.dp))
             .background(if (selected) AuthGreen.copy(alpha = .15f) else Color.Transparent)
             .border(if (selected) 1.dp else 0.dp, if (selected) AuthGreen.copy(alpha = .35f) else Color.Transparent, RoundedCornerShape(15.dp))
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text,
-            color = if (selected) AuthText else AuthMuted,
-            fontSize = 13.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
-        )
-    }
+            .clickable(onClick = onClick).padding(vertical = 12.dp), contentAlignment = Alignment.Center
+    ) { Text(text, color = if (selected) AuthText else AuthMuted, fontSize = 13.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium) }
 }
 
 @Composable
 private fun authColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = AuthGreen,
-    unfocusedBorderColor = AuthGreen.copy(alpha = .28f),
-    focusedLabelColor = AuthGreen,
-    unfocusedLabelColor = AuthMuted,
-    cursorColor = AuthGreen,
-    focusedTextColor = AuthText,
-    unfocusedTextColor = AuthText,
-    focusedContainerColor = Color.White.copy(alpha = .035f),
-    unfocusedContainerColor = Color.White.copy(alpha = .018f),
-    focusedLeadingIconColor = AuthGreen,
-    unfocusedLeadingIconColor = AuthMuted,
-    focusedTrailingIconColor = AuthGreen,
-    unfocusedTrailingIconColor = AuthMuted
+    focusedBorderColor = AuthGreen, unfocusedBorderColor = AuthGreen.copy(alpha = .28f),
+    focusedLabelColor = AuthGreen, unfocusedLabelColor = AuthMuted, cursorColor = AuthGreen,
+    focusedTextColor = AuthText, unfocusedTextColor = AuthText,
+    focusedContainerColor = Color.White.copy(alpha = .035f), unfocusedContainerColor = Color.White.copy(alpha = .018f),
+    focusedLeadingIconColor = AuthGreen, unfocusedLeadingIconColor = AuthMuted,
+    focusedTrailingIconColor = AuthGreen, unfocusedTrailingIconColor = AuthMuted
 )
