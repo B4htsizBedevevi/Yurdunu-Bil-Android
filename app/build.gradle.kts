@@ -15,8 +15,8 @@ android {
         applicationId = "tr.yurdunubil.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "0.4.0"
+        versionCode = 5
+        versionName = "0.5.0"
         buildConfigField("String", "SUPABASE_URL", "\"https://phcdfnvqhhwkhrxsmuar.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_vwk3J5ag16XmMOm3x734MQ_-mMsJVe2\"")
     }
@@ -35,8 +35,6 @@ android {
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
 }
 
-// Keep one canonical app icon source: the exact PNG already committed at repository root.
-// Copy it into Android resources before Android's resource pipeline starts.
 val syncCanonicalAppIcon = tasks.register("syncCanonicalAppIcon") {
     outputs.file(file("src/main/res/drawable/yurdunu_bil_app_icon.png"))
     doLast {
@@ -48,9 +46,7 @@ val syncCanonicalAppIcon = tasks.register("syncCanonicalAppIcon") {
     }
 }
 
-tasks.named("preBuild") {
-    dependsOn(syncCanonicalAppIcon)
-}
+tasks.named("preBuild") { dependsOn(syncCanonicalAppIcon) }
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2026.06.00")
