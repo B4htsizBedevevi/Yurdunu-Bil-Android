@@ -14,6 +14,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+private data class Milestone(
+    val done: Boolean,
+    val title: String,
+    val subtitle: String,
+    val icon: String
+)
+
 @Composable
 fun AchievementCard(solved: Int, xp: Int, streak: Int, darkMode: Boolean) {
     val surface = if (darkMode) Color(0xFF10221C) else Color.White
@@ -22,9 +29,9 @@ fun AchievementCard(solved: Int, xp: Int, streak: Int, darkMode: Boolean) {
     val green = Color(0xFF18C986)
     val gold = Color(0xFFFFC857)
     val milestones = listOf(
-        Triple(solved >= 10, "İlk 10", "10 soru çöz", "🎯"),
-        Triple(xp >= 500, "500 XP", "İlk seviyeyi tamamla", "⭐"),
-        Triple(streak >= 3, "3 Gün Seri", "Çalışma ritmini koru", "🔥")
+        Milestone(solved >= 10, "İlk 10", "10 soru çöz", "🎯"),
+        Milestone(xp >= 500, "500 XP", "İlk seviyeyi tamamla", "⭐"),
+        Milestone(streak >= 3, "3 Gün Seri", "Çalışma ritmini koru", "🔥")
     )
     Card(
         Modifier.fillMaxWidth(),
@@ -34,17 +41,24 @@ fun AchievementCard(solved: Int, xp: Int, streak: Int, darkMode: Boolean) {
         Column(Modifier.padding(14.dp)) {
             Text("KÜÇÜK BAŞARILAR", color = gold, fontSize = 9.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(8.dp))
-            milestones.forEach { (done, title, subtitle, icon) ->
+            milestones.forEach { milestone ->
                 Row(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
                     Box(
-                        Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(if (done) green.copy(alpha = .15f) else muted.copy(alpha = .10f))
-                    ) { Text(icon, modifier = Modifier.padding(7.dp), fontSize = 16.sp) }
+                        Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(
+                            if (milestone.done) green.copy(alpha = .15f) else muted.copy(alpha = .10f)
+                        )
+                    ) { Text(milestone.icon, modifier = Modifier.padding(7.dp), fontSize = 16.sp) }
                     Spacer(Modifier.width(9.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(title, color = text, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
-                        Text(subtitle, color = muted, fontSize = 9.sp)
+                        Text(milestone.title, color = text, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(milestone.subtitle, color = muted, fontSize = 9.sp)
                     }
-                    Text(if (done) "TAMAM ✓" else "DEVAM", color = if (done) green else muted, fontSize = 8.sp, fontWeight = FontWeight.Black)
+                    Text(
+                        if (milestone.done) "TAMAM ✓" else "DEVAM",
+                        color = if (milestone.done) green else muted,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Black
+                    )
                 }
             }
         }
