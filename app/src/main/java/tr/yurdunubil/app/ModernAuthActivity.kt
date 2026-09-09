@@ -13,12 +13,12 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -31,11 +31,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -72,17 +73,12 @@ private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
     var passwordVisible by remember { mutableStateOf(false) }
     var contentVisible by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
+    var forgotRequested by remember { mutableStateOf(false) }
 
     val ambient = rememberInfiniteTransition(label = "authAmbient")
-    val ambientAlpha by ambient.animateFloat(
-        initialValue = 0.08f,
-        targetValue = 0.18f,
-        animationSpec = infiniteRepeatable(tween(1800, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "ambientAlpha"
-    )
     val logoScale by ambient.animateFloat(
         initialValue = 0.97f,
-        targetValue = 1.04f,
+        targetValue = 1.035f,
         animationSpec = infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
         label = "logoPulse"
     )
@@ -95,26 +91,28 @@ private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
             .background(Brush.verticalGradient(listOf(Color(0xFF061C17), AuthBgMid, AuthBg)))
             .statusBarsPadding()
             .navigationBarsPadding()
-            .padding(horizontal = 18.dp, vertical = 10.dp)
     ) {
-        Box(
-            Modifier
-                .size(220.dp)
-                .offset(x = 120.dp, y = (-55).dp)
-                .alpha(ambientAlpha)
-                .clip(CircleShape)
-                .background(AuthGreen)
-        )
-        Box(
-            Modifier
-                .size(170.dp)
-                .offset(x = (-105).dp, y = 230.dp)
-                .alpha(ambientAlpha * .55f)
-                .clip(CircleShape)
-                .background(AuthGreen)
-        )
+        // Subtle topographic lines replace the distracting floating circles.
+        Canvas(Modifier.fillMaxSize()) {
+            val lineColor = AuthGreen.copy(alpha = .055f)
+            repeat(9) { index ->
+                val y = size.height * (.12f + index * .075f)
+                val path = Path().apply {
+                    moveTo(-20f, y)
+                    cubicTo(size.width * .28f, y - 55f, size.width * .64f, y + 45f, size.width + 20f, y - 10f)
+                }
+                drawPath(path, lineColor, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f))
+            }
+            drawCircle(AuthGreen.copy(alpha = .08f), radius = 2.5f, center = Offset(size.width * .12f, size.height * .20f))
+            drawCircle(AuthGreen.copy(alpha = .06f), radius = 2f, center = Offset(size.width * .86f, size.height * .70f))
+        }
 
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 18.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, "Geri", tint = AuthText)
@@ -178,8 +176,8 @@ private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
                     Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(28.dp))
-                        .background(AuthSurface.copy(alpha = .96f))
-                        .border(1.dp, Color.White.copy(alpha = .11f), RoundedCornerShape(28.dp))
+                        .background(AuthSurface.copy(alpha = .98f))
+                        .border(1.dp, AuthGreen.copy(alpha = .14f), RoundedCornerShape(28.dp))
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -193,10 +191,12 @@ private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
                         AuthTab("Giriş Yap", !register, Modifier.weight(1f)) {
                             register = false
                             message = null
+                            forgotRequested = false
                         }
                         AuthTab("Yeni Hesap", register, Modifier.weight(1f)) {
                             register = true
                             message = null
+                            forgotRequested = false
                         }
                     }
 
@@ -209,10 +209,10 @@ private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
 
                     OutlinedTextField(
                         value = email,
-                        onValueChange = { email = it; message = null },
+                        onValueChange = { email = it; message = null; forgotRequested = false },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        label = { Text("E-posta") },
+                        label = { Text("E-posta adresi") },
                         placeholder = { Text("ornek@mail.com") },
                         leadingIcon = { Icon(Icons.Default.Email, null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -226,7 +226,7 @@ private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         label = { Text("Şifre") },
-                        placeholder = { Text("En az 6 karakter") },
+                        placeholder = { Text(if (register) "En az 6 karakter" else "Şifreni gir") },
                         leadingIcon = { Icon(Icons.Default.Lock, null) },
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -241,6 +241,27 @@ private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
                         shape = RoundedCornerShape(17.dp),
                         colors = authColors()
                     )
+
+                    if (!register) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Şifremi unuttum?",
+                                color = AuthGreen,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable {
+                                    forgotRequested = true
+                                    message = "Şifre yenileme bağlantısı gerçek hesap sistemi açıldığında kullanılabilecek."
+                                }
+                            )
+                        }
+                    } else if (password.isNotEmpty()) {
+                        PasswordStrength(password)
+                    }
 
                     if (message != null) {
                         Text(message!!, color = AuthGreen, fontSize = 12.sp, lineHeight = 17.sp)
@@ -294,6 +315,36 @@ private fun SafeAuthScreen(initialRegister: Boolean, onBack: () -> Unit) {
 }
 
 @Composable
+private fun PasswordStrength(password: String) {
+    val score = listOf(
+        password.length >= 6,
+        password.length >= 10,
+        password.any { it.isUpperCase() },
+        password.any { it.isDigit() }
+    ).count { it }
+    val label = when (score) {
+        0, 1 -> "Şifre zayıf"
+        2 -> "Şifre orta"
+        3 -> "Şifre iyi"
+        else -> "Şifre güçlü"
+    }
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        repeat(4) { index ->
+            Box(
+                Modifier
+                    .weight(1f)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(if (index < score) AuthGreen else Color.White.copy(alpha = .10f))
+            )
+            if (index != 3) Spacer(Modifier.width(4.dp))
+        }
+        Spacer(Modifier.width(10.dp))
+        Text(label, color = AuthMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
 private fun AuthTab(text: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val tabScale by animateFloatAsState(
         targetValue = if (selected) 1f else .97f,
@@ -322,12 +373,14 @@ private fun AuthTab(text: String, selected: Boolean, modifier: Modifier, onClick
 @Composable
 private fun authColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = AuthGreen,
-    unfocusedBorderColor = Color.White.copy(alpha = .14f),
+    unfocusedBorderColor = AuthGreen.copy(alpha = .28f),
     focusedLabelColor = AuthGreen,
     unfocusedLabelColor = AuthMuted,
     cursorColor = AuthGreen,
     focusedTextColor = AuthText,
     unfocusedTextColor = AuthText,
+    focusedContainerColor = Color.White.copy(alpha = .035f),
+    unfocusedContainerColor = Color.White.copy(alpha = .018f),
     focusedLeadingIconColor = AuthGreen,
     unfocusedLeadingIconColor = AuthMuted,
     focusedTrailingIconColor = AuthGreen,
