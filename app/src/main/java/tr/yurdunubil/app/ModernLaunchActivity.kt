@@ -81,18 +81,18 @@ private fun LaunchExperience(
         if (hasSession || signedInHint) onMain()
     }
 
-    if (!splashDone) {
-        AnimatedSplash()
-    } else if (sessionChecked && !hasSession && !signedInHint) {
-        ModernLaunchScreen(onRegister, onLogin)
+    when {
+        !splashDone -> AnimatedSplash()
+        sessionChecked && !hasSession && !signedInHint -> ModernLaunchScreen(onRegister, onLogin)
     }
 }
 
 @Composable
 private fun AnimatedSplash() {
-    val scale = remember { Animatable(.78f) }
+    val scale = remember { Animatable(0.78f) }
     val alpha = remember { Animatable(0f) }
-    val glow = remember { Animatable(.2f) }
+    val glow = remember { Animatable(0.2f) }
+
     LaunchedEffect(Unit) {
         kotlinx.coroutines.coroutineScope {
             launch { scale.animateTo(1f, tween(850, easing = FastOutSlowInEasing)) }
@@ -100,15 +100,34 @@ private fun AnimatedSplash() {
             launch { glow.animateTo(1f, tween(1000)) }
         }
     }
+
     Box(
-        Modifier.fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Color(0xFF071F1B), Color(0xFF0B4B3A), MLDeep)))
-            .statusBarsPadding().navigationBarsPadding(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF071F1B), Color(0xFF0B4B3A), MLDeep)
+                )
+            )
+            .statusBarsPadding()
+            .navigationBarsPadding(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.size(142.dp).scale(scale.value).alpha(alpha.value).clip(RoundedCornerShape(38.dp)).background(MLGreen.copy(alpha = .07f + glow.value * .08f)).padding(10.dp)) {
-                Image(painterResource(R.drawable.yurdunu_bil_logo), "Yurdunu Bil", Modifier.fillMaxSize().clip(RoundedCornerShape(29.dp)))
+            Box(
+                modifier = Modifier
+                    .size(142.dp)
+                    .scale(scale.value)
+                    .alpha(alpha.value)
+                    .clip(RoundedCornerShape(38.dp))
+                    .background(MLGreen.copy(alpha = 0.07f + glow.value * 0.08f))
+                    .padding(10.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.yurdunu_bil_logo),
+                    contentDescription = "Yurdunu Bil",
+                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(29.dp))
+                )
             }
             Spacer(Modifier.height(19.dp))
             Text("Yurdunu Bil", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Black, modifier = Modifier.alpha(alpha.value))
@@ -121,15 +140,30 @@ private fun AnimatedSplash() {
 
 @Composable
 private fun ModernLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
+    val background = Brush.verticalGradient(
+        listOf(Color(0xFF061C20), Color(0xFF0A3A2E), Color(0xFF03120E))
+    )
+
     Box(
-        Modifier.fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Color(0xFF061C20), Color(0xFF0A3A2E), Color(0xFF03120E)))
-            .statusBarsPadding().navigationBarsPadding()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(background)
+            .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
-        Column(Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp), verticalArrangement = Arrangement.SpaceBetween) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(painterResource(R.drawable.yurdunu_bil_logo), "Yurdunu Bil", Modifier.size(58.dp).clip(RoundedCornerShape(17.dp)))
+                    Image(
+                        painter = painterResource(R.drawable.yurdunu_bil_logo),
+                        contentDescription = "Yurdunu Bil",
+                        modifier = Modifier.size(58.dp).clip(RoundedCornerShape(17.dp))
+                    )
                     Spacer(Modifier.width(12.dp))
                     Column {
                         Text("Yurdunu Bil", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Black)
@@ -140,7 +174,12 @@ private fun ModernLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
                 Text("Türkiye coğrafyasını", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Black)
                 Text("oynayarak öğren.", color = MLGreen, fontSize = 28.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(9.dp))
-                Text("KPSS Önlisans için derin konu anlatımı, soru çözümü, günlük görevler ve Arena tek bir yerde.", color = MLMute, fontSize = 13.sp, lineHeight = 20.sp)
+                Text(
+                    "KPSS Önlisans için derin konu anlatımı, soru çözümü, günlük görevler ve Arena tek bir yerde.",
+                    color = MLMute,
+                    fontSize = 13.sp,
+                    lineHeight = 20.sp
+                )
                 Spacer(Modifier.height(18.dp))
                 FeatureCard(Icons.Default.MenuBook, "Kütüphane", "Konuyu uzun uzun öğren, sonra test et.")
                 Spacer(Modifier.height(8.dp))
@@ -148,29 +187,59 @@ private fun ModernLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
                 FeatureCard(Icons.Default.EmojiEvents, "Arena", "Hız, bölge ve Türkiye Ustası mücadeleleri.")
             }
+
             Column {
-                Button(onClick = onRegister, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(18.dp), colors = ButtonDefaults.buttonColors(containerColor = MLGreen, contentColor = MLDeep)) {
+                Button(
+                    onClick = onRegister,
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MLGreen, contentColor = MLDeep)
+                ) {
                     Text("Keşfetmeye Başla", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
                     Spacer(Modifier.width(8.dp))
-                    Icon(Icons.Default.ArrowForward, null)
+                    Icon(Icons.Default.ArrowForward, contentDescription = null)
                 }
                 Spacer(Modifier.height(8.dp))
-                OutlinedButton(onClick = onLogin, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(17.dp), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
+                OutlinedButton(
+                    onClick = onLogin,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(17.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                ) {
                     Text("Hesabımla giriş yap", fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(7.dp))
-                Text("Yeni hesap oluşturabilir veya mevcut hesabınla devam edebilirsin.", color = MLMute.copy(alpha = .78f), fontSize = 10.sp, modifier = Modifier.fillMaxWidth())
+                Text(
+                    "Yeni hesap oluşturabilir veya mevcut hesabınla devam edebilirsin.",
+                    color = MLMute.copy(alpha = 0.78f),
+                    fontSize = 10.sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
 }
 
 @Composable
-private fun FeatureCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String) {
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = .065f))) {
+private fun FeatureCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.065f))
+    ) {
         Row(Modifier.padding(13.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(39.dp).clip(RoundedCornerShape(12.dp)).background(MLGreen.copy(alpha = .16f)), contentAlignment = Alignment.Center) {
-                Icon(icon, null, tint = MLGreen, modifier = Modifier.size(21.dp))
+            Box(
+                modifier = Modifier
+                    .size(39.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MLGreen.copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = MLGreen, modifier = Modifier.size(21.dp))
             }
             Spacer(Modifier.width(11.dp))
             Column(Modifier.weight(1f)) {
