@@ -1,1 +1,1 @@
-CI verification trigger for the current V4 startup revision.
+CI verification trigger for the current V4 startup revision. Clean composition entry.
