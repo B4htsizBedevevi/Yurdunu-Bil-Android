@@ -21,6 +21,26 @@ android {
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_vwk3J5ag16XmMOm3x734MQ_-mMsJVe2\"")
     }
 
+    // Release signing is supplied only by CI secrets. Local/debug builds remain unchanged.
+    val releaseKeystore = System.getenv("YB_KEYSTORE_FILE")
+    val releaseKeystorePassword = System.getenv("YB_KEYSTORE_PASSWORD")
+    val releaseKeyAlias = System.getenv("YB_KEY_ALIAS")
+    val releaseKeyPassword = System.getenv("YB_KEY_PASSWORD")
+    if (!releaseKeystore.isNullOrBlank() && !releaseKeystorePassword.isNullOrBlank() &&
+        !releaseKeyAlias.isNullOrBlank() && !releaseKeyPassword.isNullOrBlank()) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+        buildTypes.getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
