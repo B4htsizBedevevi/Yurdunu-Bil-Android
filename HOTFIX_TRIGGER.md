@@ -1,3 +1,3 @@
 # Hotfix trigger
 
-Arena navigation and theme hotfix build trigger.
+Stable Arena navigation and theme fix build trigger.
