@@ -146,7 +146,7 @@ private fun SmartStudyCenterScreen(onBack: () -> Unit) {
                 }
 
                 item {
-                    Text("🎯 Çalışma öncelikleri", color = text, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                    Row(verticalAlignment = Alignment.CenterVertically) { Icon(YBIcons.Target, null, tint = green, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text("Çalışma öncelikleri", color = text, fontSize = 18.sp, fontWeight = FontWeight.Black) }
                     Text("Kütüphanedeki ilerleme oranı düşük konularını öne aldık.", color = muted, fontSize = 10.sp)
                 }
 
