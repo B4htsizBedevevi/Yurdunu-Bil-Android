@@ -13,6 +13,7 @@ fun ArenaRootScreen(darkMode: Boolean, onExit: () -> Unit) {
     var matchedId by remember { mutableStateOf<String?>(null) }
 
     // Keep exactly one enabled back handler for each nested Arena state.
+    // The root surface also owns the actual light/dark background.
     BackHandler(enabled = matchedId != null) {
         matchedId = null
     }
