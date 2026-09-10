@@ -163,11 +163,9 @@ private fun AppCard(p: AppPalette, modifier: Modifier = Modifier, dark: Boolean 
     }
 }
 
-@Composable
-private fun Eyebrow(text: String, color: Color) = Text(text, color = color, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+@Composable private fun Eyebrow(text: String, color: Color) = Text(text, color = color, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
 
-@Composable
-private fun HomeV4(p: AppPalette, prefs: SharedPreferences, quick: () -> Unit, arena: () -> Unit) {
+@Composable private fun HomeV4(p: AppPalette, prefs: SharedPreferences, quick: () -> Unit, arena: () -> Unit) {
     val solved = prefs.getInt("solved", 0)
     val correct = prefs.getInt("correct", 0)
     val xp = prefs.getInt("xp", 0)
@@ -481,7 +479,7 @@ private fun HomeV4(p: AppPalette, prefs: SharedPreferences, quick: () -> Unit, a
     }
 }
 
-@Composable private fun EventGameCard(p: AppPalette, mode: SharedGameMode, launch: (SharedGameMode) -> Unit) { AppCard(p, Modifier.padding(horizontal = 16.dp).clickable { launch(mode) }) { Row(verticalAlignment = Alignment.CenterVertically) { Text(mode.icon, fontSize = 27.sp); Spacer(Modifier.width(11.dp)); Column(Modifier.weight(1f)) { Text(mode.title, color = p.text, fontWeight = FontWeight.Black, fontSize = 16.sp); Text(mode.subtitle, color = p.muted, fontSize = 11.sp, lineHeight = 17.sp); Text("${mode.questions} soru • +${mode.rewardXp} XP", color = if (mode.arena) p.gold else p.green, fontSize = 10.sp, fontWeight = FontWeight.Bold) }; Icon(Icons.Default.ChevronRight, null, tint = p.green) } } }
+@Composable private fun EventGameCard(p: AppPalette, mode: SharedGameMode, launch: (SharedGameMode) -> Unit) { AppCard(p, Modifier.padding(horizontal = 16.dp).clickable { launch(mode) }) { Row(verticalAlignment = Alignment.CenterVertically) { Text(mode.icon, fontSize = 27.sp); Spacer(Modifier.width(11.dp)); Column(Modifier.weight(1f)) { Text(mode.title, color = p.text, fontWeight = FontWeight.Black, fontSize = 16.sp); Text(mode.subtitle, color = p.muted, fontSize = 11.sp, lineHeight = 17.dp); Text("${mode.questions} soru • +${mode.rewardXp} XP", color = if (mode.arena) p.gold else p.green, fontSize = 10.sp, fontWeight = FontWeight.Bold) }; Icon(Icons.Default.ChevronRight, null, tint = p.green) } } }
 
 @Composable private fun SettingsV4(p: AppPalette, prefs: SharedPreferences, dark: Boolean, setDark: (Boolean) -> Unit) {
     val context = LocalContext.current
@@ -492,7 +490,7 @@ private fun HomeV4(p: AppPalette, prefs: SharedPreferences, quick: () -> Unit, a
         item { Column(Modifier.padding(horizontal = 16.dp)) { Text("Ayarlar", color = p.text, fontSize = 29.sp, fontWeight = FontWeight.Black); Text("Tema, bildirim, ilerleme ve hesap deneyimi.", color = p.muted, fontSize = 12.sp) } }
         item { AppCard(p, Modifier.padding(horizontal = 16.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Text("🌙", fontSize = 23.sp); Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text("Karanlık tema", color = p.text, fontWeight = FontWeight.Black); Text("Koyu arayüzü kalıcı olarak kullan", color = p.muted, fontSize = 10.sp) }; Switch(checked = dark, onCheckedChange = setDark, colors = SwitchDefaults.colors(checkedThumbColor = p.green, checkedTrackColor = p.green.copy(alpha = .28f))) } } }
         item { AppCard(p, Modifier.padding(horizontal = 16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) { Text("🔔", fontSize = 23.sp); Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text("Bildirimler", color = p.text, fontWeight = FontWeight.Black); Text("Her gün 20:00 çalışma hatırlatması", color = p.muted, fontSize = 10.sp) }
+            Row(verticalAlignment = Alignment.CenterVertically) { Text("🔔", fontSize = 23.sp); Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text("Bildirimler", color = p.text, fontWeight = FontWeight.Black); Text("Kapalıysa uygulama bildirimi gönderilmez", color = p.muted, fontSize = 10.sp) }
                 Switch(checked = notifications, onCheckedChange = { value ->
                     if (value && android.os.Build.VERSION.SDK_INT >= 33 && activity?.checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                         activity.requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 9001)
@@ -506,8 +504,15 @@ private fun HomeV4(p: AppPalette, prefs: SharedPreferences, quick: () -> Unit, a
                 }, colors = SwitchDefaults.colors(checkedThumbColor = p.green, checkedTrackColor = p.green.copy(alpha = .28f))) }
             Spacer(Modifier.height(9.dp))
             OutlinedButton(onClick = {
-                if (NotificationHelper.canNotify(context)) { NotificationHelper.sendTest(context); message = "Test bildirimi gönderildi." }
-                else if (android.os.Build.VERSION.SDK_INT >= 33) { activity?.requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 9001); message = "Önce bildirim iznini ver, sonra düğmeye tekrar bas." }
+                if (!notifications) {
+                    message = "Bildirimler kapalı. Test bildirimi gönderilmedi."
+                } else if (NotificationHelper.canNotify(context)) {
+                    NotificationHelper.sendTest(context)
+                    message = "Test bildirimi gönderildi."
+                } else if (android.os.Build.VERSION.SDK_INT >= 33) {
+                    activity?.requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 9001)
+                    message = "Önce bildirim iznini ver, sonra düğmeye tekrar bas."
+                }
             }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(13.dp), colors = ButtonDefaults.outlinedButtonColors(contentColor = p.green)) { Icon(Icons.Default.NotificationsActive, null); Spacer(Modifier.width(7.dp)); Text("Test bildirimi gönder", fontWeight = FontWeight.Bold) }
             if (message != null) { Spacer(Modifier.height(6.dp)); Text(message!!, color = p.muted, fontSize = 10.sp) }
         } }
