@@ -65,19 +65,21 @@ private val LaunchGreen = Color(0xFF27D996)
 private val LaunchText = Color(0xFFF2FBF7)
 private val LaunchMuted = Color(0xFFA5BCB4)
 
-/** First-run welcome screen. Subsequent launches go directly to the real auth/session gate. */
+/** Welcome screen stays underneath auth so Back returns here instead of closing the app. */
 class ModernLaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (YBPreferences.hasSeenIntro(this)) {
-            openAuth(false)
-            return
-        }
+        val seen = YBPreferences.hasSeenIntro(this)
+
         setContent {
             SafeLaunchScreen(
                 onRegister = { markWelcomeSeen(); openAuth(true) },
                 onLogin = { markWelcomeSeen(); openAuth(false) }
             )
+        }
+
+        if (seen) {
+            window.decorView.post { openAuth(false) }
         }
     }
 
@@ -87,7 +89,6 @@ class ModernLaunchActivity : ComponentActivity() {
 
     private fun openAuth(register: Boolean) {
         startActivity(Intent(this, AuthExperienceActivity::class.java).putExtra("register", register))
-        finish()
     }
 }
 
@@ -113,7 +114,7 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
             }
             AnimatedVisibility(visible = contentVisible, enter = fadeIn(tween(550, delayMillis = 120)) + slideInVertically(tween(550, delayMillis = 120)) { it / 3 }) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(Modifier.height(14.dp)); Text("Yurdunu Bil", color = LaunchText, fontSize = 31.sp, fontWeight = FontWeight.Black); Text("Geleceğini Bil.", color = LaunchGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(14.dp)); Text("Yurdunu Bil", color = LaunchText, fontSize = 31.sp, fontWeight = FontWeight.Black); Text("Gel, birlikte keşfedelim.", color = LaunchGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(26.dp)); Text("Türkiye coğrafyasını", color = LaunchText, fontSize = 28.sp, fontWeight = FontWeight.Black); Text("oynayarak öğren.", color = LaunchGreen, fontSize = 28.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(10.dp))
                     Text("KPSS'ye hazırlanırken Türkiye'yi daha iyi tanı. Konuları öğren, testlerle pekiştir, günlük görevlerini tamamla ve Arena'da kendini dene.", color = LaunchMuted, fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(22.dp))
@@ -123,7 +124,7 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
             Spacer(Modifier.weight(1f))
             AnimatedVisibility(visible = contentVisible, enter = fadeIn(tween(650, delayMillis = 250)) + slideInVertically(tween(650, delayMillis = 250)) { it / 4 }) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Button(onClick = onRegister, modifier = Modifier.fillMaxWidth().height(57.dp), shape = RoundedCornerShape(18.dp), colors = ButtonDefaults.buttonColors(containerColor = LaunchGreen, contentColor = LaunchBgTop)) { Text("Hemen Keşfet", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold) }
+                    Button(onClick = onRegister, modifier = Modifier.fillMaxWidth().height(57.dp), shape = RoundedCornerShape(18.dp), colors = ButtonDefaults.buttonColors(containerColor = LaunchGreen, contentColor = LaunchBgTop)) { Text("Hemen keşfedelim", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold) }
                     Spacer(Modifier.height(10.dp)); OutlinedButton(onClick = onLogin, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(17.dp), colors = ButtonDefaults.outlinedButtonColors(contentColor = LaunchText)) { Text("Hesabımla devam et", fontWeight = FontWeight.Bold) }
                     Spacer(Modifier.height(8.dp)); Text("KPSS • COĞRAFYA • ÖĞREN • YARIŞ", color = LaunchMuted.copy(alpha = 0.82f), fontSize = 10.sp, textAlign = TextAlign.Center)
                 }
@@ -133,4 +134,4 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
 }
 
 @Composable
-private fun Stat(value: String, label: String, icon: androidx.compose.ui.graphics.vector.ImageVector) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Icon(icon, null, tint = LaunchGreen, modifier = Modifier.size(18.dp)); Text(value, color = LaunchGreen, fontSize = 13.sp, fontWeight = FontWeight.Black); Text(label, color = LaunchMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold) } }
+private fun Stat(value: String, label: String, icon: androidx.compose.ui.graphics.vector.ImageVector) { Column(horizontalAlignment = Alignment.CenterHorizontally) { androidx.compose.material3.Icon(icon, null, tint = LaunchGreen, modifier = Modifier.size(18.dp)); Text(value, color = LaunchGreen, fontSize = 13.sp, fontWeight = FontWeight.Black); Text(label, color = LaunchMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold) } }
