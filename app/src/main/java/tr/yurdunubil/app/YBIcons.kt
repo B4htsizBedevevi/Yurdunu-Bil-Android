@@ -1,5 +1,6 @@
 package tr.yurdunubil.app
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Book
@@ -17,11 +18,7 @@ import compose.icons.tablericons.outline.Map
 import compose.icons.tablericons.outline.Swords
 import compose.icons.tablericons.outline.Target
 
-/**
- * Product-wide icon language for Yurdunu Bil.
- * Tabler is the primary visual family; Material is used only for a few
- * utility glyphs that already match the same simple line language.
- */
+/** Product-wide icon language for Yurdunu Bil. */
 object YBIcons {
     val Target: ImageVector get() = OutlineGroup.Target
     val Map: ImageVector get() = OutlineGroup.Map
