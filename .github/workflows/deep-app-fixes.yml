@@ -1,0 +1,106 @@
+name: Deep App Fixes
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply session and back navigation fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          p = Path('app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt')
+          s = p.read_text()
+          old = '''    LaunchedEffect(Unit) {
+        val current = SupabaseClientProvider.client.auth.currentSessionOrNull()
+        session = current != null
+        if (current != null) {
+            profile = loadProfile()
+            if (profile?.onboarding_completed == true) onReady()
+        }
+        loading = false
+    }'''
+          new = '''    LaunchedEffect(Unit) {
+        // Auth session restoration can finish slightly after the first composition.
+        // Give Supabase a short window to restore the persisted session before showing login.
+        var current = SupabaseClientProvider.client.auth.currentSessionOrNull()
+        repeat(12) {
+            if (current != null) return@repeat
+            delay(150L)
+            current = SupabaseClientProvider.client.auth.currentSessionOrNull()
+        }
+        session = current != null
+        if (current != null) {
+            profile = loadProfile()
+            if (profile?.onboarding_completed == true) onReady()
+        }
+        loading = false
+    }'''
+          if old in s and 'Auth session restoration can finish slightly after' not in s:
+              p.write_text(s.replace(old, new))
+
+          p = Path('app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt')
+          s = p.read_text()
+          s = s.replace('''    BackHandler {
+        when {''', '''    BackHandler(enabled = quiz == null && study == null && province == null && !arenaOpen && !showExitDialog) {
+        when {''', 1)
+          s = s.replace('''    if (study != null) {
+        val selected = study!!''', '''    if (study != null) {
+        BackHandler { study = null }
+        val selected = study!!''', 1)
+          s = s.replace('''    if (province != null) {
+        ProvinceDetailScreen''', '''    if (province != null) {
+        BackHandler { province = null }
+        ProvinceDetailScreen''', 1)
+          s = s.replace('''    if (arenaOpen) {
+        ArenaRootScreen''', '''    if (arenaOpen) {
+        BackHandler { arenaOpen = false }
+        ArenaRootScreen''', 1)
+          s = s.replace('''    if (quiz != null) {
+        V2QuizScreen''', '''    if (quiz != null) {
+        BackHandler { quiz = null }
+        V2QuizScreen''', 1)
+          if '// Deep app navigation/session hardening applied' not in s:
+              s += '\n// Deep app navigation/session hardening applied\n'
+          p.write_text(s)
+
+          p = Path('app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt')
+          s = p.read_text()
+          old = '''    BackHandler {
+        when {
+            matchedId != null -> matchedId = null
+            selectedMode != null -> selectedMode = null
+            else -> onExit()
+        }
+    }'''
+          new = '''    BackHandler(enabled = matchedId != null) {
+        matchedId = null
+    }
+    BackHandler(enabled = matchedId == null && selectedMode != null) {
+        selectedMode = null
+    }
+    BackHandler(enabled = matchedId == null && selectedMode == null) {
+        onExit()
+    }'''
+          if old in s:
+              s = s.replace(old, new)
+          if '// Explicit Arena back-stack handling' not in s:
+              s += '\n// Explicit Arena back-stack handling\n'
+          p.write_text(s)
+
+          if subprocess.check_output(['git', 'status', '--porcelain'], text=True).strip():
+              subprocess.run(['git','config','user.name','github-actions[bot]'],check=True)
+              subprocess.run(['git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com'],check=True)
+              subprocess.run(['git','add','app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt','app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt','app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt'],check=True)
+              subprocess.run(['git','commit','-m','fix: persist auth and harden navigation back stack'],check=True)
+              subprocess.run(['git','push'],check=True)
+          PY
