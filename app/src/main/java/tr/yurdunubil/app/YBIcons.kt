@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
@@ -22,6 +23,7 @@ import compose.icons.tablericons.outline.Target
 /** Product-wide icon language for Yurdunu Bil. */
 object YBIcons {
     val Back: ImageVector get() = Icons.Default.ArrowBack
+    val Home: ImageVector get() = Icons.Default.Home
     val Target: ImageVector get() = OutlineGroup.Target
     val Map: ImageVector get() = OutlineGroup.Map
     val Swords: ImageVector get() = OutlineGroup.Swords
@@ -37,12 +39,15 @@ object YBIcons {
 @Composable
 fun YBGameIcon(id: String, tint: Color, size: androidx.compose.ui.unit.Dp = 24.dp) {
     val icon = when {
+        id.contains("speed", true) -> YBIcons.Bolt
+        id.contains("hard", true) -> YBIcons.Trophy
+        id.contains("region", true) -> YBIcons.Map
+        id.contains("duel", true) -> YBIcons.Swords
+        id.contains("arena", true) -> YBIcons.Swords
         id.contains("quick", true) -> YBIcons.Target
         id.contains("map", true) -> YBIcons.Map
-        id.contains("duel", true) || id.contains("arena", true) || id.contains("speed", true) || id.contains("hard", true) -> YBIcons.Swords
         id.contains("chain", true) -> YBIcons.Target
         id.contains("master", true) -> YBIcons.Trophy
-        id.contains("region", true) -> YBIcons.Map
         id.contains("mine", true) -> YBIcons.Target
         id.contains("agriculture", true) -> YBIcons.Map
         id.contains("climate", true) -> YBIcons.Target
