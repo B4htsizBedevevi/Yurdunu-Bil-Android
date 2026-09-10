@@ -117,7 +117,7 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
                     Spacer(Modifier.height(26.dp)); Text("Türkiye coğrafyasını", color = LaunchText, fontSize = 28.sp, fontWeight = FontWeight.Black); Text("oynayarak öğren.", color = LaunchGreen, fontSize = 28.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(10.dp))
                     Text("KPSS'ye hazırlanırken Türkiye'yi daha iyi tanı. Konuları öğren, testlerle pekiştir, günlük görevlerini tamamla ve Arena'da kendini dene.", color = LaunchMuted, fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(22.dp))
-                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Color.White.copy(alpha = 0.055f)).border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(20.dp)).padding(vertical = 15.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) { Stat("12+", "Konu"); Stat("∞", "Test"); Stat("⚡", "Arena") }
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Color.White.copy(alpha = 0.055f)).border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(20.dp)).padding(vertical = 15.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) { Stat("12+", "Konu", YBIcons.Library); Stat("∞", "Test", YBIcons.Target); Stat("1v1", "Arena", YBIcons.Swords) }
                 }
             }
             Spacer(Modifier.weight(1f))
