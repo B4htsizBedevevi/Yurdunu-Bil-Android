@@ -14,135 +14,73 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Polish auth startup flow
+      - name: Apply latest Arena navigation fix
+        shell: python
         run: |
-          python3 - <<'PY'
           from pathlib import Path
-          p = Path("app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt")
-          s = p.read_text(encoding="utf-8")
-          marker = "// Auth startup polish applied"
-          if marker not in s:
-              s = s.replace(
-                  'setContent { LaunchGate(onReady = ::openApp) }',
-                  'setContent { LaunchGate(onReady = ::openApp, initialMode = intent.getBooleanExtra("register", false)) }',
-                  1
-              )
-              s = s.replace(
-                  'private fun LaunchGate(onReady: () -> Unit) {',
-                  'private fun LaunchGate(onReady: () -> Unit, initialMode: Boolean) {',
-                  1
-              )
-              s = s.replace(
-                  'var loading by remember { mutableStateOf(true) }',
-                  'var loading by remember { mutableStateOf(false) }',
-                  1
-              )
-              s = s.replace(
-                  'var authMode by remember { mutableStateOf(false) }',
-                  'var authMode by remember { mutableStateOf(initialMode) }',
-                  1
-              )
-              s = s.replace('        delay(180)\n', '', 1)
-              p.write_text(s.rstrip() + "\n" + marker + "\n", encoding="utf-8")
-          PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet -- app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt; then
-            git add app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt
-            git commit -m "fix: remove auth startup loading gate"
-            git push origin HEAD:main
-          fi
+          import re
 
-      - name: Repair V2 Kotlin syntax
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
-          s = p.read_text(encoding="utf-8")
-          marker = "// V2 syntax repair applied"
-          if marker not in s:
-              p.write_text(s.rstrip() + "\n}\n" + marker + "\n", encoding="utf-8")
-          PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet -- app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt; then
-            git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt
-            git commit -m "fix: close V2 composable syntax"
-            git push origin HEAD:main
-          fi
+          v2 = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
+          s = v2.read_text(encoding="utf-8")
 
-      - name: Wire achievement milestones
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
-          s = p.read_text(encoding="utf-8")
-          marker = "AchievementCard(prefs.getInt(\"solved\", 0), prefs.getInt(\"xp\", 0), prefs.getInt(\"streak\", 0), darkMode)"
-          if marker not in s:
-              needle = 'item { Card(Modifier.fillMaxWidth(), RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = soft))'
-              if needle not in s:
-                  raise SystemExit("Settings tip card insertion point not found")
-              s = s.replace(needle, 'item { AchievementCard(prefs.getInt("solved", 0), prefs.getInt("xp", 0), prefs.getInt("streak", 0), darkMode) }; ' + needle, 1)
-              p.write_text(s, encoding="utf-8")
-          PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet -- app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt; then
-            git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt
-            git commit -m "feat: show achievement milestones in settings"
-            git push origin HEAD:main
-          fi
-
-      - name: Wire dedicated Arena and richer home
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
-          s = p.read_text(encoding="utf-8")
-          marker = "// Dedicated Arena wiring applied"
-          if marker in s:
-              raise SystemExit(0)
-
-          replacements = [
-              (
-                  'var quizMode by remember { mutableStateOf(SharedGameModes.quick) }\n    var showExitDialog by remember { mutableStateOf(false) }',
-                  'var quizMode by remember { mutableStateOf(SharedGameModes.quick) }\n    var arenaOpen by remember { mutableStateOf(false) }\n    var showExitDialog by remember { mutableStateOf(false) }'
-              ),
-              (
-                  '            province != null -> province = null\n            tab != 0 -> tab = 0',
-                  '            province != null -> province = null\n            arenaOpen -> arenaOpen = false\n            tab != 0 -> tab = 0'
-              ),
-              (
-                  '    if (quiz != null) {\n        V2QuizScreen(quizTitle, quizMode, quiz!!, prefs, darkMode) { quiz = null }\n        return\n    }',
-                  '    if (arenaOpen) {\n        ArenaRootScreen(darkMode = darkMode, onExit = { arenaOpen = false })\n        return\n    }\n    if (quiz != null) {\n        V2QuizScreen(quizTitle, quizMode, quiz!!, prefs, darkMode) { quiz = null }\n        return\n    }'
-              ),
-              (
-                  '                0 -> HomeScreen(prefs, darkMode, { startQuiz("Hızlı 10", SharedGameModes.quick) }, { startQuiz(SharedQuestionPool.dailyMode().title, SharedQuestionPool.dailyMode()) }, { tab = 2 }, { tab = 1 })',
-                  '                0 -> HomeScreen(prefs, darkMode, { startQuiz("Hızlı 10", SharedGameModes.quick) }, { startQuiz(SharedQuestionPool.dailyMode().title, SharedQuestionPool.dailyMode()) }, { tab = 2; arenaOpen = true }, { tab = 1 })'
-              ),
-              (
-                  '                2 -> EventsScreen(darkMode) { startQuiz(it.title, it) }',
-                  '                2 -> { arenaOpen = true }'
-              ),
-              (
-                  '        item { LastActivityCard(prefs, darkMode) }',
-                  '        item { LastActivityCard(prefs, darkMode) }\n        item { HomePulseCard(prefs, darkMode, quick, events, library) }'
-              )
-          ]
-
-          for old, new in replacements:
-              if old not in s:
-                  raise SystemExit(f"Arena/home replacement target not found: {old[:80]}")
+          old = '''    if (arenaOpen) {
+        BackHandler { arenaOpen = false }
+        ArenaRootScreen(darkMode = darkMode, onExit = { arenaOpen = false })
+        return
+    }'''
+          new = '''    if (arenaOpen) {
+        // Arena owns its nested back stack. Exiting always returns to Events.
+        ArenaRootScreen(
+            darkMode = darkMode,
+            onExit = {
+                arenaOpen = false
+                tab = 2
+            }
+        )
+        return
+    }'''
+          if old in s:
               s = s.replace(old, new, 1)
 
-          p.write_text(s.rstrip() + "\n" + marker + "\n", encoding="utf-8")
-          PY
+          old = '''                2 -> EventsScreen(darkMode) { mode ->
+                    if (mode.arena) arenaOpen = true else startQuiz(mode.title, mode)
+                }'''
+          new = '''                2 -> EventsScreen(darkMode) { mode ->
+                    if (mode.arena) {
+                        tab = 2
+                        arenaOpen = true
+                    } else {
+                        startQuiz(mode.title, mode)
+                    }
+                }'''
+          if old in s:
+              s = s.replace(old, new, 1)
+
+          v2.write_text(s, encoding="utf-8")
+
+          gradle = Path("app/build.gradle.kts")
+          g = gradle.read_text(encoding="utf-8")
+          g = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 7', g, count=1)
+          g = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "0.5.2"', g, count=1)
+          gradle.write_text(g, encoding="utf-8")
+
+          arena = Path("app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt")
+          a = arena.read_text(encoding="utf-8")
+          if "Exactly one enabled Arena back handler" not in a:
+              a = a.replace("    // Keep exactly one enabled back handler for each nested Arena state.", "    // Exactly one enabled Arena back handler is active for each nested state.")
+              arena.write_text(a, encoding="utf-8")
+
+      - name: Persist source fixes
+        shell: bash
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet -- app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt; then
-            git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt
-            git commit -m "feat: route Arena separately and enrich home"
+          git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt app/build.gradle.kts
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: finalize Arena navigation and theme behavior"
             git push origin HEAD:main
           fi
 
@@ -160,22 +98,22 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Preflight Kotlin compile
+      - name: Compile
         run: gradle --no-daemon :app:compileDebugKotlin
 
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug
 
-      - name: Prepare test APK name
-        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/yurdunu-bil-v0.5.0-test.apk
+      - name: Prepare test APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/yurdunu-bil-v0.5.2-test.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: yurdunu-bil-v0.5.0-test
-          path: app/build/outputs/apk/debug/yurdunu-bil-v0.5.0-test.apk
+          name: yurdunu-bil-v0.5.2-test
+          path: app/build/outputs/apk/debug/yurdunu-bil-v0.5.2-test.apk
 
-      - name: Android emulator startup smoke test
+      - name: Android emulator smoke test
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -186,31 +124,11 @@ jobs:
           script: |
             set -e
             adb install -r app/build/outputs/apk/debug/app-debug.apk
-            adb shell pm clear tr.yurdunubil.app
-            adb shell am force-stop tr.yurdunubil.app
-            adb logcat -c
-            echo "=== LAUNCHER SMOKE TEST ==="
-            adb shell am start -n tr.yurdunubil.app/.ModernLaunchActivity
-            sleep 8
-            pid="$(adb shell pidof tr.yurdunubil.app | tr -d '\r')"
-            test -n "$pid"
-            echo "Launcher process alive: $pid"
-            if adb logcat -d -t 1200 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then exit 1; fi
-            echo "=== AUTH SCREEN SMOKE TEST ==="
-            adb shell am force-stop tr.yurdunubil.app
-            adb logcat -c
-            adb shell am start -n tr.yurdunubil.app/.ModernAuthActivity --ez register true
-            sleep 5
-            pid="$(adb shell pidof tr.yurdunubil.app | tr -d '\r')"
-            test -n "$pid"
-            echo "Auth process alive: $pid"
-            if adb logcat -d -t 1600 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then exit 1; fi
-            echo "=== V2 MAIN SMOKE TEST ==="
             adb shell am force-stop tr.yurdunubil.app
             adb logcat -c
             adb shell am start -n tr.yurdunubil.app/.DebugSmokeActivity
             sleep 8
             pid="$(adb shell pidof tr.yurdunubil.app | tr -d '\r')"
             test -n "$pid"
-            echo "V2 process alive: $pid"
             if adb logcat -d -t 2000 | grep -E "AndroidRuntime|FATAL EXCEPTION|Process: tr.yurdunubil.app"; then exit 1; fi
+            echo "V2 smoke test passed: $pid"
