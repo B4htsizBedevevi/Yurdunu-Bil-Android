@@ -35,13 +35,20 @@ fun AchievementCard(solved: Int, xp: Int, streak: Int, darkMode: Boolean) {
     val gold = Color(0xFFFFC857)
     val track = if (darkMode) Color(0xFF21453A) else Color(0xFFE4F7ED)
 
+    val level = 1 + xp / 500
+    val levelXp = xp % 500
+    val levelProgress = levelXp / 500f
+
     val milestones = listOf(
         Milestone(solved, 10, "İlk 10", "10 soru çöz", YBIcons.Target),
+        Milestone(solved, 25, "25 Soru", "İlk ritmini oluştur", YBIcons.Target),
         Milestone(solved, 50, "50 Soru", "Temeli sağlamlaştır", YBIcons.Library),
-        Milestone(xp, 500, "500 XP", "İlk seviyeyi tamamla", YBIcons.Star),
+        Milestone(solved, 100, "100 Soru", "Ciddi bir tekrar turu tamamla", YBIcons.Library),
+        Milestone(xp, 500, "500 XP", "2. seviyeye ulaş", YBIcons.Star),
         Milestone(xp, 1000, "1000 XP", "İvmeni yükselt", YBIcons.Trophy),
         Milestone(streak, 3, "3 Gün Seri", "Çalışma ritmini koru", YBIcons.Flame),
-        Milestone(streak, 7, "7 Gün Seri", "Bir haftayı tamamla", YBIcons.Flame)
+        Milestone(streak, 7, "7 Gün Seri", "Bir haftayı tamamla", YBIcons.Flame),
+        Milestone(streak, 14, "14 Gün Seri", "İki haftalık disiplini yakala", YBIcons.Flame)
     )
 
     Card(
@@ -52,12 +59,27 @@ fun AchievementCard(solved: Int, xp: Int, streak: Int, darkMode: Boolean) {
         Column(Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("KÜÇÜK BAŞARILAR", color = gold, fontSize = 9.sp, fontWeight = FontWeight.Black)
-                    Text("Bir sonraki rozet için ne kaldı?", color = muted, fontSize = 9.sp)
+                    Text("GELİŞİM MERKEZİ", color = gold, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                    Text("Seviye $level • $levelXp/500 XP", color = text, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
                 }
                 Icon(YBIcons.Trophy, null, tint = gold, modifier = Modifier.size(20.dp))
             }
+            Spacer(Modifier.height(7.dp))
+            LinearProgressIndicator(
+                progress = { levelProgress },
+                modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(8.dp)),
+                color = green,
+                trackColor = track
+            )
+            Text(
+                if (levelXp == 0) "Yeni seviyeye hazır." else "Bir sonraki seviyeye ${500 - levelXp} XP kaldı.",
+                color = muted,
+                fontSize = 8.sp,
+                modifier = Modifier.padding(top = 4.dp)
+            )
             Spacer(Modifier.height(8.dp))
+            Text("ROZETLER", color = muted, fontSize = 8.sp, fontWeight = FontWeight.Black)
+            Spacer(Modifier.height(2.dp))
 
             milestones.forEach { milestone ->
                 val progress = (milestone.current.toFloat() / milestone.target.toFloat()).coerceIn(0f, 1f)
@@ -90,6 +112,10 @@ fun AchievementCard(solved: Int, xp: Int, streak: Int, darkMode: Boolean) {
                                 fontSize = 8.sp,
                                 fontWeight = FontWeight.Black
                             )
+                            if (done) {
+                                Spacer(Modifier.width(5.dp))
+                                Text("✓", color = green, fontSize = 10.sp, fontWeight = FontWeight.Black)
+                            }
                         }
                         Text(milestone.subtitle, color = muted, fontSize = 9.sp)
                         Spacer(Modifier.height(4.dp))
