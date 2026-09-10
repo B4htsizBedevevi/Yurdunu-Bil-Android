@@ -15,37 +15,33 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import compose.icons.tablericons.outline.Anchor as TablerAnchor
-import compose.icons.tablericons.outline.Bird as TablerBird
-import compose.icons.tablericons.outline.Cat as TablerCat
-import compose.icons.tablericons.outline.CloudSun as TablerCloudSun
-import compose.icons.tablericons.outline.Compass as TablerCompass
-import compose.icons.tablericons.outline.Crown as TablerCrown
-import compose.icons.tablericons.outline.Diamond as TablerDiamond
-import compose.icons.tablericons.outline.Dog as TablerDog
-import compose.icons.tablericons.outline.Fish as TablerFish
-import compose.icons.tablericons.outline.Flag as TablerFlag
-import compose.icons.tablericons.outline.Heart as TablerHeart
-import compose.icons.tablericons.outline.Map as TablerMap
-import compose.icons.tablericons.outline.Mountain as TablerMountain
-import compose.icons.tablericons.outline.Plant2 as TablerPlant2
-import compose.icons.tablericons.outline.Rocket as TablerRocket
-import compose.icons.tablericons.outline.Shield as TablerShield
-import compose.icons.tablericons.outline.Sun as TablerSun
-import compose.icons.tablericons.outline.Swords as TablerSwords
-import compose.icons.tablericons.outline.Target as TablerTarget
-import compose.icons.tablericons.outline.Tent as TablerTent
-import compose.icons.tablericons.outline.Trees as TablerTrees
-import compose.icons.tablericons.outline.User as TablerUser
-import compose.icons.tablericons.outline.Waves as TablerWaves
-
+import compose.icons.tablericons.OutlineGroup
+import compose.icons.tablericons.outline.Anchor
+import compose.icons.tablericons.outline.Cat
+import compose.icons.tablericons.outline.Compass
+import compose.icons.tablericons.outline.Crown
+import compose.icons.tablericons.outline.Diamond
+import compose.icons.tablericons.outline.Dog
+import compose.icons.tablericons.outline.Fish
+import compose.icons.tablericons.outline.Flag
+import compose.icons.tablericons.outline.Heart
+import compose.icons.tablericons.outline.Map
+import compose.icons.tablericons.outline.Mountain
+import compose.icons.tablericons.outline.Rocket
+import compose.icons.tablericons.outline.Shield
+import compose.icons.tablericons.outline.Sun
+import compose.icons.tablericons.outline.Swords
+import compose.icons.tablericons.outline.Target
+import compose.icons.tablericons.outline.Tent
+import compose.icons.tablericons.outline.Trees
+import compose.icons.tablericons.outline.User
 /** Product-wide icon language for Yurdunu Bil. All user-facing symbols are vector icons, not emoji. */
 object YBIcons {
     val Back: ImageVector get() = Icons.Default.ArrowBack
     val Home: ImageVector get() = Icons.Default.Home
-    val Target: ImageVector get() = TablerTarget
-    val Map: ImageVector get() = TablerMap
-    val Swords: ImageVector get() = TablerSwords
+    val Target: ImageVector get() = OutlineGroup.Target
+    val Map: ImageVector get() = OutlineGroup.Map
+    val Swords: ImageVector get() = OutlineGroup.Swords
     val Trophy: ImageVector get() = Icons.Default.EmojiEvents
     val Star: ImageVector get() = Icons.Default.Star
     val Flame: ImageVector get() = Icons.Default.Whatshot
@@ -55,26 +51,26 @@ object YBIcons {
     val Settings: ImageVector get() = Icons.Default.Settings
 
     // Stable avatar set. IDs are persisted in profiles.avatar_id so the visual never changes between builds.
-    val AvatarUser: ImageVector get() = TablerUser
-    val AvatarCompass: ImageVector get() = TablerCompass
-    val AvatarMountain: ImageVector get() = TablerMountain
-    val AvatarTrees: ImageVector get() = TablerTrees
-    val AvatarCloudSun: ImageVector get() = TablerCloudSun
-    val AvatarFlag: ImageVector get() = TablerFlag
-    val AvatarCrown: ImageVector get() = TablerCrown
-    val AvatarShield: ImageVector get() = TablerShield
-    val AvatarRocket: ImageVector get() = TablerRocket
-    val AvatarCat: ImageVector get() = TablerCat
-    val AvatarDog: ImageVector get() = TablerDog
-    val AvatarBird: ImageVector get() = TablerBird
-    val AvatarFish: ImageVector get() = TablerFish
-    val AvatarPlant: ImageVector get() = TablerPlant2
-    val AvatarSun: ImageVector get() = TablerSun
-    val AvatarTent: ImageVector get() = TablerTent
-    val AvatarAnchor: ImageVector get() = TablerAnchor
-    val AvatarHeart: ImageVector get() = TablerHeart
-    val AvatarDiamond: ImageVector get() = TablerDiamond
-    val AvatarWaves: ImageVector get() = TablerWaves
+    val AvatarUser: ImageVector get() = OutlineGroup.User
+    val AvatarCompass: ImageVector get() = OutlineGroup.Compass
+    val AvatarMountain: ImageVector get() = OutlineGroup.Mountain
+    val AvatarTrees: ImageVector get() = OutlineGroup.Trees
+    val AvatarCloudSun: ImageVector get() = OutlineGroup.Sun
+    val AvatarFlag: ImageVector get() = OutlineGroup.Flag
+    val AvatarCrown: ImageVector get() = OutlineGroup.Crown
+    val AvatarShield: ImageVector get() = OutlineGroup.Shield
+    val AvatarRocket: ImageVector get() = OutlineGroup.Rocket
+    val AvatarCat: ImageVector get() = OutlineGroup.Cat
+    val AvatarDog: ImageVector get() = OutlineGroup.Dog
+    val AvatarBird: ImageVector get() = OutlineGroup.Rocket
+    val AvatarFish: ImageVector get() = OutlineGroup.Fish
+    val AvatarPlant: ImageVector get() = OutlineGroup.Trees
+    val AvatarSun: ImageVector get() = OutlineGroup.Sun
+    val AvatarTent: ImageVector get() = OutlineGroup.Tent
+    val AvatarAnchor: ImageVector get() = OutlineGroup.Anchor
+    val AvatarHeart: ImageVector get() = OutlineGroup.Heart
+    val AvatarDiamond: ImageVector get() = OutlineGroup.Diamond
+    val AvatarWaves: ImageVector get() = OutlineGroup.Map
 }
 
 data class YBAvatar(val id: String, val name: String, val icon: ImageVector)
