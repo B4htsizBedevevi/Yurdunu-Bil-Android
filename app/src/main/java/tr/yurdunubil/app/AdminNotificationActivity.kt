@@ -1,7 +1,7 @@
 package tr.yurdunubil.app
 
-import android.app.Activity
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,7 +40,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class AdminNotificationActivity : Activity() {
+class AdminNotificationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent { AdminNotificationScreen { finish() } }
@@ -49,7 +49,6 @@ class AdminNotificationActivity : Activity() {
 
 @Composable
 private fun AdminNotificationScreen(onBack: () -> Unit) {
-    val context = androidx.compose.ui.platform.LocalContext.current
     val client = remember { SupabaseClientProvider.client }
     var title by remember { mutableStateOf("") }
     var body by remember { mutableStateOf("") }
@@ -80,26 +79,15 @@ private fun AdminNotificationScreen(onBack: () -> Unit) {
                         CoroutineScope(Dispatchers.Main).launch {
                             runCatching {
                                 val user = client.auth.currentUserOrNull() ?: error("Oturum bulunamadı")
-                                client.postgrest.from("notification_campaigns").insert(
-                                    mapOf(
-                                        "title" to title.trim(),
-                                        "body" to body.trim(),
-                                        "type" to "announcement",
-                                        "audience" to "all",
-                                        "status" to "draft",
-                                        "created_by" to user.id
-                                    )
-                                )
+                                client.postgrest.from("notification_campaigns").insert(mapOf("title" to title.trim(), "body" to body.trim(), "type" to "announcement", "audience" to "all", "status" to "draft", "created_by" to user.id))
                             }.onSuccess {
                                 status = "Kampanya oluşturuldu. FCM gönderimi için sunucu yapılandırması gerekir."
-                                title = ""
-                                body = ""
+                                title = ""; body = ""
                             }.onFailure { status = "Hata: ${it.message ?: "Kampanya oluşturulamadı."}" }
                             sending = false
                         }
                     },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18C98A), contentColor = Color(0xFF052118))
                 ) { Text(if (sending) "Oluşturuluyor…" else "📢 Kampanyayı Oluştur", fontWeight = FontWeight.Black) }
             }
