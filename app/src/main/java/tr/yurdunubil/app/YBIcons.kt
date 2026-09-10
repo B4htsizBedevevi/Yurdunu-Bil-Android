@@ -42,15 +42,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import compose.icons.tablericons.OutlineGroup
+import compose.icons.tablericons.outline.Map as TablerMap
+import compose.icons.tablericons.outline.Swords as TablerSwords
+import compose.icons.tablericons.outline.Target as TablerTarget
 
 /** One product-wide vector language. No user-facing emoji are needed for UI symbols. */
 object YBIcons {
     val Back: ImageVector get() = Icons.Default.ArrowBack
     val Home: ImageVector get() = Icons.Default.Home
-    val Target: ImageVector get() = OutlineGroup.Target
-    val Map: ImageVector get() = Icons.Default.Map
-    val Swords: ImageVector get() = OutlineGroup.Swords
+    val Target: ImageVector get() = TablerTarget
+    val Map: ImageVector get() = TablerMap
+    val Swords: ImageVector get() = TablerSwords
     val Trophy: ImageVector get() = Icons.Default.EmojiEvents
     val Star: ImageVector get() = Icons.Default.Star
     val Flame: ImageVector get() = Icons.Default.Whatshot
@@ -58,6 +60,9 @@ object YBIcons {
     val Library: ImageVector get() = Icons.Default.AutoStories
     val Tip: ImageVector get() = Icons.Default.Lightbulb
     val Settings: ImageVector get() = Icons.Default.Settings
+    val AvatarUser: ImageVector get() = Icons.Default.Person
+    val Shield: ImageVector get() = Icons.Default.Shield
+    val Explore: ImageVector get() = Icons.Default.Explore
 
     // Stable avatar catalogue. Only the persisted ID leaves the device.
     val AvatarExplorer: ImageVector get() = Icons.Default.Explore
@@ -91,87 +96,24 @@ object YBIcons {
     val AvatarBookmark: ImageVector get() = Icons.Default.AutoStories
 }
 
-data class YBAvatar(
-    val id: String,
-    val name: String,
-    val icon: ImageVector,
-    val category: AvatarCategory
-)
+data class YBAvatar(val id: String, val name: String, val icon: ImageVector, val category: AvatarCategory)
 
-enum class AvatarCategory(val label: String) {
-    GEOGRAPHY("Kaşif"),
-    STUDY("Ders"),
-    ARENA("Arena"),
-    NATURE("Doğa"),
-    CHARACTER("Karakter")
-}
+enum class AvatarCategory(val label: String) { GEOGRAPHY("Kaşif"), STUDY("Ders"), ARENA("Arena"), NATURE("Doğa"), CHARACTER("Karakter") }
 
 val YBAvatars = listOf(
-    YBAvatar("explorer", "Kaşif", YBIcons.AvatarExplorer, AvatarCategory.GEOGRAPHY),
-    YBAvatar("compass", "Pusula", YBIcons.AvatarCompass, AvatarCategory.GEOGRAPHY),
-    YBAvatar("mountain", "Dağcı", YBIcons.AvatarMountain, AvatarCategory.GEOGRAPHY),
-    YBAvatar("flag", "Bayrak", YBIcons.AvatarFlag, AvatarCategory.GEOGRAPHY),
-    YBAvatar("turkey", "Yurtsever", YBIcons.AvatarTurkey, AvatarCategory.GEOGRAPHY),
-    YBAvatar("anchor", "Denizci", YBIcons.AvatarAnchor, AvatarCategory.GEOGRAPHY),
-    YBAvatar("waves", "Dalgacı", YBIcons.AvatarWaves, AvatarCategory.NATURE),
-    YBAvatar("water", "Su Ustası", YBIcons.AvatarWater, AvatarCategory.NATURE),
-    YBAvatar("forest", "Orman", YBIcons.AvatarForest, AvatarCategory.NATURE),
-    YBAvatar("park", "Doğa", YBIcons.AvatarPark, AvatarCategory.NATURE),
-    YBAvatar("cloud", "Gökyüzü", YBIcons.AvatarCloud, AvatarCategory.NATURE),
-    YBAvatar("sun", "Güneş", YBIcons.AvatarSun, AvatarCategory.NATURE),
-    YBAvatar("scholar", "Bilgin", YBIcons.AvatarScholar, AvatarCategory.STUDY),
-    YBAvatar("book", "Okur", YBIcons.AvatarBook, AvatarCategory.STUDY),
-    YBAvatar("brain", "Stratejist", YBIcons.AvatarBrain, AvatarCategory.STUDY),
-    YBAvatar("science", "Analist", YBIcons.AvatarScience, AvatarCategory.STUDY),
-    YBAvatar("light", "Fikir", YBIcons.AvatarLight, AvatarCategory.STUDY),
-    YBAvatar("bookmark", "Notçu", YBIcons.AvatarBookmark, AvatarCategory.STUDY),
-    YBAvatar("crown", "Lider", YBIcons.AvatarCrown, AvatarCategory.ARENA),
-    YBAvatar("shield", "Savunmacı", YBIcons.AvatarShield, AvatarCategory.ARENA),
-    YBAvatar("rocket", "Roket", YBIcons.AvatarRocket, AvatarCategory.ARENA),
-    YBAvatar("sports", "Mücadeleci", YBIcons.AvatarSports, AvatarCategory.ARENA),
-    YBAvatar("fire", "Seri Avcısı", YBIcons.AvatarFire, AvatarCategory.ARENA),
-    YBAvatar("bolt", "Hızlı", YBIcons.AvatarBolt, AvatarCategory.ARENA),
-    YBAvatar("face", "Renkli", YBIcons.AvatarFace, AvatarCategory.CHARACTER),
-    YBAvatar("cat", "Kedi", YBIcons.AvatarCat, AvatarCategory.CHARACTER),
-    YBAvatar("heart", "Kalp", YBIcons.AvatarHeart, AvatarCategory.CHARACTER),
-    YBAvatar("diamond", "Elmas", YBIcons.AvatarDiamond, AvatarCategory.CHARACTER),
-    YBAvatar("home", "Yuvacı", YBIcons.AvatarHome, AvatarCategory.CHARACTER)
+    YBAvatar("explorer", "Kaşif", YBIcons.AvatarExplorer, AvatarCategory.GEOGRAPHY), YBAvatar("compass", "Pusula", YBIcons.AvatarCompass, AvatarCategory.GEOGRAPHY), YBAvatar("mountain", "Dağcı", YBIcons.AvatarMountain, AvatarCategory.GEOGRAPHY), YBAvatar("flag", "Bayrak", YBIcons.AvatarFlag, AvatarCategory.GEOGRAPHY), YBAvatar("turkey", "Yurtsever", YBIcons.AvatarTurkey, AvatarCategory.GEOGRAPHY), YBAvatar("anchor", "Denizci", YBIcons.AvatarAnchor, AvatarCategory.GEOGRAPHY),
+    YBAvatar("waves", "Dalgacı", YBIcons.AvatarWaves, AvatarCategory.NATURE), YBAvatar("water", "Su Ustası", YBIcons.AvatarWater, AvatarCategory.NATURE), YBAvatar("forest", "Orman", YBIcons.AvatarForest, AvatarCategory.NATURE), YBAvatar("park", "Doğa", YBIcons.AvatarPark, AvatarCategory.NATURE), YBAvatar("cloud", "Gökyüzü", YBIcons.AvatarCloud, AvatarCategory.NATURE), YBAvatar("sun", "Güneş", YBIcons.AvatarSun, AvatarCategory.NATURE),
+    YBAvatar("scholar", "Bilgin", YBIcons.AvatarScholar, AvatarCategory.STUDY), YBAvatar("book", "Okur", YBIcons.AvatarBook, AvatarCategory.STUDY), YBAvatar("brain", "Stratejist", YBIcons.AvatarBrain, AvatarCategory.STUDY), YBAvatar("science", "Analist", YBIcons.AvatarScience, AvatarCategory.STUDY), YBAvatar("light", "Fikir", YBIcons.AvatarLight, AvatarCategory.STUDY), YBAvatar("bookmark", "Notçu", YBIcons.AvatarBookmark, AvatarCategory.STUDY),
+    YBAvatar("crown", "Lider", YBIcons.AvatarCrown, AvatarCategory.ARENA), YBAvatar("shield", "Savunmacı", YBIcons.AvatarShield, AvatarCategory.ARENA), YBAvatar("rocket", "Roket", YBIcons.AvatarRocket, AvatarCategory.ARENA), YBAvatar("sports", "Mücadeleci", YBIcons.AvatarSports, AvatarCategory.ARENA), YBAvatar("fire", "Seri Avcısı", YBIcons.AvatarFire, AvatarCategory.ARENA), YBAvatar("bolt", "Hızlı", YBIcons.AvatarBolt, AvatarCategory.ARENA),
+    YBAvatar("face", "Renkli", YBIcons.AvatarFace, AvatarCategory.CHARACTER), YBAvatar("cat", "Kedi", YBIcons.AvatarCat, AvatarCategory.CHARACTER), YBAvatar("heart", "Kalp", YBIcons.AvatarHeart, AvatarCategory.CHARACTER), YBAvatar("diamond", "Elmas", YBIcons.AvatarDiamond, AvatarCategory.CHARACTER), YBAvatar("home", "Yuvacı", YBIcons.AvatarHome, AvatarCategory.CHARACTER)
 )
 
-private val legacyAvatarAliases = mapOf(
-    "atlas-user" to "face",
-    "atlas-compass" to "compass",
-    "atlas-mountain" to "mountain",
-    "atlas-trees" to "forest",
-    "atlas-cloud" to "cloud",
-    "atlas-flag" to "flag",
-    "atlas-crown" to "crown",
-    "atlas-shield" to "shield",
-    "atlas-rocket" to "rocket",
-    "atlas-cat" to "cat",
-    "atlas-dog" to "face",
-    "atlas-bird" to "face",
-    "atlas-fish" to "water",
-    "atlas-plant" to "park",
-    "atlas-sun" to "sun",
-    "atlas-tent" to "explorer",
-    "atlas-anchor" to "anchor",
-    "atlas-heart" to "heart",
-    "atlas-diamond" to "diamond",
-    "atlas-waves" to "waves"
-)
+private val legacyAvatarAliases = mapOf("atlas-user" to "face", "atlas-compass" to "compass", "atlas-mountain" to "mountain", "atlas-trees" to "forest", "atlas-cloud" to "cloud", "atlas-flag" to "flag", "atlas-crown" to "crown", "atlas-shield" to "shield", "atlas-rocket" to "rocket", "atlas-cat" to "cat", "atlas-dog" to "face", "atlas-bird" to "face", "atlas-fish" to "water", "atlas-plant" to "park", "atlas-sun" to "sun", "atlas-tent" to "explorer", "atlas-anchor" to "anchor", "atlas-heart" to "heart", "atlas-diamond" to "diamond", "atlas-waves" to "waves")
 
-fun ybAvatar(id: String?): YBAvatar =
-    YBAvatars.firstOrNull { it.id == id }
-        ?: YBAvatars.firstOrNull { it.id == legacyAvatarAliases[id] }
-        ?: YBAvatars.first()
+fun ybAvatar(id: String?): YBAvatar = YBAvatars.firstOrNull { it.id == id } ?: YBAvatars.firstOrNull { it.id == legacyAvatarAliases[id] } ?: YBAvatars.first()
 
 @Composable
-fun YBGameIcon(
-    id: String,
-    tint: Color,
-    size: androidx.compose.ui.unit.Dp = 24.dp
-) {
+fun YBGameIcon(id: String, tint: Color, size: androidx.compose.ui.unit.Dp = 24.dp) {
     val icon = when {
         id.contains("speed", true) -> YBIcons.Bolt
         id.contains("mountain", true) -> YBIcons.AvatarMountain
@@ -191,10 +133,5 @@ fun YBGameIcon(
         id.contains("library", true) || id.contains("study", true) -> YBIcons.Library
         else -> YBIcons.Library
     }
-    androidx.compose.material3.Icon(
-        icon,
-        contentDescription = null,
-        tint = tint,
-        modifier = androidx.compose.ui.Modifier.size(size)
-    )
+    androidx.compose.material3.Icon(icon, contentDescription = null, tint = tint, modifier = androidx.compose.ui.Modifier.size(size))
 }
