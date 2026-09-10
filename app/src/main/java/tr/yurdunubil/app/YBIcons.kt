@@ -3,25 +3,47 @@ package tr.yurdunubil.app
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.DirectionsBoat
+import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Forest
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.MilitaryTech
+import androidx.compose.material.icons.filled.Park
+import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.RocketLaunch
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Terrain
+import androidx.compose.material.icons.filled.TravelExplore
+import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material.icons.filled.Whatshot
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import compose.icons.tablericons.OutlineGroup
-import compose.icons.tablericons.outline.Swords
-import compose.icons.tablericons.outline.Target
 
-/** Product-wide icon language. User-facing symbols are vectors, not emoji. */
+/** One product-wide vector language. No user-facing emoji are needed for UI symbols. */
 object YBIcons {
     val Back: ImageVector get() = Icons.Default.ArrowBack
     val Home: ImageVector get() = Icons.Default.Home
@@ -32,78 +54,121 @@ object YBIcons {
     val Star: ImageVector get() = Icons.Default.Star
     val Flame: ImageVector get() = Icons.Default.Whatshot
     val Bolt: ImageVector get() = Icons.Default.Bolt
-    val Library: ImageVector get() = Icons.Default.Book
+    val Library: ImageVector get() = Icons.Default.AutoStories
     val Tip: ImageVector get() = Icons.Default.Lightbulb
-    val Settings: ImageVector get() = Icons.Default.Settings
+    val Settings: ImageVector get() = Icons.Default.School
 
-    // Stable avatar catalogue. IDs are persisted in profiles.avatar_id.
-    val AvatarUser: ImageVector get() = Icons.Default.Person
-    val AvatarCompass: ImageVector get() = OutlineGroup.Target
-    val AvatarMountain: ImageVector get() = Icons.Default.Map
-    val AvatarTrees: ImageVector get() = Icons.Default.Home
-    val AvatarCloudSun: ImageVector get() = Icons.Default.Star
-    val AvatarFlag: ImageVector get() = Icons.Default.Map
-    val AvatarCrown: ImageVector get() = Icons.Default.EmojiEvents
-    val AvatarShield: ImageVector get() = Icons.Default.Settings
-    val AvatarRocket: ImageVector get() = Icons.Default.Bolt
-    val AvatarCat: ImageVector get() = Icons.Default.Person
-    val AvatarDog: ImageVector get() = Icons.Default.Person
-    val AvatarBird: ImageVector get() = Icons.Default.Bolt
-    val AvatarFish: ImageVector get() = OutlineGroup.Swords
-    val AvatarPlant: ImageVector get() = Icons.Default.Home
-    val AvatarSun: ImageVector get() = Icons.Default.Whatshot
-    val AvatarTent: ImageVector get() = Icons.Default.Home
-    val AvatarAnchor: ImageVector get() = OutlineGroup.Swords
-    val AvatarHeart: ImageVector get() = Icons.Default.Star
-    val AvatarDiamond: ImageVector get() = Icons.Default.EmojiEvents
-    val AvatarWaves: ImageVector get() = Icons.Default.Map
+    // Stable avatar catalogue. Only the persisted ID leaves the device.
+    val AvatarExplorer: ImageVector get() = Icons.Default.Explore
+    val AvatarCompass: ImageVector get() = Icons.Default.TravelExplore
+    val AvatarMountain: ImageVector get() = Icons.Default.Terrain
+    val AvatarForest: ImageVector get() = Icons.Default.Forest
+    val AvatarCloud: ImageVector get() = Icons.Default.Cloud
+    val AvatarSun: ImageVector get() = Icons.Default.WbSunny
+    val AvatarFlag: ImageVector get() = Icons.Default.Flag
+    val AvatarTurkey: ImageVector get() = Icons.Default.Public
+    val AvatarCrown: ImageVector get() = Icons.Default.MilitaryTech
+    val AvatarShield: ImageVector get() = Icons.Default.Shield
+    val AvatarRocket: ImageVector get() = Icons.Default.RocketLaunch
+    val AvatarScholar: ImageVector get() = Icons.Default.School
+    val AvatarBook: ImageVector get() = Icons.Default.Book
+    val AvatarBrain: ImageVector get() = Icons.Default.Psychology
+    val AvatarScience: ImageVector get() = Icons.Default.Science
+    val AvatarFace: ImageVector get() = Icons.Default.Face
+    val AvatarCat: ImageVector get() = Icons.Default.Pets
+    val AvatarHeart: ImageVector get() = Icons.Default.Favorite
+    val AvatarDiamond: ImageVector get() = Icons.Default.Diamond
+    val AvatarSports: ImageVector get() = Icons.Default.SportsEsports
+    val AvatarAnchor: ImageVector get() = Icons.Default.DirectionsBoat
+    val AvatarWaves: ImageVector get() = Icons.Default.Waves
+    val AvatarWater: ImageVector get() = Icons.Default.WaterDrop
+    val AvatarPark: ImageVector get() = Icons.Default.Park
+    val AvatarHome: ImageVector get() = Icons.Default.Home
+    val AvatarLight: ImageVector get() = Icons.Default.Lightbulb
+    val AvatarFire: ImageVector get() = Icons.Default.Whatshot
+    val AvatarBolt: ImageVector get() = Icons.Default.Bolt
+    val AvatarBookmark: ImageVector get() = Icons.Default.AutoStories
 }
 
-data class YBAvatar(val id: String, val name: String, val icon: ImageVector)
-
-val YBAvatars = listOf(
-    YBAvatar("atlas-user", "Kaşif", YBIcons.AvatarUser),
-    YBAvatar("atlas-compass", "Pusula", YBIcons.AvatarCompass),
-    YBAvatar("atlas-mountain", "Dağcı", YBIcons.AvatarMountain),
-    YBAvatar("atlas-trees", "Orman", YBIcons.AvatarTrees),
-    YBAvatar("atlas-cloud", "Gökyüzü", YBIcons.AvatarCloudSun),
-    YBAvatar("atlas-flag", "Bayrak", YBIcons.AvatarFlag),
-    YBAvatar("atlas-crown", "Lider", YBIcons.AvatarCrown),
-    YBAvatar("atlas-shield", "Kalkan", YBIcons.AvatarShield),
-    YBAvatar("atlas-rocket", "Roket", YBIcons.AvatarRocket),
-    YBAvatar("atlas-cat", "Kedi", YBIcons.AvatarCat),
-    YBAvatar("atlas-dog", "Köpek", YBIcons.AvatarDog),
-    YBAvatar("atlas-bird", "Kuş", YBIcons.AvatarBird),
-    YBAvatar("atlas-fish", "Balık", YBIcons.AvatarFish),
-    YBAvatar("atlas-plant", "Bitki", YBIcons.AvatarPlant),
-    YBAvatar("atlas-sun", "Güneş", YBIcons.AvatarSun),
-    YBAvatar("atlas-tent", "Kampçı", YBIcons.AvatarTent),
-    YBAvatar("atlas-anchor", "Denizci", YBIcons.AvatarAnchor),
-    YBAvatar("atlas-heart", "Kalp", YBIcons.AvatarHeart),
-    YBAvatar("atlas-diamond", "Elmas", YBIcons.AvatarDiamond),
-    YBAvatar("atlas-waves", "Dalgalar", YBIcons.AvatarWaves)
+data class YBAvatar(
+    val id: String,
+    val name: String,
+    val icon: ImageVector,
+    val category: AvatarCategory
 )
 
-fun ybAvatar(id: String?): YBAvatar = YBAvatars.firstOrNull { it.id == id } ?: YBAvatars.first()
+enum class AvatarCategory(val label: String) {
+    GEOGRAPHY("Kaşif"),
+    STUDY("Ders"),
+    ARENA("Arena"),
+    NATURE("Doğa"),
+    CHARACTER("Karakter")
+}
+
+val YBAvatars = listOf(
+    YBAvatar("explorer", "Kaşif", YBIcons.AvatarExplorer, AvatarCategory.GEOGRAPHY),
+    YBAvatar("compass", "Pusula", YBIcons.AvatarCompass, AvatarCategory.GEOGRAPHY),
+    YBAvatar("mountain", "Dağcı", YBIcons.AvatarMountain, AvatarCategory.GEOGRAPHY),
+    YBAvatar("flag", "Bayrak", YBIcons.AvatarFlag, AvatarCategory.GEOGRAPHY),
+    YBAvatar("turkey", "Yurtsever", YBIcons.AvatarTurkey, AvatarCategory.GEOGRAPHY),
+    YBAvatar("anchor", "Denizci", YBIcons.AvatarAnchor, AvatarCategory.GEOGRAPHY),
+    YBAvatar("waves", "Dalgacı", YBIcons.AvatarWaves, AvatarCategory.NATURE),
+    YBAvatar("water", "Su Ustası", YBIcons.AvatarWater, AvatarCategory.NATURE),
+    YBAvatar("forest", "Orman", YBIcons.AvatarForest, AvatarCategory.NATURE),
+    YBAvatar("park", "Doğa", YBIcons.AvatarPark, AvatarCategory.NATURE),
+    YBAvatar("cloud", "Gökyüzü", YBIcons.AvatarCloud, AvatarCategory.NATURE),
+    YBAvatar("sun", "Güneş", YBIcons.AvatarSun, AvatarCategory.NATURE),
+    YBAvatar("scholar", "Bilgin", YBIcons.AvatarScholar, AvatarCategory.STUDY),
+    YBAvatar("book", "Okur", YBIcons.AvatarBook, AvatarCategory.STUDY),
+    YBAvatar("brain", "Stratejist", YBIcons.AvatarBrain, AvatarCategory.STUDY),
+    YBAvatar("science", "Analist", YBIcons.AvatarScience, AvatarCategory.STUDY),
+    YBAvatar("light", "Fikir", YBIcons.AvatarLight, AvatarCategory.STUDY),
+    YBAvatar("bookmark", "Notçu", YBIcons.AvatarBookmark, AvatarCategory.STUDY),
+    YBAvatar("crown", "Lider", YBIcons.AvatarCrown, AvatarCategory.ARENA),
+    YBAvatar("shield", "Savunmacı", YBIcons.AvatarShield, AvatarCategory.ARENA),
+    YBAvatar("rocket", "Roket", YBIcons.AvatarRocket, AvatarCategory.ARENA),
+    YBAvatar("sports", "Mücadeleci", YBIcons.AvatarSports, AvatarCategory.ARENA),
+    YBAvatar("fire", "Seri Avcısı", YBIcons.AvatarFire, AvatarCategory.ARENA),
+    YBAvatar("bolt", "Hızlı", YBIcons.AvatarBolt, AvatarCategory.ARENA),
+    YBAvatar("face", "Renkli", YBIcons.AvatarFace, AvatarCategory.CHARACTER),
+    YBAvatar("cat", "Kedi", YBIcons.AvatarCat, AvatarCategory.CHARACTER),
+    YBAvatar("heart", "Kalp", YBIcons.AvatarHeart, AvatarCategory.CHARACTER),
+    YBAvatar("diamond", "Elmas", YBIcons.AvatarDiamond, AvatarCategory.CHARACTER),
+    YBAvatar("home", "Yuvacı", YBIcons.AvatarHome, AvatarCategory.CHARACTER)
+)
+
+fun ybAvatar(id: String?): YBAvatar =
+    YBAvatars.firstOrNull { it.id == id } ?: YBAvatars.first()
 
 @Composable
-fun YBGameIcon(id: String, tint: Color, size: androidx.compose.ui.unit.Dp = 24.dp) {
+fun YBGameIcon(
+    id: String,
+    tint: Color,
+    size: androidx.compose.ui.unit.Dp = 24.dp
+) {
     val icon = when {
         id.contains("speed", true) -> YBIcons.Bolt
-        id.contains("hard", true) -> YBIcons.Trophy
-        id.contains("region", true) -> YBIcons.Map
-        id.contains("duel", true) -> YBIcons.Swords
-        id.contains("arena", true) -> YBIcons.Swords
-        id.contains("quick", true) -> YBIcons.Target
+        id.contains("mountain", true) -> YBIcons.AvatarMountain
+        id.contains("agriculture", true) -> YBIcons.AvatarPark
+        id.contains("factory", true) -> Icons.Default.Build
+        id.contains("tourism", true) -> YBIcons.AvatarExplorer
+        id.contains("danger", true) -> YBIcons.AvatarShield
+        id.contains("match", true) -> YBIcons.Target
+        id.contains("hard", true) || id.contains("master", true) -> YBIcons.Trophy
+        id.contains("region", true) || id.contains("agriculture", true) -> YBIcons.Map
+        id.contains("duel", true) || id.contains("arena", true) -> YBIcons.Swords
+        id.contains("quick", true) || id.contains("chain", true) -> YBIcons.Target
         id.contains("map", true) -> YBIcons.Map
-        id.contains("chain", true) -> YBIcons.Target
-        id.contains("master", true) -> YBIcons.Trophy
-        id.contains("mine", true) -> YBIcons.Target
-        id.contains("agriculture", true) -> YBIcons.Map
-        id.contains("climate", true) -> YBIcons.Target
-        id.contains("water", true) -> YBIcons.AvatarWaves
-        id.contains("population", true) -> YBIcons.AvatarUser
+        id.contains("climate", true) -> YBIcons.AvatarCloud
+        id.contains("water", true) -> YBIcons.AvatarWater
+        id.contains("population", true) -> YBIcons.AvatarTurkey
+        id.contains("library", true) || id.contains("study", true) -> YBIcons.Library
         else -> YBIcons.Library
     }
-    androidx.compose.material3.Icon(icon, contentDescription = null, tint = tint, modifier = androidx.compose.ui.Modifier.size(size))
+    androidx.compose.material3.Icon(
+        icon,
+        contentDescription = null,
+        tint = tint,
+        modifier = androidx.compose.ui.Modifier.size(size)
+    )
 }

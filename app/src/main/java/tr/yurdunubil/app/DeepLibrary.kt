@@ -14,7 +14,7 @@ data class DeepLesson(
 object DeepLibrary {
     private val lessons = listOf(
         DeepLesson(
-            "Coğrafi Konum", "Mutlak, özel ve jeopolitik konumu birlikte oku", "📍",
+            "Coğrafi Konum", "Mutlak, özel ve jeopolitik konumu birlikte oku", "map",
             "Türkiye'nin harita üzerindeki yeri; iklimini, ulaşımını, tarımını, komşuluk ilişkilerini ve stratejik önemini aynı anda etkiler.",
             listOf(
                 DeepSection("Matematik konum", "Türkiye 36°–42° Kuzey paralelleri ile 26°–45° Doğu meridyenleri arasındadır. Kuzey yarım kürede ve orta kuşakta bulunması mevsimlerin belirgin yaşanmasını sağlar.", listOf("Enlem; sıcaklık, güneş açısı ve gece-gündüz sürelerini etkiler.", "Boylam; yerel saat farklarının temelidir.", "Doğuya gidildikçe yerel saat ilerler.")),
@@ -26,7 +26,7 @@ object DeepLibrary {
             listOf("Türkiye hangi yarım kürelerdedir?", "Yerel saat farkı hangi konumla ilgilidir?", "Boğazların önemi hangi konum türüyle açıklanır?")
         ),
         DeepLesson(
-            "Yer Şekilleri", "Dağ, ova, plato ve vadileri oluşumlarıyla öğren", "⛰️",
+            "Yer Şekilleri", "Dağ, ova, plato ve vadileri oluşumlarıyla öğren", "mountain",
             "Türkiye genç oluşumlu ve engebeli bir ülkedir. Bu nedenle yükselti, eğim ve dağların uzanışı iklimden ulaşıma kadar birçok konuyu etkiler.",
             listOf(
                 DeepSection("Dağların uzanışı", "Kuzey Anadolu Dağları ve Toroslar genel olarak doğu-batı doğrultusunda uzanır. Bu uzanış kıyı ile iç kesimler arasındaki ulaşımı ve iklim geçişlerini etkiler.", listOf("Karadeniz ve Akdeniz kıyılarında dağlar kıyıya yakın uzanır.", "Batı Anadolu'da dağlar çoğunlukla denize dik uzanır.", "Doğu Anadolu'da yükselti genel olarak fazladır.")),
@@ -38,7 +38,7 @@ object DeepLibrary {
             listOf("Türkiye'de dağların genel uzanış yönü nedir?", "Delta ovası için hangi şartlar gerekir?", "Karstik şekiller hangi kayaçlarla ilişkilidir?")
         ),
         DeepLesson(
-            "Su Varlığı", "Akarsu, göl, havza ve kıyıları neden-sonuçla öğren", "🌊",
+            "Su Varlığı", "Akarsu, göl, havza ve kıyıları neden-sonuçla öğren", "water",
             "Türkiye'nin akarsuları çoğunlukla kısa boylu, eğimleri fazla ve rejimleri düzensizdir. Su varlığını iklim, yer şekilleri ve kayaç yapısıyla birlikte değerlendirmek gerekir.",
             listOf(
                 DeepSection("Akarsular", "Yağışın mevsimsel dağılışı ve kar erimeleri akım düzenini etkiler. Dağlık yapı ve yükselti hidroelektrik potansiyeli artırabilir.", listOf("Karadeniz akarsuları yağış nedeniyle yıl boyunca su taşıyabilir.", "Doğu Anadolu'da kar erimeleri ilkbahar akımını artırabilir.", "Eğim arttıkça aşındırma ve enerji potansiyeli artar.")),
@@ -50,7 +50,7 @@ object DeepLibrary {
             listOf("Kapalı havza nedir?", "Akarsu rejimini hangi faktörler belirler?", "Delta oluşumu hangi kıyılarda kolaylaşır?")
         ),
         DeepLesson(
-            "İklim ve Bitki", "Sıcaklık, yağış ve doğal bitki örtüsünü bağla", "🌦️",
+            "İklim ve Bitki", "Sıcaklık, yağış ve doğal bitki örtüsünü bağla", "climate",
             "Türkiye'de iklim çeşitliliğinin temelinde enlem, yükselti, denizellik-karasallık, dağların uzanışı ve bakı bulunur.",
             listOf(
                 DeepSection("Akdeniz iklimi", "Yazlar sıcak ve kurak, kışlar ılık ve yağışlıdır. Doğal bitki örtüsü makidir. Kıyı kuşağında turunçgil, zeytin ve seracılık gelişebilir.", listOf("Maki → yaz kuraklığına uyum", "Kıyıda kış sıcaklıkları daha yüksektir", "Toroslar iç kesime geçişi etkiler")),
@@ -62,7 +62,7 @@ object DeepLibrary {
             listOf("Akdeniz bitkisinin adı nedir?", "Karadeniz'de yağış neden fazladır?", "Yükselti sıcaklığı nasıl etkiler?")
         ),
         DeepLesson(
-            "Nüfus ve Yerleşme", "Dağılış, yoğunluk, göç ve şehirleşmeyi yorumla", "👥",
+            "Nüfus ve Yerleşme", "Dağılış, yoğunluk, göç ve şehirleşmeyi yorumla", "population",
             "Nüfusun dağılışı doğal ve beşerî faktörlerin ortak sonucudur. İklim, yükselti ve yer şekillerinin yanında sanayi, ulaşım, tarım ve hizmetler de belirleyicidir.",
             listOf(
                 DeepSection("Nüfus dağılışı", "Marmara, Ege kıyıları ve büyük ulaşım-sanayi merkezlerinde nüfus daha yoğundur. Yüksek ve engebeli sahalarda nüfus genellikle seyrektir.", listOf("Sanayi → iş gücü çeker", "Ulaşım → yerleşmeyi destekler", "İklim → yaşama koşullarını etkiler")),
@@ -74,7 +74,7 @@ object DeepLibrary {
             listOf("Yoğunluk nasıl hesaplanır?", "Göçün iki temel nedeni nedir?", "Dağınık yerleşme nerelerde yaygındır?")
         ),
         DeepLesson(
-            "Tarım ve Hayvancılık", "Ürünü iklim, su, toprak ve pazarla eşleştir", "🌾",
+            "Tarım ve Hayvancılık", "Ürünü iklim, su, toprak ve pazarla eşleştir", "agriculture",
             "Tarım sorularında tek bir ezber yerine ürünün istediği sıcaklık, yağış, don koşulu, sulama ve pazar yakınlığını birlikte düşünmek en güvenli yöntemdir.",
             listOf(
                 DeepSection("Tahıllar", "Buğday ve arpa karasal koşullara uyumlu ürünlerdir. İç Anadolu başta olmak üzere geniş tarım alanlarında yetiştirilir.", listOf("Buğday → İç Anadolu ile güçlü eşleştirme", "Sulama arttıkça ürün çeşitliliği artabilir")),
@@ -86,7 +86,7 @@ object DeepLibrary {
             listOf("Çay hangi iklim koşulunu ister?", "Buğdayın güçlü bölgesel eşleştirmesi nedir?", "Hayvancılıkta mera neden önemlidir?")
         ),
         DeepLesson(
-            "Maden ve Enerji", "Kaynak, çıkarım alanı ve enerji üretimini ayır", "⛏️",
+            "Maden ve Enerji", "Kaynak, çıkarım alanı ve enerji üretimini ayır", "mine",
             "Madenlerin dağılışı jeolojik yapı ile; enerji üretimi ise kaynağın yanında su, ulaşım, tüketim merkezi ve tesis koşullarıyla ilişkilidir.",
             listOf(
                 DeepSection("Kömür ve petrol", "Taş kömürü Zonguldak çevresiyle, linyit ise Türkiye'nin farklı bölgelerindeki termik santrallerle ilişkilidir. Petrol üretiminde Güneydoğu Anadolu öne çıkar.", listOf("Taş kömürü → Zonguldak", "Petrol → Batman çevresi", "Linyit → çok sayıda havza")),
@@ -98,7 +98,7 @@ object DeepLibrary {
             listOf("Taş kömürü hangi merkezle eşleşir?", "HES potansiyelini ne artırır?", "Jeotermal enerji hangi bölgede yoğundur?")
         ),
         DeepLesson(
-            "Sanayi ve Ulaşım", "Üretimin neden belirli yerlerde toplandığını çöz", "🏭",
+            "Sanayi ve Ulaşım", "Üretimin neden belirli yerlerde toplandığını çöz", "factory",
             "Sanayi; hammadde, enerji, sermaye, iş gücü, pazar ve ulaşımın birlikte değerlendirilmesiyle açıklanır. Türkiye'de Marmara bu faktörlerin çoğunu bir arada bulundurur.",
             listOf(
                 DeepSection("Sanayi faktörleri", "Bir fabrikanın yer seçiminde hammaddeye, pazara ve ulaşım ağlarına erişim kadar enerji ve iş gücü de önemlidir.", listOf("Hammadde", "Pazar", "Ulaşım", "Enerji", "Sermaye ve iş gücü")),
@@ -110,7 +110,7 @@ object DeepLibrary {
             listOf("Sanayi neden Marmara'da yoğunlaşır?", "Limanın ekonomiye katkısı nedir?", "Ulaşımı yer şekilleri nasıl etkiler?")
         ),
         DeepLesson(
-            "Turizm", "Doğal ve kültürel çekicilikleri turizm türleriyle eşleştir", "🏖️",
+            "Turizm", "Doğal ve kültürel çekicilikleri turizm türleriyle eşleştir", "tourism",
             "Türkiye'nin kıyıları, dağları, jeolojik şekilleri ve tarihî mirası farklı turizm türlerinin gelişmesini sağlar. Mevsim ve ulaşılabilirlik de turizm talebini etkiler.",
             listOf(
                 DeepSection("Kıyı turizmi", "Akdeniz ve Ege kıyılarında yaz turizmi gelişmiştir. Uzun yaz dönemi, sıcak denizler ve kıyı tesisleri önemlidir.", listOf("Antalya → kıyı turizmi", "Muğla → koylar ve kıyı turizmi", "İzmir çevresi → kıyı + kültür")),
@@ -122,7 +122,7 @@ object DeepLibrary {
             listOf("Kış turizminin temel şartı nedir?", "Kapadokya hangi turizm türlerini birleştirir?", "Akdeniz kıyılarında turizm neden uzundur?")
         ),
         DeepLesson(
-            "Bölgeler", "7 bölgeyi tek tek değil karşılaştırmalı öğren", "🗺️",
+            "Bölgeler", "7 bölgeyi tek tek değil karşılaştırmalı öğren", "region",
             "Bölge sorularında en güçlü yöntem; iklim + yer şekli + tarım + nüfus + ekonomik faaliyetleri aynı tablo içinde karşılaştırmaktır.",
             listOf(
                 DeepSection("Marmara", "Nüfus, sanayi, ticaret ve ulaşım bakımından Türkiye'nin en yoğun bölgesidir. Avrupa-Asya geçişi ve boğazlar önemlidir.", listOf("Sanayi", "Ticaret", "Yoğun nüfus", "Boğazlar")),
@@ -135,7 +135,7 @@ object DeepLibrary {
             listOf("Marmara'nın ekonomik imzası nedir?", "Karadeniz'in tarım ürünlerinden ikisini söyle.", "GAP hangi bölgede tarımı değiştirir?")
         ),
         DeepLesson(
-            "Doğal Afetler", "Afetin nedenini bul, sonra dağılışını yorumla", "⚠️",
+            "Doğal Afetler", "Afetin nedenini bul, sonra dağılışını yorumla", "danger",
             "Doğal afetler rastgele değildir. Faylar, eğim, yağış, zemin, bitki örtüsü ve kar koşulları afet riskinin dağılışını belirler.",
             listOf(
                 DeepSection("Deprem", "Türkiye Alp-Himalaya deprem kuşağında yer alır. Kuzey Anadolu, Doğu Anadolu ve Batı Anadolu'daki fay sistemleri farklı risk alanları oluşturur.", listOf("Fay → kırılma ve sarsıntı", "Zemin koşulları hasarı etkileyebilir", "Deprem riski ile bina güvenliği birlikte değerlendirilmelidir")),
@@ -147,7 +147,7 @@ object DeepLibrary {
             listOf("Heyelanı artıran üç koşul nedir?", "Erozyonu hangi uygulamalar artırır?", "Çığ için hangi iki temel doğal koşul gerekir?")
         ),
         DeepLesson(
-            "Harita Bilgisi", "Ölçek, izohips ve yön bilgisini soru çözümüne dönüştür", "🧭",
+            "Harita Bilgisi", "Ölçek, izohips ve yön bilgisini soru çözümüne dönüştür", "map",
             "Harita bir ezber aracı değil, ölçü ve sembollerle bilgi çıkarma aracıdır. Ölçek ve izohips bilgisi oturduğunda birçok coğrafya sorusu kolaylaşır.",
             listOf(
                 DeepSection("Ölçek", "Haritadaki uzunluğun gerçekteki uzunluğa oranıdır. Büyük ölçekli haritalar daha küçük alanı daha ayrıntılı gösterir.", listOf("Büyük ölçek → ayrıntı fazla", "Büyük ölçek → gösterilen alan küçük", "Ölçek paydası küçüldükçe ölçek büyür")),

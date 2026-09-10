@@ -77,7 +77,7 @@ revoke insert, update on table public.profiles from authenticated;
 
 grant insert (
   id, display_name, created_at, updated_at, email, username,
-  avatar_id, onboarding_completed
+  avatar_id, onboarding_complete
 ) on table public.profiles to authenticated;
 
 grant update (

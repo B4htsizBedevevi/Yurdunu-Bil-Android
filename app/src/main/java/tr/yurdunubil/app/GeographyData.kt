@@ -21,18 +21,18 @@ data class ArenaMode(val title: String, val subtitle: String, val reward: String
 
 object GeographyData {
     val topics = listOf(
-        Topic("Coğrafi Konum", "Mutlak, özel ve jeopolitik konum", "📍", 18, listOf("Matematik konum", "Özel konum", "Jeopolitik konum", "Sınırlar ve komşular", "Boğazlar")),
-        Topic("Yer Şekilleri", "Dağlar, ovalar, platolar ve vadiler", "⛰️", 12, listOf("Dağlar", "Platolar", "Ovalar", "Karstik şekiller", "Kıyı şekilleri")),
-        Topic("Su Varlığı", "Akarsular, göller ve denizler", "🌊", 8, listOf("Akarsular", "Göller", "Denizler", "Kıyı tipleri", "Havzalar")),
-        Topic("İklim ve Bitki", "Türkiye'nin iklim bölgeleri", "🌦️", 24, listOf("İklim elemanları", "Akdeniz iklimi", "Karadeniz iklimi", "Karasal iklim", "Bitki örtüsü")),
-        Topic("Nüfus ve Yerleşme", "Nüfus dağılışı, göç ve yerleşme", "👥", 5, listOf("Nüfus özellikleri", "Nüfus dağılışı", "Göçler", "Kır ve kent yerleşmeleri")),
-        Topic("Tarım ve Hayvancılık", "Ürünlerin yetişme koşulları", "🌾", 0, listOf("Tahıllar", "Endüstri bitkileri", "Meyvecilik", "Hayvancılık", "Bölgesel üretim")),
-        Topic("Maden ve Enerji", "Madenler, santraller ve enerji", "⛏️", 0, listOf("Madenler", "Kömür", "Petrol", "Hidroelektrik", "Yenilenebilir enerji")),
-        Topic("Sanayi ve Ulaşım", "Üretim, ulaşım ve ticaret", "🏭", 0, listOf("Sanayi bölgeleri", "Ulaşım yolları", "Limanlar", "Ticaret", "Bölgesel kalkınma")),
-        Topic("Turizm", "Türkiye'nin doğal ve kültürel turizmi", "🏖️", 0, listOf("Kıyı turizmi", "Kış turizmi", "Kültür turizmi", "Doğal güzellikler")),
-        Topic("Bölgeler", "7 bölgeyi karşılaştırarak öğren", "🗺️", 0, listOf("Marmara", "Ege", "Akdeniz", "İç Anadolu", "Karadeniz", "Doğu Anadolu", "Güneydoğu Anadolu")),
-        Topic("Doğal Afetler", "Deprem, heyelan, sel ve erozyon", "⚠️", 0, listOf("Deprem", "Heyelan", "Sel", "Erozyon", "Çığ")),
-        Topic("Harita Bilgisi", "Haritayı okuyabil, bilgiyi bul", "🧭", 0, listOf("Ölçek", "Yön", "İzohips", "Profil", "Harita yorumlama"))
+        Topic("Coğrafi Konum", "Mutlak, özel ve jeopolitik konum", "map", 18, listOf("Matematik konum", "Özel konum", "Jeopolitik konum", "Sınırlar ve komşular", "Boğazlar")),
+        Topic("Yer Şekilleri", "Dağlar, ovalar, platolar ve vadiler", "mountain", 12, listOf("Dağlar", "Platolar", "Ovalar", "Karstik şekiller", "Kıyı şekilleri")),
+        Topic("Su Varlığı", "Akarsular, göller ve denizler", "water", 8, listOf("Akarsular", "Göller", "Denizler", "Kıyı tipleri", "Havzalar")),
+        Topic("İklim ve Bitki", "Türkiye'nin iklim bölgeleri", "climate", 24, listOf("İklim elemanları", "Akdeniz iklimi", "Karadeniz iklimi", "Karasal iklim", "Bitki örtüsü")),
+        Topic("Nüfus ve Yerleşme", "Nüfus dağılışı, göç ve yerleşme", "population", 5, listOf("Nüfus özellikleri", "Nüfus dağılışı", "Göçler", "Kır ve kent yerleşmeleri")),
+        Topic("Tarım ve Hayvancılık", "Ürünlerin yetişme koşulları", "agriculture", 0, listOf("Tahıllar", "Endüstri bitkileri", "Meyvecilik", "Hayvancılık", "Bölgesel üretim")),
+        Topic("Maden ve Enerji", "Madenler, santraller ve enerji", "mine", 0, listOf("Madenler", "Kömür", "Petrol", "Hidroelektrik", "Yenilenebilir enerji")),
+        Topic("Sanayi ve Ulaşım", "Üretim, ulaşım ve ticaret", "factory", 0, listOf("Sanayi bölgeleri", "Ulaşım yolları", "Limanlar", "Ticaret", "Bölgesel kalkınma")),
+        Topic("Turizm", "Türkiye'nin doğal ve kültürel turizmi", "tourism", 0, listOf("Kıyı turizmi", "Kış turizmi", "Kültür turizmi", "Doğal güzellikler")),
+        Topic("Bölgeler", "7 bölgeyi karşılaştırarak öğren", "region", 0, listOf("Marmara", "Ege", "Akdeniz", "İç Anadolu", "Karadeniz", "Doğu Anadolu", "Güneydoğu Anadolu")),
+        Topic("Doğal Afetler", "Deprem, heyelan, sel ve erozyon", "danger", 0, listOf("Deprem", "Heyelan", "Sel", "Erozyon", "Çığ")),
+        Topic("Harita Bilgisi", "Haritayı okuyabil, bilgiyi bul", "map", 0, listOf("Ölçek", "Yön", "İzohips", "Profil", "Harita yorumlama"))
     )
 
     val provinces = listOf(
@@ -54,18 +54,18 @@ object GeographyData {
     )
 
     val games = listOf(
-        GameMode("Haritada Bul", "Verilen ili Türkiye haritasında yakala", "🗺️", 0),
-        GameMode("Hızlı 10", "10 soru • süreli coğrafya turu", "⚡", 1),
-        GameMode("Doğru mu Yanlış mı?", "Bilgiyi saniyeler içinde değerlendir", "🎯", 2),
-        GameMode("Bölge Avı", "İpuçlarından bölgeyi keşfet", "🧭", 3),
-        GameMode("Eşleştir", "İl • ürün • maden • özellik eşleştir", "🧩", 4),
-        GameMode("Zincir", "Arka arkaya doğru cevaplarla çarpanı büyüt", "🔥", 5)
+        GameMode("Haritada Bul", "Verilen ili Türkiye haritasında yakala", "region", 0),
+        GameMode("Hızlı 10", "10 soru • süreli coğrafya turu", "speed", 1),
+        GameMode("Doğru mu Yanlış mı?", "Bilgiyi saniyeler içinde değerlendir", "quick", 2),
+        GameMode("Bölge Avı", "İpuçlarından bölgeyi keşfet", "map", 3),
+        GameMode("Eşleştir", "İl • ürün • maden • özellik eşleştir", "match", 4),
+        GameMode("Zincir", "Arka arkaya doğru cevaplarla çarpanı büyüt", "chain", 5)
     )
 
     val arena = listOf(
-        ArenaMode("1v1 Bilgi Düellosu", "Rakibinden önce doğru cevabı bul", "+100 XP", "⚔️"),
-        ArenaMode("Bölge Savaşı", "7 bölgeden birini seç, puanını savun", "+150 XP", "🗺️"),
-        ArenaMode("Hız Arenası", "60 saniyede en fazla doğru", "+200 XP", "⚡"),
-        ArenaMode("Türkiye Ustası", "Karışık harita ve bilgi soruları", "+250 XP", "🏆")
+        ArenaMode("1v1 Bilgi Düellosu", "Rakibinden önce doğru cevabı bul", "+100 XP", "duel"),
+        ArenaMode("Bölge Savaşı", "7 bölgeden birini seç, puanını savun", "+150 XP", "region"),
+        ArenaMode("Hız Arenası", "60 saniyede en fazla doğru", "+200 XP", "speed"),
+        ArenaMode("Türkiye Ustası", "Karışık harita ve bilgi soruları", "+250 XP", "master")
     )
 }
