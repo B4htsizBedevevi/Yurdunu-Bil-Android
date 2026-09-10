@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.*
@@ -25,8 +23,9 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import java.time.Instant
 
 @Serializable
@@ -140,8 +139,9 @@ fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: S
 
     LaunchedEffect(match?.current_round) { selected = null; answered = false }
 
-    val mine = players.firstOrNull { it.user_id == SupabaseClientProvider.client.auth.currentUserOrNull()?.id }
-    val opponent = players.firstOrNull { it.user_id != SupabaseClientProvider.client.auth.currentUserOrNull()?.id }
+    val myId = SupabaseClientProvider.client.auth.currentUserOrNull()?.id
+    val mine = players.firstOrNull { it.user_id == myId }
+    val opponent = players.firstOrNull { it.user_id != myId }
     val finished = match?.status == "finished"
 
     Box(Modifier.fillMaxSize().background(if (darkMode) Brush.verticalGradient(listOf(Color(0xFF08231B), bg, Color(0xFF04100D))) else Brush.verticalGradient(listOf(Color(0xFFE9F8F1), Color.White, bg)))) {
@@ -160,14 +160,13 @@ fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: S
             if (error != null) Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF3A211F))) { Text(error!!, color = Color(0xFFFFB5AD), fontSize = 11.sp, modifier = Modifier.padding(12.dp)) }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ScoreCard("SEN", mine?.score ?: 0, Color(0xFF18C986), text, Modifier.weight(1f))
-                ScoreCard("RAKİP", opponent?.score ?: 0, Color(0xFFFFC857), text, Modifier.weight(1f))
+                ScoreCardV2("SEN", mine?.score ?: 0, Color(0xFF18C986), text, Modifier.weight(1f))
+                ScoreCardV2("RAKİP", opponent?.score ?: 0, Color(0xFFFFC857), text, Modifier.weight(1f))
             }
 
             if (loading) {
                 Box(Modifier.fillMaxWidth().height(300.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Color(0xFF18C986)) }
             } else if (finished) {
-                val myId = SupabaseClientProvider.client.auth.currentUserOrNull()?.id
                 val title = when (match?.winner_id) { null -> "🤝 BERABERE"; myId -> "🏆 ZAFER!"; else -> "💪 MAÇ BİTTİ" }
                 Card(Modifier.fillMaxWidth(), RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = surface)) {
                     Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -201,8 +200,7 @@ fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: S
                         Spacer(Modifier.height(13.dp))
                         Text(current.question_payload["text"]?.jsonPrimitive?.content ?: "Soru yüklenemedi.", color = text, fontSize = 18.sp, fontWeight = FontWeight.Bold, lineHeight = 25.sp)
                         Spacer(Modifier.height(13.dp))
-                        val options = current.question_payload["options"]?.let { element -> element.toString().removePrefix("[").removeSuffix("]").split(",") }
-                        val optionValues = current.question_payload["options"]?.let { kotlinx.serialization.json.jsonArray -> jsonArray.map { it.jsonPrimitive.content } } ?: emptyList()
+                        val optionValues = current.question_payload["options"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList()
                         optionValues.forEachIndexed { i, option ->
                             val picked = selected == i
                             Button(
@@ -230,7 +228,7 @@ fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: S
 }
 
 @Composable
-private fun ScoreCard(name: String, score: Int, accent: Color, text: Color, modifier: Modifier) {
+private fun ScoreCardV2(name: String, score: Int, accent: Color, text: Color, modifier: Modifier) {
     Card(modifier, RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = .08f))) {
         Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Person, null, tint = accent, modifier = Modifier.size(23.dp))
