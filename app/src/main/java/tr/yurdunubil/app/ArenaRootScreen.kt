@@ -19,8 +19,17 @@ fun ArenaRootScreen(darkMode: Boolean, onExit: () -> Unit) {
     val mode = selectedMode
     val matchId = matchedId
     when {
-        mode == null -> ArenaHubScreen(darkMode = darkMode, onLaunch = { selectedMode = it })
-        matchId != null -> ArenaMatchScreen(darkMode = darkMode, mode = mode, matchId = matchId, onBack = { matchedId = null })
+        mode == null -> ArenaHubScreen(
+            darkMode = darkMode,
+            onLaunch = { selectedMode = it },
+            onBack = onExit
+        )
+        matchId != null -> ArenaMatchScreen(
+            darkMode = darkMode,
+            mode = mode,
+            matchId = matchId,
+            onBack = { matchedId = null }
+        )
         else -> OnlineArenaScreen(
             darkMode = darkMode,
             mode = mode,
