@@ -15,18 +15,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Harden V2 navigation and preferences
+      - name: Harden navigation preferences and loading
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
+
+          changed = False
 
           p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
           s = p.read_text(encoding="utf-8")
-          marker = "// App hardening navigation/preferences applied"
-          changed = False
 
           old = 'val prefs = remember { context.getSharedPreferences("yurdunu_bil_native", 0) }'
           new = 'val prefs = remember { YBPreferences.get(context) }'
+          if old in s:
+              s = s.replace(old, new, 1)
+              changed = True
+
+          old = 'SettingsScreen(prefs, darkMode) { prefs.edit().putBoolean("dark_mode", it).apply(); darkMode = it }'
+          new = 'SettingsScreen(prefs, darkMode) { YBPreferences.setDarkMode(prefs, it); darkMode = it }'
           if old in s:
               s = s.replace(old, new, 1)
               changed = True
@@ -71,14 +78,13 @@ jobs:
                   s = s.replace(old, new, 1)
                   changed = True
 
+          marker = "// App hardening navigation/preferences applied"
           if marker not in s:
               s = s.rstrip() + "\n" + marker + "\n"
               changed = True
+          p.write_text(s, encoding="utf-8")
 
-          if changed:
-              p.write_text(s, encoding="utf-8")
-
-          # Keep all notification/settings components on the same preference file.
+          # Keep notification settings on the same preference store.
           n = Path("app/src/main/java/tr/yurdunubil/app/NotificationHelper.kt")
           if n.exists():
               ns = n.read_text(encoding="utf-8")
@@ -88,12 +94,84 @@ jobs:
                   ns = ns.replace(old, new)
                   n.write_text(ns, encoding="utf-8")
                   changed = True
+
+          # Replace the plain spinner with a short, premium geography-themed loader.
+          lp = Path("app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt")
+          ls = lp.read_text(encoding="utf-8")
+          start = ls.find('@Composable\nprivate fun LoadingGate()')
+          end = ls.find('@Composable\nprivate fun AuthGate', start)
+          if start >= 0 and end > start:
+              loader = '''@Composable
+private fun LoadingGate() {
+    val transition = rememberInfiniteTransition(label = "authLoader")
+    val glow by transition.animateFloat(
+        initialValue = 0.18f,
+        targetValue = 0.42f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "authLoaderGlow"
+    )
+    val sweep by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(1700, easing = LinearEasing)),
+        label = "authLoaderSweep"
+    )
+
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Canvas(Modifier.fillMaxSize()) {
+            val center = Offset(size.width / 2f, size.height * 0.42f)
+            drawCircle(Accent.copy(alpha = 0.08f + glow * 0.12f), size.minDimension * 0.46f, center)
+            drawCircle(Accent.copy(alpha = 0.05f), size.minDimension * 0.31f, center)
+            val radius = size.minDimension * 0.19f
+            drawArc(
+                color = Accent.copy(alpha = 0.9f),
+                startAngle = sweep,
+                sweepAngle = 105f,
+                useCenter = false,
+                topLeft = Offset(center.x - radius, center.y - radius),
+                size = androidx.compose.ui.geometry.Size(radius * 2f, radius * 2f),
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 5f, cap = StrokeCap.Round)
+            )
+            drawArc(
+                color = Accent.copy(alpha = 0.18f),
+                startAngle = 0f,
+                sweepAngle = 360f,
+                useCenter = false,
+                topLeft = Offset(center.x - radius, center.y - radius),
+                size = androidx.compose.ui.geometry.Size(radius * 2f, radius * 2f),
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f)
+            )
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            LogoMark()
+            Spacer(Modifier.height(14.dp))
+            Text("Yurdunu Bil", color = Ink, fontSize = 29.sp, fontWeight = FontWeight.Black)
+            Spacer(Modifier.height(5.dp))
+            Text("Türkiye hazırlanıyor…", color = Muted, fontSize = 12.sp)
+        }
+    }
+}
+
+'''
+              ls = ls[:start] + loader + ls[end:]
+              if 'LinearEasing' not in ls[:start]:
+                  pass
+              # Ensure loader animation imports exist.
+              if 'import androidx.compose.animation.core.LinearEasing' not in ls:
+                  ls = ls.replace('import androidx.compose.animation.core.infiniteRepeatable\n', 'import androidx.compose.animation.core.infiniteRepeatable\nimport androidx.compose.animation.core.LinearEasing\n', 1)
+              if 'import androidx.compose.ui.graphics.StrokeCap' not in ls:
+                  ls = ls.replace('import androidx.compose.ui.graphics.Path\n', 'import androidx.compose.ui.graphics.Path\nimport androidx.compose.ui.graphics.StrokeCap\n', 1)
+              lp.write_text(ls, encoding="utf-8")
+              changed = True
+
+          if changed:
+              pass
           PY
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if ! git diff --quiet; then
-            git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt app/src/main/java/tr/yurdunubil/app/NotificationHelper.kt
-            git commit -m "fix: persist preferences and isolate back navigation"
+            git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt app/src/main/java/tr/yurdunubil/app/NotificationHelper.kt app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt
+            git commit -m "feat: polish loading and harden app state"
             git push origin HEAD:main
           fi
