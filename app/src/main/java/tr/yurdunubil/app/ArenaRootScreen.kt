@@ -6,20 +6,26 @@ import androidx.compose.runtime.*
 @Composable
 fun ArenaRootScreen(darkMode: Boolean, onExit: () -> Unit) {
     var selectedMode by remember { mutableStateOf<SharedGameMode?>(null) }
+    var matchedId by remember { mutableStateOf<String?>(null) }
 
     BackHandler {
-        if (selectedMode != null) selectedMode = null else onExit()
+        when {
+            matchedId != null -> matchedId = null
+            selectedMode != null -> selectedMode = null
+            else -> onExit()
+        }
     }
 
     val mode = selectedMode
-    if (mode == null) {
-        ArenaHubScreen(darkMode = darkMode, onLaunch = { selectedMode = it })
-    } else {
-        OnlineArenaScreen(
+    val matchId = matchedId
+    when {
+        mode == null -> ArenaHubScreen(darkMode = darkMode, onLaunch = { selectedMode = it })
+        matchId != null -> ArenaMatchScreen(darkMode = darkMode, mode = mode, matchId = matchId, onBack = { matchedId = null })
+        else -> OnlineArenaScreen(
             darkMode = darkMode,
             mode = mode,
             onBack = { selectedMode = null },
-            onMatched = { }
+            onMatched = { matchedId = it }
         )
     }
 }
