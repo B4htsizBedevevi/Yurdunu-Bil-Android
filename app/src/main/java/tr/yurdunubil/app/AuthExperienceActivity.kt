@@ -58,9 +58,19 @@ class AuthExperienceActivity : ComponentActivity() {
     }
 
     private fun routeAuthenticated() {
-        val intent = Intent(this, ProfileOnboardingActivity::class.java)
-        startActivity(intent)
-        finish()
+        kotlinx.coroutines.MainScope().launch {
+            val user = SupabaseClientProvider.client.auth.currentUserOrNull()
+            if (user == null) return@launch
+            val profile = runCatching {
+                SupabaseClientProvider.client.postgrest.from("profiles").select {
+                    filter { eq("id", user.id) }
+                    limit(1)
+                }.decodeSingleOrNull<ProfileGate>()
+            }.getOrNull()
+            val target = if (profile?.onboarding_complete == true) RetentionMainActivity::class.java else ProfileOnboardingActivity::class.java
+            startActivity(Intent(this@AuthExperienceActivity, target))
+            finish()
+        }
     }
 }
 
