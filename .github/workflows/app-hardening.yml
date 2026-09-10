@@ -1,0 +1,99 @@
+name: App Hardening
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Harden V2 navigation and preferences
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
+          s = p.read_text(encoding="utf-8")
+          marker = "// App hardening navigation/preferences applied"
+          changed = False
+
+          old = 'val prefs = remember { context.getSharedPreferences("yurdunu_bil_native", 0) }'
+          new = 'val prefs = remember { YBPreferences.get(context) }'
+          if old in s:
+              s = s.replace(old, new, 1)
+              changed = True
+
+          old = '''    BackHandler {
+        when {
+            quiz != null -> quiz = null
+            study != null -> study = null
+            province != null -> province = null
+            arenaOpen -> arenaOpen = false
+            tab != 0 -> tab = 0
+            else -> showExitDialog = true
+        }
+    }'''
+          new = '''    BackHandler(enabled = quiz == null && study == null && province == null && !arenaOpen && !showExitDialog) {
+        if (tab != 0) tab = 0 else showExitDialog = true
+    }'''
+          if old in s:
+              s = s.replace(old, new, 1)
+              changed = True
+
+          replacements = [
+              ('''    if (study != null) {
+        val selected = study!!''', '''    if (study != null) {
+        BackHandler { study = null }
+        val selected = study!!'''),
+              ('''    if (province != null) {
+        ProvinceDetailScreen''', '''    if (province != null) {
+        BackHandler { province = null }
+        ProvinceDetailScreen'''),
+              ('''    if (arenaOpen) {
+        ArenaRootScreen''', '''    if (arenaOpen) {
+        BackHandler { arenaOpen = false }
+        ArenaRootScreen'''),
+              ('''    if (quiz != null) {
+        V2QuizScreen''', '''    if (quiz != null) {
+        BackHandler { quiz = null }
+        V2QuizScreen''')
+          ]
+          for old, new in replacements:
+              if old in s and new not in s:
+                  s = s.replace(old, new, 1)
+                  changed = True
+
+          if marker not in s:
+              s = s.rstrip() + "\n" + marker + "\n"
+              changed = True
+
+          if changed:
+              p.write_text(s, encoding="utf-8")
+
+          # Keep all notification/settings components on the same preference file.
+          n = Path("app/src/main/java/tr/yurdunubil/app/NotificationHelper.kt")
+          if n.exists():
+              ns = n.read_text(encoding="utf-8")
+              old = 'context.getSharedPreferences("yurdunu_bil_native", Context.MODE_PRIVATE)'
+              new = 'YBPreferences.get(context)'
+              if old in ns:
+                  ns = ns.replace(old, new)
+                  n.write_text(ns, encoding="utf-8")
+                  changed = True
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt app/src/main/java/tr/yurdunubil/app/NotificationHelper.kt
+            git commit -m "fix: persist preferences and isolate back navigation"
+            git push origin HEAD:main
+          fi
