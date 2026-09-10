@@ -43,9 +43,9 @@ fun ArenaLocalMatchScreen(darkMode: Boolean, mode: SharedGameMode, onBack: () ->
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                if (score > opponentScore) "🏆 ZAFER!"
-                else if (score == opponentScore) "🤝 BERABERE"
-                else "💪 RÖVANŞA HAZIR",
+                if (score > opponentScore) "ZAFER!"
+                else if (score == opponentScore) "BERABERE"
+                else "RÖVANŞA HAZIR",
                 color = green,
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Black
@@ -70,8 +70,8 @@ fun ArenaLocalMatchScreen(darkMode: Boolean, mode: SharedGameMode, onBack: () ->
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("⚔️ ${index + 1}/${questions.size}", color = green, fontWeight = FontWeight.Black)
-            Text("⏱️ ${seconds}s", color = if (seconds <= 10) Color(0xFFE65353) else text, fontWeight = FontWeight.Black)
+            Text("${index + 1}/${questions.size}", color = green, fontWeight = FontWeight.Black)
+            Text("${seconds}s", color = if (seconds <= 10) Color(0xFFE65353) else text, fontWeight = FontWeight.Black)
         }
         Spacer(Modifier.height(8.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
