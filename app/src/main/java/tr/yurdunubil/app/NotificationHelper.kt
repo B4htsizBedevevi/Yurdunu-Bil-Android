@@ -19,8 +19,6 @@ object NotificationHelper {
 
     data class DailyTemplate(val title: String, val body: String)
 
-    // Local fallback templates keep daily reminders useful even before remote FCM is configured.
-    // Selection is deterministic by date, so a receiver retry on the same day cannot change it.
     private val dailyTemplates = listOf(
         DailyTemplate("Bugünün Coğrafya Görevi 📚", "Bugün 10 soru çöz. Küçük bir çalışma bile serini canlı tutar."),
         DailyTemplate("Türkiye'yi biraz daha tanı 🇹🇷", "Kütüphaneden bir konu seç, kısa bir tekrar yap ve kendini test et."),
@@ -56,32 +54,27 @@ object NotificationHelper {
         runCatching {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (manager.getNotificationChannel(CHANNEL_ID) == null) {
-                manager.createNotificationChannel(
-                    NotificationChannel(CHANNEL_ID, "Çalışma Hatırlatmaları", NotificationManager.IMPORTANCE_DEFAULT).apply {
-                        description = "Yurdunu Bil günlük çalışma ve ilerleme hatırlatmaları"
-                    }
-                )
+                manager.createNotificationChannel(NotificationChannel(CHANNEL_ID, "Çalışma Hatırlatmaları", NotificationManager.IMPORTANCE_DEFAULT).apply {
+                    description = "Yurdunu Bil günlük çalışma ve ilerleme hatırlatmaları"
+                })
             }
         }
     }
 
     fun canNotify(context: Context): Boolean = runCatching {
-        android.os.Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(
-            context,
-            "android.permission.POST_NOTIFICATIONS"
-        ) == PackageManager.PERMISSION_GRANTED
+        android.os.Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(context, "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED
     }.getOrDefault(false)
 
     fun sendTest(context: Context) {
         runCatching {
             if (!canNotify(context)) return
             ensureChannel(context)
-            val intent = Intent(context, ModernLaunchActivity::class.java)
+            val intent = Intent(context, SocialCenterActivity::class.java)
             val pending = PendingIntent.getActivity(context, 4812, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
                 .setContentTitle("Yurdunu Bil hazır! 🎯")
-                .setContentText("Bildirim sistemi çalışıyor. Şimdi bir coğrafya konusu seçip devam et.")
+                .setContentText("Bildirim sistemi çalışıyor. Bildirim merkezini aç ve arkadaşlarını bul.")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
                 .setContentIntent(pending)
@@ -130,7 +123,7 @@ class DailyReminderReceiver : BroadcastReceiver() {
             if (!NotificationHelper.canNotify(context)) return
             NotificationHelper.ensureChannel(context)
             val template = NotificationHelper.todayTemplate()
-            val openIntent = Intent(context, ModernLaunchActivity::class.java)
+            val openIntent = Intent(context, SocialCenterActivity::class.java)
             val pending = PendingIntent.getActivity(context, 4815, openIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val notification = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
                 .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
@@ -140,8 +133,7 @@ class DailyReminderReceiver : BroadcastReceiver() {
                 .setAutoCancel(true)
                 .setContentIntent(pending)
                 .build()
-            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-                .notify(NotificationHelper.DAILY_NOTIFICATION_ID, notification)
+            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(NotificationHelper.DAILY_NOTIFICATION_ID, notification)
         }
     }
 }
@@ -151,9 +143,7 @@ class NotificationBootReceiver : BroadcastReceiver() {
         runCatching {
             if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
                 val prefs = context.getSharedPreferences("yurdunu_bil_native", Context.MODE_PRIVATE)
-                if (prefs.getBoolean("notifications_enabled", false) && NotificationHelper.canNotify(context)) {
-                    NotificationHelper.scheduleDaily(context)
-                }
+                if (prefs.getBoolean("notifications_enabled", false) && NotificationHelper.canNotify(context)) NotificationHelper.scheduleDaily(context)
             }
         }
     }
