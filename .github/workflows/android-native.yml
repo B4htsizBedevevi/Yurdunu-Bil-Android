@@ -146,6 +146,91 @@ jobs:
             git push origin HEAD:main
           fi
 
+      - name: Apply runtime hardening
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # Auth: never read currentSession before Supabase has restored storage.
+          p = Path("app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt")
+          s = p.read_text(encoding="utf-8")
+          old = '''    LaunchedEffect(Unit) {
+        val current = SupabaseClientProvider.client.auth.currentSessionOrNull()'''
+          new = '''    LaunchedEffect(Unit) {
+        SupabaseClientProvider.client.auth.awaitInitialization()
+        val current = SupabaseClientProvider.client.auth.currentSessionOrNull()'''
+          if old in s:
+              s = s.replace(old, new, 1)
+          p.write_text(s, encoding="utf-8")
+
+          # Auth storage/refresh: make mobile persistence explicit.
+          p = Path("app/src/main/java/tr/yurdunubil/app/SupabaseClient.kt")
+          s = p.read_text(encoding="utf-8")
+          old = '''        install(Auth) {
+            // PKCE is required for secure mobile OAuth / email-link recovery flows.
+            flowType = FlowType.PKCE
+            scheme = "yurdunubil"
+            host = "auth"
+        }'''
+          new = '''        install(Auth) {
+            // Keep the authenticated session across process restarts and refresh it automatically.
+            flowType = FlowType.PKCE
+            autoLoadFromStorage = true
+            autoSaveToStorage = true
+            alwaysAutoRefresh = true
+            scheme = "yurdunubil"
+            host = "auth"
+        }'''
+          if old in s:
+              s = s.replace(old, new, 1)
+          p.write_text(s, encoding="utf-8")
+
+          # Preferences: one migration-aware store for all app settings.
+          p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
+          s = p.read_text(encoding="utf-8")
+          s = s.replace('val prefs = remember { context.getSharedPreferences("yurdunu_bil_native", 0) }', 'val prefs = remember { YBPreferences.get(context) }', 1)
+          s = s.replace('SettingsScreen(prefs, darkMode) { prefs.edit().putBoolean("dark_mode", it).apply(); darkMode = it }', 'SettingsScreen(prefs, darkMode) { YBPreferences.setDarkMode(prefs, it); darkMode = it }', 1)
+
+          # Back: parent handler must yield while a child screen/Arena is open.
+          old = '''    BackHandler {
+        when {
+            quiz != null -> quiz = null
+            study != null -> study = null
+            province != null -> province = null
+            arenaOpen -> arenaOpen = false
+            tab != 0 -> tab = 0
+            else -> showExitDialog = true
+        }
+    }'''
+          new = '''    BackHandler(enabled = quiz == null && study == null && province == null && !arenaOpen && !showExitDialog) {
+        if (tab != 0) tab = 0 else showExitDialog = true
+    }'''
+          s = s.replace(old, new, 1)
+          for old, new in [
+              ('    if (study != null) {\n        val selected = study!!', '    if (study != null) {\n        BackHandler { study = null }\n        val selected = study!!'),
+              ('    if (province != null) {\n        ProvinceDetailScreen', '    if (province != null) {\n        BackHandler { province = null }\n        ProvinceDetailScreen'),
+              ('    if (arenaOpen) {\n        ArenaRootScreen', '    if (arenaOpen) {\n        BackHandler { arenaOpen = false }\n        ArenaRootScreen'),
+              ('    if (quiz != null) {\n        V2QuizScreen', '    if (quiz != null) {\n        BackHandler { quiz = null }\n        V2QuizScreen')
+          ]:
+              if old in s and new not in s:
+                  s = s.replace(old, new, 1)
+          p.write_text(s, encoding="utf-8")
+
+          # Keep notification preferences in the same store.
+          p = Path("app/src/main/java/tr/yurdunubil/app/NotificationHelper.kt")
+          if p.exists():
+              s = p.read_text(encoding="utf-8")
+              s = s.replace('context.getSharedPreferences("yurdunu_bil_native", Context.MODE_PRIVATE)', 'YBPreferences.get(context)')
+              p.write_text(s, encoding="utf-8")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git add app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt app/src/main/java/tr/yurdunubil/app/SupabaseClient.kt app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt app/src/main/java/tr/yurdunubil/app/NotificationHelper.kt
+            git commit -m "fix: persist auth and harden back navigation"
+            git push origin HEAD:main
+          fi
+
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
