@@ -169,7 +169,7 @@ fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: S
             if (loading) {
                 Box(Modifier.fillMaxWidth().height(300.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Color(0xFF18C986)) }
             } else if (finished) {
-                val title = when (match?.winner_id) { null -> "🤝 BERABERE"; myId -> "🏆 ZAFER!"; else -> "💪 MAÇ BİTTİ" }
+                val title = when (match?.winner_id) { null -> "BERABERE"; myId -> "ZAFER!"; else -> "MAÇ BİTTİ" }
                 Card(Modifier.fillMaxWidth(), RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = surface)) {
                     Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(title, color = Color(0xFF18C986), fontSize = 28.sp, fontWeight = FontWeight.Black)
@@ -197,7 +197,7 @@ fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: S
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("SORU ${match!!.current_round}/${match!!.total_rounds}", color = Color(0xFF18C986), fontSize = 10.sp, fontWeight = FontWeight.Black)
                             Spacer(Modifier.weight(1f))
-                            Text("⏱ ${secondsLeft}s", color = if (secondsLeft <= 3) Color(0xFFE65353) else Color(0xFFFFC857), fontSize = 15.sp, fontWeight = FontWeight.Black)
+                            Text("${secondsLeft}s", color = if (secondsLeft <= 3) Color(0xFFE65353) else Color(0xFFFFC857), fontSize = 15.sp, fontWeight = FontWeight.Black)
                         }
                         Spacer(Modifier.height(13.dp))
                         Text(current.question_payload["text"]?.jsonPrimitive?.content ?: "Soru yüklenemedi.", color = text, fontSize = 18.sp, fontWeight = FontWeight.Bold, lineHeight = 25.sp)
