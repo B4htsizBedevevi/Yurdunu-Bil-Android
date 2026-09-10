@@ -156,7 +156,7 @@ private fun AppCard(p: AppPalette, modifier: Modifier = Modifier, dark: Boolean 
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, if (dark) Color.White.copy(alpha = .07f) else p.border),
-        colors = CardDefaults.cardColors(containerColor = if (dark) p.cardAlt else p.card),
+        colors = CardDefaults.cardColors(containerColor = if (dark) Color(0xFF0B2A22) else p.card),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(Modifier.padding(16.dp), content = content)
@@ -306,18 +306,25 @@ private fun HomeV4(p: AppPalette, prefs: SharedPreferences, quick: () -> Unit, a
             }
         }
         item { SectionTitle("Konu Bankası", p) }
-        items(topics, key = { it.title }) { topic ->
-            AppCard(p, Modifier.padding(horizontal = 16.dp).clickable { onTopic(topic) }) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.size(45.dp).clip(RoundedCornerShape(13.dp)).background(p.cardAlt), contentAlignment = Alignment.Center) { Text(topic.icon, fontSize = 25.sp) }
-                    Spacer(Modifier.width(11.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(topic.title, color = p.text, fontSize = 16.sp, fontWeight = FontWeight.Black)
-                        Text(topic.subtitle, color = p.muted, fontSize = 11.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        Text("Ders sayfasını aç →", color = p.green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        items(topics.chunked(2), key = { row -> row.first().title }) { row ->
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                row.forEach { topic ->
+                    AppCard(
+                        p,
+                        Modifier.weight(1f).height(154.dp).clickable { onTopic(topic) }
+                    ) {
+                        Box(Modifier.size(46.dp).clip(RoundedCornerShape(13.dp)).background(p.cardAlt), contentAlignment = Alignment.Center) {
+                            Text(topic.icon, fontSize = 25.sp)
+                        }
+                        Spacer(Modifier.height(9.dp))
+                        Text(topic.title, color = p.text, fontSize = 15.sp, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Spacer(Modifier.height(3.dp))
+                        Text(topic.subtitle, color = p.muted, fontSize = 10.sp, lineHeight = 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Spacer(Modifier.weight(1f))
+                        Text("Ders sayfası →", color = p.green, fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     }
-                    Icon(Icons.Default.ChevronRight, null, tint = p.green)
                 }
+                if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
         item {
@@ -327,18 +334,28 @@ private fun HomeV4(p: AppPalette, prefs: SharedPreferences, quick: () -> Unit, a
                 Text("İl → bölge → doğal / ekonomik özellik bağlantısını kur.", color = p.muted, fontSize = 11.sp)
             }
         }
-        items(GeographyData.provinces, key = { it.name }) { city ->
-            AppCard(p, Modifier.padding(horizontal = 16.dp).clickable { onProvince(city) }) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("📍", fontSize = 23.sp)
-                    Spacer(Modifier.width(10.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(city.name, color = p.text, fontWeight = FontWeight.Black)
-                        Text(city.region, color = p.green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        Text(city.clue, color = p.muted, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        items(GeographyData.provinces.chunked(2), key = { row -> row.first().name }) { row ->
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                row.forEach { city ->
+                    AppCard(
+                        p,
+                        Modifier.weight(1f).height(132.dp).clickable { onProvince(city) }
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("📍", fontSize = 21.sp)
+                            Spacer(Modifier.width(7.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(city.name, color = p.text, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(city.region, color = p.green, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Spacer(Modifier.height(7.dp))
+                        Text(city.clue, color = p.muted, fontSize = 10.sp, lineHeight = 14.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                        Spacer(Modifier.weight(1f))
+                        Text("Detay →", color = p.green, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                     }
-                    Icon(Icons.Default.ChevronRight, null, tint = p.green)
                 }
+                if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
     }
