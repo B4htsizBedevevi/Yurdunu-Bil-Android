@@ -15,6 +15,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.YurdunuBil">
         <activity android:name=".RetentionMainActivity" android:exported="false" />
+        <activity android:name=".SmartStudyCenterActivity" android:exported="false" />
         <activity android:name=".SocialCenterActivity" android:exported="false" />
         <activity android:name=".AdminCenterActivity" android:exported="false" />
         <activity android:name=".AdminNotificationActivity" android:exported="false" />
