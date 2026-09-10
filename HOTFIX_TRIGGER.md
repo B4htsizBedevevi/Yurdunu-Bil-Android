@@ -1,3 +1,3 @@
 # Hotfix trigger
 
-This file triggers the final Android navigation hotfix workflow.
+Arena navigation and theme hotfix build trigger.
