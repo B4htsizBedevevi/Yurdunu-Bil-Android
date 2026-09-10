@@ -14,6 +14,7 @@ fun ArenaRootScreen(darkMode: Boolean, onExit: () -> Unit) {
 
     // Keep exactly one enabled back handler for each nested Arena state.
     // The root surface also owns the actual light/dark background.
+    // Stable APK build trigger.
     BackHandler(enabled = matchedId != null) {
         matchedId = null
     }
