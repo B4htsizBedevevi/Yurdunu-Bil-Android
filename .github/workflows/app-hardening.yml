@@ -15,14 +15,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Harden navigation preferences and loading
+      - name: Harden navigation preferences auth session and loading
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
 
           changed = False
 
+          # Centralize local preferences and make system back handling branch-safe.
           p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
           s = p.read_text(encoding="utf-8")
 
@@ -95,9 +95,21 @@ jobs:
                   n.write_text(ns, encoding="utf-8")
                   changed = True
 
-          # Replace the plain spinner with a short, premium geography-themed loader.
+          # Replace the plain spinner with a premium geography-themed loader.
           lp = Path("app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt")
           ls = lp.read_text(encoding="utf-8")
+
+          # Most important auth fix: wait for Supabase Auth storage initialization
+          # before deciding that the user is signed out.
+          old = '''    LaunchedEffect(Unit) {
+        val current = SupabaseClientProvider.client.auth.currentSessionOrNull()'''
+          new = '''    LaunchedEffect(Unit) {
+        SupabaseClientProvider.client.auth.awaitInitialization()
+        val current = SupabaseClientProvider.client.auth.currentSessionOrNull()'''
+          if old in ls:
+              ls = ls.replace(old, new, 1)
+              changed = True
+
           start = ls.find('@Composable\nprivate fun LoadingGate()')
           end = ls.find('@Composable\nprivate fun AuthGate', start)
           if start >= 0 and end > start:
@@ -153,15 +165,50 @@ private fun LoadingGate() {
 }
 
 '''
-              ls = ls[:start] + loader + ls[end:]
-              if 'LinearEasing' not in ls[:start]:
-                  pass
-              # Ensure loader animation imports exist.
+              if ls[start:end] != loader:
+                  ls = ls[:start] + loader + ls[end:]
+                  changed = True
               if 'import androidx.compose.animation.core.LinearEasing' not in ls:
                   ls = ls.replace('import androidx.compose.animation.core.infiniteRepeatable\n', 'import androidx.compose.animation.core.infiniteRepeatable\nimport androidx.compose.animation.core.LinearEasing\n', 1)
+                  changed = True
               if 'import androidx.compose.ui.graphics.StrokeCap' not in ls:
                   ls = ls.replace('import androidx.compose.ui.graphics.Path\n', 'import androidx.compose.ui.graphics.Path\nimport androidx.compose.ui.graphics.StrokeCap\n', 1)
-              lp.write_text(ls, encoding="utf-8")
+                  changed = True
+          lp.write_text(ls, encoding="utf-8")
+
+          # Make Auth storage/refresh behavior explicit instead of relying on SDK defaults.
+          sp = Path("app/src/main/java/tr/yurdunubil/app/SupabaseClient.kt")
+          ss = sp.read_text(encoding="utf-8")
+          old = '''        install(Auth) {
+            // PKCE is required for secure mobile OAuth / email-link recovery flows.
+            flowType = FlowType.PKCE
+            scheme = "yurdunubil"
+            host = "auth"
+        }'''
+          new = '''        install(Auth) {
+            // Mobile auth must survive process restarts and refresh access tokens automatically.
+            flowType = FlowType.PKCE
+            autoLoadFromStorage = true
+            autoSaveToStorage = true
+            alwaysAutoRefresh = true
+            scheme = "yurdunubil"
+            host = "auth"
+        }'''
+          if old in ss:
+              ss = ss.replace(old, new, 1)
+              sp.write_text(ss, encoding="utf-8")
+              changed = True
+
+          # Give the Arena root a second, explicit system-back interception point.
+          # The parent V2 handler is disabled while Arena is open, so this is the
+          # only active handler in the Arena stack.
+          ar = Path("app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt")
+          ars = ar.read_text(encoding="utf-8")
+          old = 'BackHandler {\n        when {'
+          new = 'BackHandler(enabled = true) {\n        when {'
+          if old in ars:
+              ars = ars.replace(old, new, 1)
+              ar.write_text(ars, encoding="utf-8")
               changed = True
 
           if changed:
@@ -171,7 +218,7 @@ private fun LoadingGate() {
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if ! git diff --quiet; then
-            git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt app/src/main/java/tr/yurdunubil/app/NotificationHelper.kt app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt
-            git commit -m "feat: polish loading and harden app state"
+            git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt app/src/main/java/tr/yurdunubil/app/NotificationHelper.kt app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt app/src/main/java/tr/yurdunubil/app/SupabaseClient.kt app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt
+            git commit -m "fix: persist auth and harden arena back navigation"
             git push origin HEAD:main
           fi
