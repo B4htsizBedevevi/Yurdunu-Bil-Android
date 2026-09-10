@@ -4,11 +4,18 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -18,8 +25,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -33,12 +43,14 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
-private val AuthBg = Color(0xFF041611)
-private val AuthPanel = Color(0xFF09231C)
+private val AuthBg = Color(0xFF03140F)
+private val AuthBgMid = Color(0xFF0A3026)
+private val AuthPanel = Color(0xFF08231C)
 private val AuthMint = Color(0xFF39E6A5)
+private val AuthMintBright = Color(0xFF67F5BB)
 private val AuthText = Color(0xFFF2FAF6)
-private val AuthMuted = Color(0xFFAFC5BB)
-private val AuthSoft = Color(0xFFB9F5DC)
+private val AuthMuted = Color(0xFFA9C1B7)
+private val AuthSoft = Color(0xFFC5F7E1)
 
 class AuthExperienceActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -118,17 +130,19 @@ private fun AuthScreen(
     }
 
     Box(
-        Modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(AuthBg, Color(0xFF0A352A), AuthBg))
-        )
+        Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(AuthBg, AuthBgMid, AuthBg)))
     ) {
+        AuthAmbientBackground()
+
         Column(
             Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 18.dp, vertical = 14.dp),
+                .padding(horizontal = 18.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -140,58 +154,32 @@ private fun AuthScreen(
                 Spacer(Modifier.weight(1f))
                 Surface(
                     shape = RoundedCornerShape(50),
-                    color = AuthMint.copy(alpha = .09f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, AuthMint.copy(alpha = .18f))
+                    color = Color.White.copy(alpha = .045f),
+                    border = BorderStroke(1.dp, AuthMint.copy(alpha = .18f))
                 ) {
-                    Row(
-                        Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(YBIcons.Shield, null, tint = AuthMint, modifier = Modifier.size(13.dp))
-                        Spacer(Modifier.width(5.dp))
-                        Text("GÜVENLİ OTURUM", color = AuthSoft, fontSize = 8.sp, fontWeight = FontWeight.Black)
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-            Surface(
-                modifier = Modifier.size(82.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = AuthMint.copy(alpha = .10f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, AuthMint.copy(alpha = .34f))
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        if (register) YBIcons.TravelExplore else YBIcons.Explore,
-                        contentDescription = null,
-                        tint = AuthMint,
-                        modifier = Modifier.size(42.dp)
+                    Text(
+                        "KPSS • TÜRKİYE COĞRAFYASI",
+                        modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
+                        color = AuthSoft,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Black
                     )
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
-            Text("Yurdunu Bil", color = AuthText, fontSize = 29.sp, fontWeight = FontWeight.Black)
-            Text(
-                if (register) "Kendine bir profil kur, sonra Türkiye'yi keşfet."
-                else "Kaldığın yerden devam et.",
-                color = AuthMint,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
+            Spacer(Modifier.height(8.dp))
+            AuthBrandHero(register)
+            Spacer(Modifier.height(18.dp))
 
-            Spacer(Modifier.height(22.dp))
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(30.dp),
-                colors = CardDefaults.cardColors(containerColor = AuthPanel.copy(alpha = .97f)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = .09f))
+                colors = CardDefaults.cardColors(containerColor = AuthPanel.copy(alpha = .94f)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = .075f))
             ) {
-                Column(Modifier.fillMaxWidth().padding(19.dp)) {
+                Column(Modifier.fillMaxWidth().padding(18.dp)) {
                     if (recovery) {
-                        AuthHeader("Yeni şifreni belirle", "Hesabının güvenliği için yeni şifreni seç.")
+                        AuthHeader("Şifeni yeniden belirle", "Yeni bir şifre seç, sonra kaldığın yerden devam et.")
                         Spacer(Modifier.height(18.dp))
                         PasswordField("Yeni şifre", newPassword, { newPassword = it; clearFeedback() }, showPassword) {
                             showPassword = !showPassword
@@ -211,11 +199,11 @@ private fun AuthScreen(
                             }
                         }
                     } else if (forgot) {
-                        AuthHeader("Şifreni yenile", "E-posta adresine güvenli bir yenileme bağlantısı gönder.")
+                        AuthHeader("Şifreni mi unuttun?", "Hiç sorun değil. E-postanı yaz, bağlantıyı gönderelim.")
                         Spacer(Modifier.height(18.dp))
                         EmailField(email) { email = it; clearFeedback() }
                         Spacer(Modifier.height(14.dp))
-                        AuthButton("Yenileme bağlantısı gönder", busy) {
+                        AuthButton("Bana bağlantıyı gönder", busy) {
                             runAction({
                                 require(email.contains("@")) { "Geçerli bir e-posta adresi gir." }
                                 SupabaseClientProvider.client.auth.resetPasswordForEmail(
@@ -228,14 +216,13 @@ private fun AuthScreen(
                         }
                         Spacer(Modifier.height(4.dp))
                         TextButton(onClick = { forgot = false; clearFeedback() }) {
-                            Text("Giriş ekranına dön", color = AuthMint, fontWeight = FontWeight.Bold)
+                            Text("Girişe geri dön", color = AuthMint, fontWeight = FontWeight.Bold)
                         }
                     } else {
                         Row(
-                            Modifier.fillMaxWidth().background(
-                                Color.White.copy(alpha = .055f),
-                                RoundedCornerShape(16.dp)
-                            ).padding(4.dp)
+                            Modifier.fillMaxWidth()
+                                .background(Color.White.copy(alpha = .045f), RoundedCornerShape(17.dp))
+                                .padding(4.dp)
                         ) {
                             AuthTab("Giriş Yap", !register, Modifier.weight(1f)) {
                                 register = false
@@ -247,22 +234,19 @@ private fun AuthScreen(
                             }
                         }
 
-                        Spacer(Modifier.height(17.dp))
+                        Spacer(Modifier.height(18.dp))
                         AuthHeader(
-                            if (register) "Hesabını oluştur" else "Tekrar hoş geldin",
-                            if (register) "E-posta ve şifreni gir. Bir sonraki adımda kullanıcı adını ve sabit avatarını seçeceksin."
-                            else "E-posta ve şifrenle güvenli şekilde devam et."
+                            if (register) "Aramıza hoş geldin 👋" else "Yine mi buradasın?",
+                            if (register) "Önce hesabını açalım. Sonra kullanıcı adını ve sana yakışan avatarı seçersin."
+                            else "Hadi kaldığımız yerden devam edelim."
                         )
                         Spacer(Modifier.height(17.dp))
 
                         EmailField(email) { email = it; clearFeedback() }
                         Spacer(Modifier.height(10.dp))
-                        PasswordField(
-                            "Şifre",
-                            password,
-                            { password = it; clearFeedback() },
-                            showPassword
-                        ) { showPassword = !showPassword }
+                        PasswordField("Şifre", password, { password = it; clearFeedback() }, showPassword) {
+                            showPassword = !showPassword
+                        }
 
                         if (!register) {
                             TextButton(
@@ -279,7 +263,7 @@ private fun AuthScreen(
                         }
 
                         Spacer(Modifier.height(12.dp))
-                        AuthButton(if (register) "Hesabı oluştur" else "Giriş yap", busy) {
+                        AuthButton(if (register) "Hesabımı oluştur" else "Hadi başlayalım", busy) {
                             runAction({
                                 require(email.contains("@")) { "Geçerli bir e-posta adresi gir." }
                                 require(password.length >= 6) { "Şifre en az 6 karakter olmalı." }
@@ -299,9 +283,9 @@ private fun AuthScreen(
                                 if (SupabaseClientProvider.client.auth.currentSessionOrNull() != null) {
                                     onDone()
                                 } else if (register) {
-                                    message = "Hesabın oluşturuldu. E-postanı doğruladıktan sonra giriş yap; profil kurulum ekranın otomatik açılacak."
+                                    message = "Hesabın hazır. E-postanı doğruladıktan sonra giriş yap; profilini birlikte tamamlayacağız."
                                 } else {
-                                    error = "Giriş tamamlanamadı. Tekrar dene."
+                                    error = "Giriş tamamlanamadı. Bir kez daha deneyelim."
                                 }
                             }
                         }
@@ -318,12 +302,13 @@ private fun AuthScreen(
                 }
             }
 
-            Spacer(Modifier.height(13.dp))
+            Spacer(Modifier.height(14.dp))
             Text(
-                if (register) "Kayıttan sonra: kullanıcı adı → avatar → ana ekran"
-                else "Profilin varsa doğrudan uygulamaya geçersin.",
+                if (register) "Hesabını aç → kullanıcı adını seç → avatarını seç → keşfe başla"
+                else "Hazırsan Türkiye'nin dört bir yanını birlikte keşfedelim.",
                 color = AuthMuted,
                 fontSize = 10.sp,
+                lineHeight = 15.sp,
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(18.dp))
@@ -332,8 +317,123 @@ private fun AuthScreen(
 }
 
 @Composable
+private fun AuthBrandHero(register: Boolean) {
+    val transition = rememberInfiniteTransition(label = "yb-auth-logo")
+    val pulse by transition.animateFloat(
+        initialValue = 0.94f,
+        targetValue = 1.08f,
+        animationSpec = infiniteRepeatable(
+            tween(1800, easing = FastOutSlowInEasing),
+            RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+    val floatY by transition.animateFloat(
+        initialValue = -2f,
+        targetValue = 5f,
+        animationSpec = infiniteRepeatable(
+            tween(2200, easing = FastOutSlowInEasing),
+            RepeatMode.Reverse
+        ),
+        label = "float"
+    )
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier.size(108.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                Modifier
+                    .size(88.dp)
+                    .scale(pulse)
+                    .alpha(.14f)
+                    .background(AuthMint, RoundedCornerShape(30.dp))
+            )
+            Surface(
+                modifier = Modifier
+                    .size(78.dp)
+                    .graphicsLayer { translationY = floatY },
+                shape = RoundedCornerShape(26.dp),
+                color = Color(0xFF0D3C2E),
+                border = BorderStroke(1.5.dp, AuthMint.copy(alpha = .52f)),
+                shadowElevation = 14.dp
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        YBIcons.Map,
+                        contentDescription = "Yurdunu Bil",
+                        tint = AuthMintBright,
+                        modifier = Modifier.size(43.dp)
+                    )
+                    Icon(
+                        YBIcons.AvatarMountain,
+                        contentDescription = null,
+                        tint = AuthText.copy(alpha = .72f),
+                        modifier = Modifier.size(20.dp).offset(x = 9.dp, y = 8.dp)
+                    )
+                }
+            }
+        }
+
+        Text("Yurdunu Bil", color = AuthText, fontSize = 31.sp, fontWeight = FontWeight.Black)
+        Spacer(Modifier.height(2.dp))
+        Text(
+            if (register) "Hazırsan başlayalım." else "Türkiye'yi öğrenmenin daha keyifli yolu.",
+            color = AuthMint,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            if (register) "Bir hesap aç, sonra kendi yolunu çiz."
+            else "Bir soru çöz, bir il öğren, biraz daha ilerle.",
+            color = AuthMuted,
+            fontSize = 11.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun AuthAmbientBackground() {
+    val transition = rememberInfiniteTransition(label = "yb-auth-bg")
+    val alpha by transition.animateFloat(
+        initialValue = .06f,
+        targetValue = .13f,
+        animationSpec = infiniteRepeatable(tween(2400), RepeatMode.Reverse),
+        label = "ambient-alpha"
+    )
+    Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .align(Alignment.TopCenter)
+                .offset(y = 105.dp)
+                .size(260.dp)
+                .alpha(alpha)
+                .background(
+                    Brush.radialGradient(listOf(AuthMint, Color.Transparent)),
+                    RoundedCornerShape(50)
+                )
+        )
+        Box(
+            Modifier
+                .align(Alignment.BottomStart)
+                .offset(x = (-90).dp, y = 120.dp)
+                .size(250.dp)
+                .alpha(alpha * .7f)
+                .background(
+                    Brush.radialGradient(listOf(AuthMint, Color.Transparent)),
+                    RoundedCornerShape(50)
+                )
+        )
+    }
+}
+
+@Composable
 private fun AuthHeader(title: String, subtitle: String) {
-    Text(title, color = AuthText, fontSize = 23.sp, fontWeight = FontWeight.Black)
+    Text(title, color = AuthText, fontSize = 22.sp, fontWeight = FontWeight.Black)
     Spacer(Modifier.height(4.dp))
     Text(subtitle, color = AuthMuted, fontSize = 11.sp, lineHeight = 17.sp)
 }
@@ -349,7 +449,7 @@ private fun OnboardingHint() {
         Icon(YBIcons.AvatarExplorer, null, tint = AuthMint, modifier = Modifier.size(20.dp))
         Spacer(Modifier.width(9.dp))
         Column(Modifier.weight(1f)) {
-            Text("Profilin kayıtla tamamlanacak", color = AuthSoft, fontSize = 11.sp, fontWeight = FontWeight.Black)
+            Text("Profilini sonra birlikte tamamlarız", color = AuthSoft, fontSize = 11.sp, fontWeight = FontWeight.Black)
             Text(
                 "Kullanıcı adını belirle ve geniş avatar kataloğundan birini seç.",
                 color = AuthMuted,
@@ -366,7 +466,7 @@ private fun FeedbackCard(text: String, positive: Boolean) {
     Surface(
         color = if (positive) AuthMint.copy(alpha = .09f) else Color(0xFFE85D5D).copy(alpha = .10f),
         shape = RoundedCornerShape(15.dp),
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             1.dp,
             if (positive) AuthMint.copy(alpha = .20f) else Color(0xFFE85D5D).copy(alpha = .20f)
         )
@@ -447,7 +547,7 @@ private fun AuthButton(text: String, busy: Boolean, onClick: () -> Unit) {
         if (busy) {
             CircularProgressIndicator(Modifier.size(19.dp), color = Color(0xFF06251B), strokeWidth = 2.dp)
         } else {
-            Icon(if (text.contains("giriş", true)) YBIcons.Explore else YBIcons.AvatarExplorer, null)
+            Icon(if (text.contains("başla", true) || text.contains("giriş", true)) YBIcons.Explore else YBIcons.AvatarExplorer, null)
             Spacer(Modifier.width(8.dp))
             Text(text, fontWeight = FontWeight.Black)
         }
