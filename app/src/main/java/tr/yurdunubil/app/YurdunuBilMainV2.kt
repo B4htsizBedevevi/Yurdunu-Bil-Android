@@ -65,6 +65,7 @@ fun YurdunuBilMainV2App() {
     var quiz by remember { mutableStateOf<List<Question>?>(null) }
     var quizTitle by remember { mutableStateOf("") }
     var quizMode by remember { mutableStateOf(SharedGameModes.quick) }
+    var arenaOpen by remember { mutableStateOf(false) }
     var showExitDialog by remember { mutableStateOf(false) }
 
     val bg = if (darkMode) DarkBg else LightBg
@@ -87,6 +88,7 @@ fun YurdunuBilMainV2App() {
             quiz != null -> quiz = null
             study != null -> study = null
             province != null -> province = null
+            arenaOpen -> arenaOpen = false
             tab != 0 -> tab = 0
             else -> showExitDialog = true
         }
@@ -125,6 +127,10 @@ fun YurdunuBilMainV2App() {
         ProvinceDetailScreen(province!!, onBack = { province = null }, darkMode = darkMode)
         return
     }
+    if (arenaOpen) {
+        ArenaRootScreen(darkMode = darkMode, onExit = { arenaOpen = false })
+        return
+    }
     if (quiz != null) {
         V2QuizScreen(quizTitle, quizMode, quiz!!, prefs, darkMode) { quiz = null }
         return
@@ -160,9 +166,9 @@ fun YurdunuBilMainV2App() {
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (tab) {
-                0 -> HomeScreen(prefs, darkMode, { startQuiz("Hızlı 10", SharedGameModes.quick) }, { startQuiz(SharedQuestionPool.dailyMode().title, SharedQuestionPool.dailyMode()) }, { tab = 2 }, { tab = 1 })
+                0 -> HomeScreen(prefs, darkMode, { startQuiz("Hızlı 10", SharedGameModes.quick) }, { startQuiz(SharedQuestionPool.dailyMode().title, SharedQuestionPool.dailyMode()) }, { tab = 2; arenaOpen = true }, { tab = 1 })
                 1 -> LibraryScreen(darkMode, { study = it }, { province = it })
-                2 -> EventsScreen(darkMode) { startQuiz(it.title, it) }
+                2 -> { arenaOpen = true }
                 else -> SettingsScreen(prefs, darkMode) { prefs.edit().putBoolean("dark_mode", it).apply(); darkMode = it }
             }
         }
@@ -190,6 +196,7 @@ private fun HomeScreen(prefs: SharedPreferences, darkMode: Boolean, quick: () ->
         item { Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) { QuickCard("⚡", "Hızlı 10", "10 soru", Green, darkMode, quick, Modifier.weight(1f)); QuickCard("📚", "Kütüphane", "Konuları aç", Color(0xFF5AA8FF), darkMode, library, Modifier.weight(1f)); QuickCard("⚔️", "Arena", "Yarış", Gold, darkMode, events, Modifier.weight(1f)) } }
         item { Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp), RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = surface)) { Column(Modifier.padding(15.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("GELİŞİMİN", color = Green, fontSize = 9.sp, fontWeight = FontWeight.Black); Text("%$accuracy doğruluk", color = text, fontSize = 18.sp, fontWeight = FontWeight.Black) }; Text("$xp XP", color = Gold, fontWeight = FontWeight.Black) }; Spacer(Modifier.height(9.dp)); LinearProgressIndicator(progress = { accuracy / 100f }, modifier = Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(8.dp)), color = Green, trackColor = soft); Spacer(Modifier.height(7.dp)); Text(if (solved == 0) "İlk testini çözerek ilerleme çubuğunu başlat." else "$correct doğru cevapla devam ediyorsun.", color = muted, fontSize = 10.sp) } } }
         item { LastActivityCard(prefs, darkMode) }
+        item { HomePulseCard(prefs, darkMode, quick, events, library) }
     }
 }
 
@@ -225,3 +232,4 @@ private fun HomeScreen(prefs: SharedPreferences, darkMode: Boolean, quick: () ->
 @Composable private fun ResultScreen(title: String, correct: Int, wrong: Int, blank: Int, xp: Int, darkMode: Boolean, onExit: () -> Unit) { val bg = if (darkMode) DarkBg else LightBg; val text = if (darkMode) DarkText else LightText; val total = correct + wrong + blank; Column(Modifier.fillMaxSize().background(bg).padding(20.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) { AnimatedVisibility(true, enter = fadeIn(tween(450)) + scaleIn(tween(450), initialScale = .88f)) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Text("TEST TAMAMLANDI", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(6.dp)); Text(title, color = text, fontSize = 27.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center); Spacer(Modifier.height(18.dp)); Card(Modifier.fillMaxWidth(), RoundedCornerShape(23.dp), colors = CardDefaults.cardColors(containerColor = Deep)) { Column(Modifier.padding(21.dp), horizontalAlignment = Alignment.CenterHorizontally) { Text("$correct / $total", color = Color.White, fontSize = 37.sp, fontWeight = FontWeight.Black); Text("Doğru cevap", color = Mint, fontSize = 11.sp); Spacer(Modifier.height(14.dp)); Text("✓ $correct doğru   •   ✕ $wrong yanlış   •   – $blank boş", color = Color.White.copy(alpha = .73f), fontSize = 10.sp); Text("+$xp XP", color = Gold, fontSize = 17.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(top = 9.dp)) } }; Spacer(Modifier.height(16.dp)); Button(onClick = onExit, modifier = Modifier.fillMaxWidth().height(51.dp), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = Green, contentColor = Deep)) { Text("Ana Ekrana Dön", fontWeight = FontWeight.Black) } } } }
 }
 // V2 syntax repair applied
+// Dedicated Arena wiring applied
