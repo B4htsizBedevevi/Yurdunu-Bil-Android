@@ -117,10 +117,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tag="android-v0.5.2-build-${GITHUB_RUN_NUMBER}"
+          tag="android-v0.5.2-latest"
+          gh release delete "$tag" --yes || true
+          git push --delete origin "$tag" || true
           gh release create "$tag" app/build/outputs/apk/debug/yurdunu-bil-v0.5.2-test.apk \
-            --title "Yurdunu Bil 0.5.2 (Build ${GITHUB_RUN_NUMBER})" \
-            --notes "Android test APK for Yurdunu Bil 0.5.2."
+            --title "Yurdunu Bil 0.5.2 — Latest Test APK" \
+            --notes "Latest Android test APK for Yurdunu Bil 0.5.2."
 
       - name: Android emulator smoke test
         uses: reactivecircus/android-emulator-runner@v2
