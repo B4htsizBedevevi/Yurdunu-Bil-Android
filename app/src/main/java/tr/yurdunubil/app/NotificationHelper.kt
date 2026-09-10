@@ -15,12 +15,12 @@ import java.util.Calendar
 object NotificationHelper {
     const val CHANNEL_ID = "study_reminders"
     private const val DAILY_REQUEST = 4811
-    private const val DAILY_NOTIFICATION = 4814
+    const val DAILY_NOTIFICATION_ID = 4814
 
     data class DailyTemplate(val title: String, val body: String)
 
     // Local fallback templates keep daily reminders useful even before remote FCM is configured.
-    // The selection is deterministic by date, so a receiver retry on the same day cannot change it.
+    // Selection is deterministic by date, so a receiver retry on the same day cannot change it.
     private val dailyTemplates = listOf(
         DailyTemplate("Bugünün Coğrafya Görevi 📚", "Bugün 10 soru çöz. Küçük bir çalışma bile serini canlı tutar."),
         DailyTemplate("Türkiye'yi biraz daha tanı 🇹🇷", "Kütüphaneden bir konu seç, kısa bir tekrar yap ve kendini test et."),
@@ -140,7 +140,8 @@ class DailyReminderReceiver : BroadcastReceiver() {
                 .setAutoCancel(true)
                 .setContentIntent(pending)
                 .build()
-            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(DAILY_NOTIFICATION, notification)
+            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+                .notify(NotificationHelper.DAILY_NOTIFICATION_ID, notification)
         }
     }
 }
