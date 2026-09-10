@@ -139,16 +139,44 @@ jobs:
                   if old in s:
                       s = s.replace(old, new, 1)
                       changed = True
+
+              # Critical: the Etkinlikler tab must render its own page. Previously it
+              # set arenaOpen=true on every recomposition, so Arena immediately reopened
+              # after the user pressed either back button.
+              old = '                2 -> { arenaOpen = true }'
+              new = '                2 -> EventsScreen(darkMode) { mode -> quizMode = mode; if (mode.id.startsWith("arena")) arenaOpen = true else startQuiz(mode.title, mode) }'
+              if old in s:
+                  s = s.replace(old, new, 1)
+                  changed = True
+
+              # Keep the quick Arena entry explicitly inside the Arena state.
               p.write_text(s.rstrip() + "\n// FINAL_BACK_STACK_FIX\n", encoding="utf-8")
 
-          # 5) Arena: make the visible header back button and system back explicit.
+          # 5) Arena: explicit one-enabled back handlers for each nested state.
           p = Path("app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt")
           s = p.read_text(encoding="utf-8")
           if "// FINAL_ARENA_BACK_FIX" not in s:
-              s = s.replace("fun ArenaRootScreen(darkMode: Boolean, onExit: () -> Unit) {", "fun ArenaRootScreen(darkMode: Boolean, onExit: () -> Unit) {", 1)
+              old = '''    BackHandler {
+        when {
+            matchedId != null -> matchedId = null
+            selectedMode != null -> selectedMode = null
+            else -> onExit()
+        }
+    }'''
+              new = '''    BackHandler(enabled = matchedId != null) {
+        matchedId = null
+    }
+    BackHandler(enabled = matchedId == null && selectedMode != null) {
+        selectedMode = null
+    }
+    BackHandler(enabled = matchedId == null && selectedMode == null) {
+        onExit()
+    }'''
+              if old in s:
+                  s = s.replace(old, new, 1)
+                  changed = True
               s = s.rstrip() + "\n// FINAL_ARENA_BACK_FIX\n"
               p.write_text(s, encoding="utf-8")
-              changed = True
 
           # 6) Use the centralized local preferences so updates do not silently reset theme/settings.
           p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
