@@ -5,11 +5,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -18,7 +21,7 @@ private data class Milestone(
     val done: Boolean,
     val title: String,
     val subtitle: String,
-    val icon: String
+    val icon: ImageVector
 )
 
 @Composable
@@ -29,9 +32,9 @@ fun AchievementCard(solved: Int, xp: Int, streak: Int, darkMode: Boolean) {
     val green = Color(0xFF18C986)
     val gold = Color(0xFFFFC857)
     val milestones = listOf(
-        Milestone(solved >= 10, "İlk 10", "10 soru çöz", "🎯"),
-        Milestone(xp >= 500, "500 XP", "İlk seviyeyi tamamla", "⭐"),
-        Milestone(streak >= 3, "3 Gün Seri", "Çalışma ritmini koru", "🔥")
+        Milestone(solved >= 10, "İlk 10", "10 soru çöz", YBIcons.Target),
+        Milestone(xp >= 500, "500 XP", "İlk seviyeyi tamamla", YBIcons.Star),
+        Milestone(streak >= 3, "3 Gün Seri", "Çalışma ritmini koru", YBIcons.Flame)
     )
     Card(
         Modifier.fillMaxWidth(),
@@ -42,12 +45,13 @@ fun AchievementCard(solved: Int, xp: Int, streak: Int, darkMode: Boolean) {
             Text("KÜÇÜK BAŞARILAR", color = gold, fontSize = 9.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(8.dp))
             milestones.forEach { milestone ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
+                Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(
                             if (milestone.done) green.copy(alpha = .15f) else muted.copy(alpha = .10f)
-                        )
-                    ) { Text(milestone.icon, modifier = Modifier.padding(7.dp), fontSize = 16.sp) }
+                        ),
+                        contentAlignment = Alignment.Center
+                    ) { Icon(milestone.icon, null, tint = if (milestone.done) green else muted, modifier = Modifier.size(17.dp)) }
                     Spacer(Modifier.width(9.dp))
                     Column(Modifier.weight(1f)) {
                         Text(milestone.title, color = text, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
