@@ -16,6 +16,8 @@ object NotificationHelper {
     const val CHANNEL_ID = "study_reminders"
     private const val DAILY_REQUEST = 4811
     const val DAILY_NOTIFICATION_ID = 4814
+    private const val PREFS = "yurdunu_bil_native"
+    private const val NOTIFICATIONS_ENABLED = "notifications_enabled"
 
     data class DailyTemplate(val title: String, val body: String)
 
@@ -65,9 +67,13 @@ object NotificationHelper {
         android.os.Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(context, "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED
     }.getOrDefault(false)
 
+    fun isEnabled(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(NOTIFICATIONS_ENABLED, false)
+
     fun sendTest(context: Context) {
         runCatching {
-            if (!canNotify(context)) return
+            // The in-app toggle is authoritative. A test notification must never bypass it.
+            if (!isEnabled(context) || !canNotify(context)) return
             ensureChannel(context)
             val intent = Intent(context, SocialCenterActivity::class.java)
             val pending = PendingIntent.getActivity(context, 4812, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
@@ -85,6 +91,10 @@ object NotificationHelper {
 
     fun scheduleDaily(context: Context) {
         runCatching {
+            if (!isEnabled(context) || !canNotify(context)) {
+                cancelDaily(context)
+                return
+            }
             ensureChannel(context)
             val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val pending = PendingIntent.getBroadcast(context, DAILY_REQUEST, Intent(context, DailyReminderReceiver::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
@@ -120,7 +130,12 @@ object NotificationHelper {
 class DailyReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         runCatching {
-            if (!NotificationHelper.canNotify(context)) return
+            // Check both the OS permission and the user's in-app preference at delivery time.
+            // This prevents a previously scheduled alarm from firing after the user disabled notifications.
+            if (!NotificationHelper.isEnabled(context) || !NotificationHelper.canNotify(context)) {
+                NotificationHelper.cancelDaily(context)
+                return
+            }
             NotificationHelper.ensureChannel(context)
             val template = NotificationHelper.todayTemplate()
             val openIntent = Intent(context, SocialCenterActivity::class.java)
@@ -142,8 +157,7 @@ class NotificationBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         runCatching {
             if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
-                val prefs = context.getSharedPreferences("yurdunu_bil_native", Context.MODE_PRIVATE)
-                if (prefs.getBoolean("notifications_enabled", false) && NotificationHelper.canNotify(context)) NotificationHelper.scheduleDaily(context)
+                if (NotificationHelper.isEnabled(context) && NotificationHelper.canNotify(context)) NotificationHelper.scheduleDaily(context)
             }
         }
     }
