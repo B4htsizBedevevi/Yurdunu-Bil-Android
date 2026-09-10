@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 
 /**
