@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -53,7 +54,7 @@ fun ArenaHubScreen(darkMode: Boolean, onLaunch: (SharedGameMode) -> Unit) {
                                 Modifier.size(34.dp).clip(RoundedCornerShape(YBRadius.small))
                                     .background(green.copy(alpha = .15f)),
                                 contentAlignment = Alignment.Center
-                            ) { Icon(Icons.Default.SportsEsports, null, tint = green) }
+                            ) { Icon(YBIcons.Swords, null, tint = green) }
                             Spacer(Modifier.width(YBSpacing.sm))
                             Column {
                                 Text("ÇEVRİMİÇİ ARENA", color = YBColors.Mint, fontSize = YBTypography.label, fontWeight = FontWeight.Black)
@@ -66,9 +67,9 @@ fun ArenaHubScreen(darkMode: Boolean, onLaunch: (SharedGameMode) -> Unit) {
                         Text("Rakibini bul, soruları cevapla ve Arena'da yüksel.", color = Color.White.copy(alpha = .72f), fontSize = YBTypography.caption)
                         Spacer(Modifier.height(YBSpacing.lg))
                         Row(horizontalArrangement = Arrangement.spacedBy(YBSpacing.sm)) {
-                            ArenaStat("1v1", "MÜCADELE", Icons.Default.SportsEsports)
-                            ArenaStat("⚡", "HIZ", Icons.Default.Bolt)
-                            ArenaStat("XP", "ÖDÜL", Icons.Default.EmojiEvents)
+                            ArenaStat("1v1", "MÜCADELE", YBIcons.Swords)
+                            ArenaStat("HIZ", "TEMPO", YBIcons.Bolt)
+                            ArenaStat("XP", "ÖDÜL", YBIcons.Trophy)
                         }
                     }
                 }
@@ -94,7 +95,7 @@ fun ArenaHubScreen(darkMode: Boolean, onLaunch: (SharedGameMode) -> Unit) {
                             Modifier.size(52.dp).clip(RoundedCornerShape(YBRadius.medium))
                                 .background(green.copy(alpha = .11f)),
                             contentAlignment = Alignment.Center
-                        ) { Text(mode.icon, fontSize = 24.sp) }
+                        ) { YBGameIcon(mode.id, green, 25.dp) }
                         Spacer(Modifier.width(YBSpacing.md))
                         Column(Modifier.weight(1f)) {
                             Text(mode.title, color = text, fontSize = 14.sp, fontWeight = FontWeight.Black)
@@ -120,7 +121,7 @@ fun ArenaHubScreen(darkMode: Boolean, onLaunch: (SharedGameMode) -> Unit) {
                     colors = CardDefaults.cardColors(containerColor = soft)
                 ) {
                     Row(Modifier.padding(YBSpacing.lg), verticalAlignment = Alignment.Top) {
-                        Text("💡", fontSize = 22.sp)
+                        Icon(YBIcons.Tip, null, tint = green, modifier = Modifier.size(23.dp))
                         Spacer(Modifier.width(YBSpacing.md))
                         Column {
                             Text("Arena ipucu", color = green, fontSize = YBTypography.label, fontWeight = FontWeight.Black)
