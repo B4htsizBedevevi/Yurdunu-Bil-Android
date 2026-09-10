@@ -8,6 +8,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,47 +25,131 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun ArenaHubScreen(darkMode: Boolean, onLaunch: (SharedGameMode) -> Unit) {
-    val text = if (darkMode) Color(0xFFF1F7F4) else Color(0xFF06221B)
-    val muted = if (darkMode) Color(0xFF9AB4A9) else Color(0xFF70847B)
-    val surface = if (darkMode) Color(0xFF10221C) else Color.White
-    val green = Color(0xFF18C986)
-    val gold = Color(0xFFFFC857)
+    val text = if (darkMode) YBColors.DarkText else YBColors.LightText
+    val muted = if (darkMode) YBColors.DarkMuted else YBColors.LightMuted
+    val surface = if (darkMode) YBColors.DarkSurface else YBColors.LightSurface
+    val soft = if (darkMode) YBColors.DarkSoftGreen else YBColors.LightSoftGreen
+    val green = YBColors.Green
+    val gold = YBColors.Gold
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
+
     AnimatedVisibility(visible, enter = fadeIn() + slideInVertically { it / 8 }) {
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = YBSpacing.lg, vertical = YBSpacing.lg),
+            verticalArrangement = Arrangement.spacedBy(YBSpacing.md)
+        ) {
             item {
-                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(Brush.linearGradient(listOf(Color(0xFF06221B), Color(0xFF0B4A38), Color(0xFF126B4D)))).padding(18.dp)) {
+                Box(
+                    Modifier.fillMaxWidth()
+                        .clip(RoundedCornerShape(YBRadius.hero))
+                        .background(Brush.linearGradient(listOf(YBColors.Deep, YBColors.Deep2, Color(0xFF126B4D))))
+                        .padding(YBSpacing.xl)
+                ) {
                     Column {
-                        Text("⚔️ ARENA 2.0", color = Color(0xFFC9F8E1), fontSize = 10.sp, fontWeight = FontWeight.Black)
-                        Spacer(Modifier.height(5.dp))
-                        Text("Türkiye'nin en hızlısı ol.", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black)
-                        Text("Süreyi yönet, seriyi bozma, XP'yi topla.", color = Color.White.copy(alpha = .72f), fontSize = 11.sp)
-                        Spacer(Modifier.height(14.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { ArenaStat("0", "GALİBİYET"); ArenaStat("0", "ARENA XP"); ArenaStat("∞", "LİG") }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                Modifier.size(34.dp).clip(RoundedCornerShape(YBRadius.small))
+                                    .background(green.copy(alpha = .15f)),
+                                contentAlignment = Alignment.Center
+                            ) { Icon(Icons.Default.SportsEsports, null, tint = green) }
+                            Spacer(Modifier.width(YBSpacing.sm))
+                            Column {
+                                Text("ÇEVRİMİÇİ ARENA", color = YBColors.Mint, fontSize = YBTypography.label, fontWeight = FontWeight.Black)
+                                Text("Canlı mücadele", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Spacer(Modifier.height(YBSpacing.md))
+                        Text("Bilgini rakibine karşı göster.", color = Color.White, fontSize = YBTypography.hero, fontWeight = FontWeight.Black)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Rakibini bul, soruları cevapla ve Arena'da yüksel.", color = Color.White.copy(alpha = .72f), fontSize = YBTypography.caption)
+                        Spacer(Modifier.height(YBSpacing.lg))
+                        Row(horizontalArrangement = Arrangement.spacedBy(YBSpacing.sm)) {
+                            ArenaStat("1v1", "MÜCADELE", Icons.Default.SportsEsports)
+                            ArenaStat("⚡", "HIZ", Icons.Default.Bolt)
+                            ArenaStat("XP", "ÖDÜL", Icons.Default.EmojiEvents)
+                        }
                     }
                 }
             }
-            item { Text("Arena modları", color = text, fontSize = 17.sp, fontWeight = FontWeight.Black) }
+
+            item {
+                Column {
+                    Text("Bir mod seç", color = text, fontSize = YBTypography.section, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.height(2.dp))
+                    Text("Her mod farklı bir oyun temposu sunar.", color = muted, fontSize = YBTypography.caption)
+                }
+            }
+
             items(SharedGameModes.arenaModes.size) { index ->
                 val mode = SharedGameModes.arenaModes[index]
-                Card(Modifier.fillMaxWidth().clickable { onLaunch(mode) }, RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = surface)) {
-                    Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(green.copy(alpha = .12f)), contentAlignment = Alignment.Center) { Text(mode.icon, fontSize = 23.sp) }
-                        Spacer(Modifier.width(11.dp))
+                Card(
+                    Modifier.fillMaxWidth().clickable { onLaunch(mode) },
+                    RoundedCornerShape(YBRadius.card),
+                    colors = CardDefaults.cardColors(containerColor = surface)
+                ) {
+                    Row(Modifier.padding(YBSpacing.lg), verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier.size(52.dp).clip(RoundedCornerShape(YBRadius.medium))
+                                .background(green.copy(alpha = .11f)),
+                            contentAlignment = Alignment.Center
+                        ) { Text(mode.icon, fontSize = 24.sp) }
+                        Spacer(Modifier.width(YBSpacing.md))
                         Column(Modifier.weight(1f)) {
                             Text(mode.title, color = text, fontSize = 14.sp, fontWeight = FontWeight.Black)
-                            Text(mode.subtitle, color = muted, fontSize = 10.sp, maxLines = 2)
-                            Spacer(Modifier.height(5.dp))
-                            Text("${mode.questions} soru • ${mode.seconds} sn • +${mode.rewardXp} XP", color = gold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(2.dp))
+                            Text(mode.subtitle, color = muted, fontSize = YBTypography.caption, maxLines = 2)
+                            Spacer(Modifier.height(7.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                ArenaMeta("${mode.questions} soru", gold)
+                                ArenaMeta("${mode.seconds} sn", muted)
+                                ArenaMeta("+${mode.rewardXp} XP", green)
+                            }
                         }
-                        Text("BAŞLA →", color = green, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                        Spacer(Modifier.width(YBSpacing.sm))
+                        Text("OYNA", color = green, fontSize = YBTypography.label, fontWeight = FontWeight.Black)
                     }
                 }
             }
-            item { Card(Modifier.fillMaxWidth(), RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = if (darkMode) Color(0xFF17372D) else Color(0xFFE4F7ED))) { Column(Modifier.padding(14.dp)) { Text("🎯 Arena ipucu", color = green, fontSize = 9.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(3.dp)); Text("Hız önemli ama rastgele işaretlemek yerine bildiğin sorularda seri yakalamak daha kazançlı.", color = text, fontSize = 11.sp, fontWeight = FontWeight.SemiBold) } } }
+
+            item {
+                Card(
+                    Modifier.fillMaxWidth(),
+                    RoundedCornerShape(YBRadius.card),
+                    colors = CardDefaults.cardColors(containerColor = soft)
+                ) {
+                    Row(Modifier.padding(YBSpacing.lg), verticalAlignment = Alignment.Top) {
+                        Text("💡", fontSize = 22.sp)
+                        Spacer(Modifier.width(YBSpacing.md))
+                        Column {
+                            Text("Arena ipucu", color = green, fontSize = YBTypography.label, fontWeight = FontWeight.Black)
+                            Spacer(Modifier.height(3.dp))
+                            Text("Hız önemli; ama doğru cevap serisi daha değerlidir. Bildiğin sorularda seri yakalamaya odaklan.", color = text, fontSize = YBTypography.caption, fontWeight = FontWeight.SemiBold, lineHeight = 16.sp)
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
-@Composable private fun ArenaStat(value: String, label: String) { Column(Modifier.clip(RoundedCornerShape(11.dp)).background(Color.White.copy(alpha = .09f)).padding(horizontal = 10.dp, vertical = 6.dp)) { Text(value, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Black); Text(label, color = Color.White.copy(alpha = .55f), fontSize = 7.sp, fontWeight = FontWeight.Bold) } }
+@Composable
+private fun ArenaStat(value: String, label: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Row(
+        Modifier.clip(RoundedCornerShape(YBRadius.small)).background(Color.White.copy(alpha = .09f)).padding(horizontal = 10.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, null, tint = Color.White.copy(alpha = .78f), modifier = Modifier.size(13.dp))
+        Spacer(Modifier.width(5.dp))
+        Column {
+            Text(value, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Black)
+            Text(label, color = Color.White.copy(alpha = .50f), fontSize = 6.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun ArenaMeta(value: String, color: Color) {
+    Text(value, color = color, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+}
