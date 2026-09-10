@@ -153,7 +153,7 @@ private fun SmartStudyCenterScreen(onBack: () -> Unit) {
                 items(priorities, key = { it.title }) { topic ->
                     Card(shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = card), modifier = Modifier.clickable { onBack() }) {
                         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(42.dp).background(cardAlt, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) { Text(topic.icon, fontSize = 21.sp) }
+                            Box(Modifier.size(42.dp).background(cardAlt, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) { YBGameIcon(topic.icon, green, 21.dp) }
                             Spacer(Modifier.width(10.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(topic.title, color = text, fontWeight = FontWeight.Black, fontSize = 13.sp)
