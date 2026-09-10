@@ -1,0 +1,87 @@
+name: Arena UI Hotfix
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply Arena navigation and theme hardening
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          root = Path('.')
+          v2 = root / 'app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt'
+          s = v2.read_text(encoding='utf-8')
+
+          old = '''    if (arenaOpen) {
+        BackHandler { arenaOpen = false }
+        ArenaRootScreen(darkMode = darkMode, onExit = { arenaOpen = false })
+        return
+    }'''
+          new = '''    if (arenaOpen) {
+        // Arena owns its nested back stack. Exiting always returns to Events.
+        ArenaRootScreen(
+            darkMode = darkMode,
+            onExit = {
+                arenaOpen = false
+                tab = 2
+            }
+        )
+        return
+    }'''
+          if old in s:
+              s = s.replace(old, new, 1)
+          else:
+              raise SystemExit('Expected Arena V2 navigation block was not found')
+
+          old = '''                2 -> EventsScreen(darkMode) { mode ->
+                    if (mode.arena) arenaOpen = true else startQuiz(mode.title, mode)
+                }'''
+          new = '''                2 -> EventsScreen(darkMode) { mode ->
+                    if (mode.arena) {
+                        tab = 2
+                        arenaOpen = true
+                    } else {
+                        startQuiz(mode.title, mode)
+                    }
+                }'''
+          if old in s:
+              s = s.replace(old, new, 1)
+          else:
+              raise SystemExit('Expected Events launch block was not found')
+
+          v2.write_text(s, encoding='utf-8')
+
+          gradle = root / 'app/build.gradle.kts'
+          g = gradle.read_text(encoding='utf-8')
+          g, n1 = re.subn(r'versionCode\s*=\s*\d+', 'versionCode = 7', g, count=1)
+          g, n2 = re.subn(r'versionName\s*=\s*"[^"]+"', 'versionName = "0.5.2"', g, count=1)
+          if n1 != 1 or n2 != 1:
+              raise SystemExit('Could not bump Android version')
+          gradle.write_text(g, encoding='utf-8')
+
+      - name: Commit changes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt app/build.gradle.kts
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "fix: harden Arena exit and dark theme"
+          git push
