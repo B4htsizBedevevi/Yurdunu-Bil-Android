@@ -16,8 +16,6 @@ object ProgressTracker {
         val safeCorrect = correct.coerceIn(0, safeTotal)
         val safeWrong = wrong.coerceIn(0, safeTotal - safeCorrect)
 
-        // XP reflects actual performance: wrong/blank answers never grant
-        // the mode's full reward. Perfect runs receive a small bonus.
         val participationXp = safeCorrect * 10
         val perfectBonus = if (safeTotal > 0 && safeCorrect == safeTotal) 30 else 0
 
@@ -31,12 +29,17 @@ object ProgressTracker {
             else -> 1
         }
 
-        // The daily challenge gets a one-time completion bonus. Replaying it
-        // on the same day still counts toward statistics, but cannot farm XP.
         val isDaily = mode.id == SharedQuestionPool.dailyMode().id
         val dailyAlreadyDone = prefs.getString("daily_completed_date", null) == todayKey
         val dailyBonus = if (isDaily && !dailyAlreadyDone && safeTotal > 0) 50 else 0
         val earnedXp = participationXp + perfectBonus + dailyBonus
+
+        val previousTodayDate = prefs.getString("today_stats_date", null)
+        val sameDay = previousTodayDate == todayKey
+        val todaySolved = (if (sameDay) prefs.getInt("today_solved", 0) else 0) + safeTotal
+        val todayCorrect = (if (sameDay) prefs.getInt("today_correct", 0) else 0) + safeCorrect
+        val todayWrong = (if (sameDay) prefs.getInt("today_wrong", 0) else 0) + safeWrong
+        val todayXp = (if (sameDay) prefs.getInt("today_xp", 0) else 0) + earnedXp
 
         val editor = prefs.edit()
             .putInt("solved", prefs.getInt("solved", 0) + safeTotal)
@@ -45,7 +48,17 @@ object ProgressTracker {
             .putInt("xp", prefs.getInt("xp", 0) + earnedXp)
             .putInt("streak", newStreak)
             .putString("streak_last_date", todayKey)
+            .putString("today_stats_date", todayKey)
+            .putInt("today_solved", todaySolved)
+            .putInt("today_correct", todayCorrect)
+            .putInt("today_wrong", todayWrong)
+            .putInt("today_xp", todayXp)
+            .putInt("quiz_sessions", prefs.getInt("quiz_sessions", 0) + 1)
             .putString("last_activity", "${mode.title} • $safeCorrect/$safeTotal • +$earnedXp XP")
+
+        if (safeTotal > 0 && safeCorrect == safeTotal) {
+            editor.putInt("perfect_runs", prefs.getInt("perfect_runs", 0) + 1)
+        }
 
         if (isDaily && !dailyAlreadyDone && safeTotal > 0) {
             editor.putString("daily_completed_date", todayKey)
