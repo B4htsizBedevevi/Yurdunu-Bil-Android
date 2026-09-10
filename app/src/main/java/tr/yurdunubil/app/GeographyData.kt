@@ -59,7 +59,7 @@ object GeographyData {
         GameMode("Doğru mu Yanlış mı?", "Bilgiyi saniyeler içinde değerlendir", "quick", 2),
         GameMode("Bölge Avı", "İpuçlarından bölgeyi keşfet", "map", 3),
         GameMode("Eşleştir", "İl • ürün • maden • özellik eşleştir", "match", 4),
-        GameMode("Zincir", "Arka arkaya doğru cevaplarla çarpanı büyüt", "🔥", 5)
+        GameMode("Zincir", "Arka arkaya doğru cevaplarla çarpanı büyüt", "chain", 5)
     )
 
     val arena = listOf(
