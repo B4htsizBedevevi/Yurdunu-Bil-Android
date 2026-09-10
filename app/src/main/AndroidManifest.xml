@@ -18,8 +18,7 @@
         <activity android:name=".SocialCenterActivity" android:exported="false" />
         <activity android:name=".AdminCenterActivity" android:exported="false" />
         <activity android:name=".AdminNotificationActivity" android:exported="false" />
-        <activity android:name=".ModernAuthActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".LaunchActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+        <activity android:name=".AuthExperienceActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -27,6 +26,8 @@
                 <data android:scheme="yurdunubil" android:host="auth" />
             </intent-filter>
         </activity>
+        <activity android:name=".ModernAuthActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".LaunchActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ModernLaunchActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
