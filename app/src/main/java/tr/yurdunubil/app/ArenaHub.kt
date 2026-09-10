@@ -8,11 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ArenaHubScreen(darkMode: Boolean, onLaunch: (SharedGameMode) -> Unit) {
+fun ArenaHubScreen(darkMode: Boolean, onLaunch: (SharedGameMode) -> Unit, onBack: () -> Unit) {
     val text = if (darkMode) YBColors.DarkText else YBColors.LightText
     val muted = if (darkMode) YBColors.DarkMuted else YBColors.LightMuted
     val surface = if (darkMode) YBColors.DarkSurface else YBColors.LightSurface
@@ -41,6 +36,18 @@ fun ArenaHubScreen(darkMode: Boolean, onLaunch: (SharedGameMode) -> Unit) {
             contentPadding = PaddingValues(horizontal = YBSpacing.lg, vertical = YBSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(YBSpacing.md)
         ) {
+            item {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onBack) {
+                        Icon(YBIcons.Back, contentDescription = "Arena'dan çık", tint = text)
+                    }
+                    Column(Modifier.weight(1f)) {
+                        Text("ARENA", color = text, fontSize = YBTypography.section, fontWeight = FontWeight.Black)
+                        Text("Oyun modları", color = muted, fontSize = YBTypography.caption)
+                    }
+                }
+            }
+
             item {
                 Box(
                     Modifier.fillMaxWidth()
