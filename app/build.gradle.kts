@@ -41,6 +41,20 @@ android {
         }
     }
 
+    buildTypes {
+        getByName("debug") {
+            isMinifyEnabled = false
+        }
+        getByName("release") {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -77,7 +91,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-    // Tabler's MIT-licensed icon family, exposed as Compose ImageVectors.
     implementation("io.github.ardasoyturk.compose.icons:tabler-icons:2.0.7")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
