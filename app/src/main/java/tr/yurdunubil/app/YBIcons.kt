@@ -2,6 +2,7 @@ package tr.yurdunubil.app
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -20,6 +21,7 @@ import compose.icons.tablericons.outline.Target
 
 /** Product-wide icon language for Yurdunu Bil. */
 object YBIcons {
+    val Back: ImageVector get() = Icons.Default.ArrowBack
     val Target: ImageVector get() = OutlineGroup.Target
     val Map: ImageVector get() = OutlineGroup.Map
     val Swords: ImageVector get() = OutlineGroup.Swords
