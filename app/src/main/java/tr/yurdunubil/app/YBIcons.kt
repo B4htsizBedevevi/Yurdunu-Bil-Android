@@ -3,10 +3,10 @@ package tr.yurdunubil.app
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.DirectionsBoat
 import androidx.compose.material.icons.filled.Diamond
@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Terrain
+import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.Waves
@@ -42,17 +43,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import compose.icons.tablericons.outline.Map as TablerMap
-import compose.icons.tablericons.outline.Swords as TablerSwords
-import compose.icons.tablericons.outline.Target as TablerTarget
 
 /** One product-wide vector language. */
 object YBIcons {
     val Back: ImageVector get() = Icons.Default.ArrowBack
     val Home: ImageVector get() = Icons.Default.Home
-    val Target: ImageVector get() = TablerTarget
-    val Map: ImageVector get() = TablerMap
-    val Swords: ImageVector get() = TablerSwords
+    val Target: ImageVector get() = Icons.Default.TrackChanges
+    val Map: ImageVector get() = Icons.Default.Map
+    val Swords: ImageVector get() = Icons.Default.SportsEsports
     val Trophy: ImageVector get() = Icons.Default.EmojiEvents
     val Star: ImageVector get() = Icons.Default.Star
     val Flame: ImageVector get() = Icons.Default.Whatshot
