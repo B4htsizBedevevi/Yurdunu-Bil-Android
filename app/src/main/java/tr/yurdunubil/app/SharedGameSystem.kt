@@ -13,8 +13,8 @@ data class SharedGameMode(
     val seconds: Int,
     val rewardXp: Int,
     val topics: Set<String> = emptySet(),
-    val subtopics: Set<String> = emptySet(),
-    val arena: Boolean = false
+    val arena: Boolean = false,
+    val subtopics: Set<String> = emptySet()
 )
 
 /** Fine-grained tags are derived from the same Question objects used by every game mode. */
@@ -33,7 +33,7 @@ object QuestionTaxonomy {
                 if (listOf("dağ", "dağlar", "dağlık", "zirve").any(h::contains)) result += "Dağlar"
                 if (listOf("vadi", "kanyon", "şelale").any(h::contains)) result += "Vadiler"
                 if (listOf("karst", "kalker", "mağara", "obruk", "traverten", "jips").any(h::contains)) result += "Karstik Şekiller"
-                if (listOf("kıyı", "ria", "lagün", "delta kıyı", "falez", "tombolo").any(h::contains)) result += "Kıyı Şekilleri"
+                if (listOf("kıyı", "ria", "lagün", "falez", "tombolo").any(h::contains)) result += "Kıyı Şekilleri"
                 if (listOf("volkan", "lav", "tüf", "krater").any(h::contains)) result += "Volkanik Şekiller"
                 if (listOf("buzul", "sirk", "moren", "buzullaş").any(h::contains)) result += "Buzul Şekilleri"
             }
@@ -41,7 +41,7 @@ object QuestionTaxonomy {
                 result += "Su Varlığı"
                 if (listOf("akarsu", "nehir", "ırmak", "çay", "dere", "havza", "rejim").any(h::contains)) result += "Akarsular"
                 if (listOf("göl", "göller", "gölü").any(h::contains)) result += "Göller"
-                if (listOf("baraj", "hidroelektrik", "hidroelektrik", "hes").any(h::contains)) result += "Su Enerjisi"
+                if (listOf("baraj", "hidroelektrik", "hes").any(h::contains)) result += "Su Enerjisi"
                 if (listOf("kaynak", "yeraltı su", "karstik su").any(h::contains)) result += "Yeraltı Suları"
             }
             "Tarım", "Ekonomik Coğrafya" -> {
