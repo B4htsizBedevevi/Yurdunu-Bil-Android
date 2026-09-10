@@ -41,3 +41,5 @@ jobs:
           name: yurdunu-bil-v0.5.2-test
           path: app/build/outputs/apk/debug/yurdunu-bil-v0.5.2-test.apk
           if-no-files-found: error
+
+      # Force a fresh stable APK build after the CI cleanup.
