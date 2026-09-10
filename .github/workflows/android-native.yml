@@ -15,6 +15,108 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Fix Arena navigation and dark surface
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          changed = False
+
+          # ArenaRoot: exactly one back handler is active for each nested state.
+          p = Path("app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt")
+          s = p.read_text(encoding="utf-8")
+          old = '''    BackHandler {
+        when {
+            matchedId != null -> matchedId = null
+            selectedMode != null -> selectedMode = null
+            else -> onExit()
+        }
+    }'''
+          new = '''    BackHandler(enabled = matchedId != null) {
+        matchedId = null
+    }
+    BackHandler(enabled = matchedId == null && selectedMode != null) {
+        selectedMode = null
+    }
+    BackHandler(enabled = matchedId == null && selectedMode == null) {
+        onExit()
+    }'''
+          if old in s:
+              s = s.replace(old, new, 1)
+              changed = True
+          if "// ARENA_BACK_STACK_HARDENED" not in s:
+              s = s.rstrip() + "\n// ARENA_BACK_STACK_HARDENED\n"
+              changed = True
+          p.write_text(s, encoding="utf-8")
+
+          # V2: parent handler must not compete with child screens, and the
+          # Etkinlikler tab must not reopen Arena after Arena is closed.
+          p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
+          s = p.read_text(encoding="utf-8")
+          old = '''    BackHandler {
+        when {
+            quiz != null -> quiz = null
+            study != null -> study = null
+            province != null -> province = null
+            arenaOpen -> arenaOpen = false
+            tab != 0 -> tab = 0
+            else -> showExitDialog = true
+        }
+    }'''
+          new = '''    BackHandler(enabled = quiz == null && study == null && province == null && !arenaOpen && !showExitDialog) {
+        if (tab != 0) tab = 0 else showExitDialog = true
+    }'''
+          if old in s:
+              s = s.replace(old, new, 1)
+              changed = True
+          for old, new in [
+              ('''    if (study != null) {
+        val selected = study!!''', '''    if (study != null) {
+        BackHandler { study = null }
+        val selected = study!!'''),
+              ('''    if (province != null) {
+        ProvinceDetailScreen''', '''    if (province != null) {
+        BackHandler { province = null }
+        ProvinceDetailScreen'''),
+              ('''    if (arenaOpen) {
+        ArenaRootScreen''', '''    if (arenaOpen) {
+        BackHandler { arenaOpen = false }
+        ArenaRootScreen'''),
+              ('''    if (quiz != null) {
+        V2QuizScreen''', '''    if (quiz != null) {
+        BackHandler { quiz = null }
+        V2QuizScreen'''),
+              ('                2 -> { arenaOpen = true }', '                2 -> EventsScreen(darkMode) { mode -> if (mode.id.startsWith("arena")) { arenaOpen = true } else { startQuiz(mode.title, mode) } }')
+          ]:
+              if old in s:
+                  s = s.replace(old, new, 1)
+                  changed = True
+          p.write_text(s, encoding="utf-8")
+
+          # Centralized preferences keep theme/settings stable across updates.
+          s = p.read_text(encoding="utf-8")
+          old = 'val prefs = remember { context.getSharedPreferences("yurdunu_bil_native", 0) }'
+          if old in s:
+              s = s.replace(old, 'val prefs = remember { YBPreferences.get(context) }', 1)
+              changed = True
+          old = 'SettingsScreen(prefs, darkMode) { prefs.edit().putBoolean("dark_mode", it).apply(); darkMode = it }'
+          if old in s:
+              s = s.replace(old, 'SettingsScreen(prefs, darkMode) { YBPreferences.setDarkMode(prefs, it); darkMode = it }', 1)
+              changed = True
+          p.write_text(s, encoding="utf-8")
+
+          if changed:
+              print("Arena navigation/theme fixes applied")
+          else:
+              print("Arena navigation/theme fixes already present")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git add app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt
+            git commit -m "fix: harden Arena back navigation and dark surface"
+            git push origin HEAD:main
+          fi
+
       - name: Polish auth startup flow
         run: |
           python3 - <<'PY'
