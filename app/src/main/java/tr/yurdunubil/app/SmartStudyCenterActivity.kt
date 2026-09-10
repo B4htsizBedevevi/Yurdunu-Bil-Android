@@ -1,6 +1,5 @@
 package tr.yurdunubil.app
 
-import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -51,7 +50,6 @@ private fun SmartStudyCenterScreen(onBack: () -> Unit) {
     val gold = Color(0xFFFFC857)
     val today = LocalDate.now().toString()
 
-    var refreshKey by remember { mutableIntStateOf(0) }
     val solved = prefs.getInt("solved", 0)
     val correct = prefs.getInt("correct", 0)
     val wrong = prefs.getInt("wrong", 0)
@@ -68,12 +66,6 @@ private fun SmartStudyCenterScreen(onBack: () -> Unit) {
     val levelXp = xp % 500
 
     val priorities = GeographyData.topics.sortedBy { it.progress }.take(4)
-
-    fun markMapChallenge() {
-        prefs.edit().putString("map_challenge_date", today).apply()
-        refreshKey++
-    }
-
     val challengeIndex = LocalDate.now().dayOfYear % GeographyData.provinces.size
     val challenge = GeographyData.provinces[challengeIndex]
     val optionIndexes = listOf(
@@ -82,7 +74,12 @@ private fun SmartStudyCenterScreen(onBack: () -> Unit) {
         (challengeIndex + 7) % GeographyData.provinces.size,
         (challengeIndex + 11) % GeographyData.provinces.size
     )
-    val mapSolved = prefs.getString("map_challenge_date", "") == today
+    var mapSolved by remember(today) { mutableStateOf(prefs.getString("map_challenge_date", "") == today) }
+
+    fun markMapChallenge() {
+        prefs.edit().putString("map_challenge_date", today).apply()
+        mapSolved = true
+    }
 
     MaterialTheme(colorScheme = darkColorScheme(primary = green, background = bg, surface = card, onSurface = text)) {
         Scaffold(
