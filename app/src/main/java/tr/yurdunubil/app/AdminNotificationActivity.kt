@@ -89,7 +89,7 @@ private fun AdminNotificationScreen(onBack: () -> Unit) {
                     },
                     modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18C98A), contentColor = Color(0xFF052118))
-                ) { Text(if (sending) "Oluşturuluyor…" else "📢 Kampanyayı Oluştur", fontWeight = FontWeight.Black) }
+                ) { Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Campaign, null); Spacer(Modifier.width(7.dp)); Text(if (sending) "Oluşturuluyor…" else "Kampanyayı Oluştur", fontWeight = FontWeight.Black) } }
             }
             item { if (status != null) Text(status!!, color = Color.Gray, fontSize = 11.sp) }
         }
