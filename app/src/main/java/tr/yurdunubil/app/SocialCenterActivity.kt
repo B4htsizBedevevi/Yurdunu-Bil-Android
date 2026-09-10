@@ -65,7 +65,6 @@ private object SocialRepository {
     }
 
     suspend fun markAllRead() { client.postgrest.rpc("mark_all_notifications_read") }
-    suspend fun unreadCount(): Int = client.postgrest.rpc("get_unread_notification_count").decodeSingle()
 
     suspend fun searchUsers(query: String): List<SocialUserRow> = client.postgrest.rpc(
         "search_users", buildJsonObject { put("p_query", JsonPrimitive(query)) }
@@ -126,7 +125,7 @@ private fun SocialCenterScreen(onBack: () -> Unit) {
             error = null
             runCatching {
                 notifications = SocialRepository.notifications()
-                unread = SocialRepository.unreadCount()
+                unread = notifications.count { it.read_at == null }
                 if (myId != null) {
                     requests = SocialRepository.incomingRequests(myId)
                     friends = SocialRepository.friends()
