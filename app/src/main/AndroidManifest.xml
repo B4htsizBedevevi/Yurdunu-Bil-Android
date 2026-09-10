@@ -17,6 +17,7 @@
         android:theme="@style/Theme.YurdunuBil">
         <activity android:name=".RetentionMainActivity" android:exported="false" />
         <activity android:name=".SocialCenterActivity" android:exported="false" />
+        <activity android:name=".AdminCenterActivity" android:exported="false" />
         <activity android:name=".ModernAuthActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".LaunchActivity"
