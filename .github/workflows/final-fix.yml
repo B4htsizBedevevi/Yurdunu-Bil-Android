@@ -1,4 +1,4 @@
-name: Final App Fix
+name: Final Android Build
 
 on:
   push:
@@ -9,99 +9,62 @@ permissions:
   contents: write
 
 jobs:
-  fix:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Apply final fixes
+      - name: Apply final Arena and theme fixes
+        shell: python
         run: |
-          python3 - <<'PY'
           from pathlib import Path
-          changed = False
+          import re
 
-          # 1) Auth: wait for Supabase's persisted session to finish loading.
-          p = Path("app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt")
+          # ArenaRoot must have a real full-screen themed surface and explicit nested back stack.
+          p = Path("app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt")
           s = p.read_text(encoding="utf-8")
-          if "// FINAL_AUTH_PERSISTENCE_FIX" not in s:
-              if "import io.github.jan.supabase.auth.status.SessionStatus" not in s:
-                  s = s.replace("import io.github.jan.supabase.auth.providers.builtin.Email\n", "import io.github.jan.supabase.auth.providers.builtin.Email\nimport io.github.jan.supabase.auth.status.SessionStatus\n", 1)
-              if "import kotlinx.coroutines.flow.first" not in s:
-                  s = s.replace("import kotlinx.coroutines.delay\n", "import kotlinx.coroutines.delay\nimport kotlinx.coroutines.flow.first\n", 1)
-              old = '''    LaunchedEffect(Unit) {
-        val current = SupabaseClientProvider.client.auth.currentSessionOrNull()
-        session = current != null
-        if (current != null) {
-            profile = loadProfile()
-            if (profile?.onboarding_completed == true) onReady()
-        }
-        loading = false
-    }'''
-              new = '''    LaunchedEffect(Unit) {
-        val auth = SupabaseClientProvider.client.auth
-        val status = auth.sessionStatus.first {
-            it is SessionStatus.Authenticated || it is SessionStatus.NotAuthenticated || it is SessionStatus.RefreshFailure
-        }
-        val current = auth.currentSessionOrNull()
-        session = current != null && status !is SessionStatus.NotAuthenticated
-        if (current != null && session) {
-            profile = loadProfile()
-            if (profile?.onboarding_completed == true) onReady()
-        }
-        loading = false
-    }'''
-              if old not in s:
-                  raise SystemExit("LaunchGate block not found")
-              s = s.replace(old, new, 1)
-              p.write_text(s.rstrip() + "\n// FINAL_AUTH_PERSISTENCE_FIX\n", encoding="utf-8")
-              changed = True
+          if "import androidx.compose.ui.Modifier" not in s:
+              s = s.replace("import androidx.compose.runtime.*\n", "import androidx.compose.runtime.*\nimport androidx.compose.ui.Modifier\n", 1)
+          p.write_text(s, encoding="utf-8")
 
-          # 2) Auth client: explicitly retain and refresh sessions.
-          p = Path("app/src/main/java/tr/yurdunubil/app/SupabaseClient.kt")
-          s = p.read_text(encoding="utf-8")
-          if "autoLoadFromStorage = true" not in s:
-              needle = '''        install(Auth) {
-            flowType = FlowType.PKCE
-            scheme = "yurdunubil"
-            host = "auth"
-        }'''
-              replacement = '''        install(Auth) {
-            flowType = FlowType.PKCE
-            autoLoadFromStorage = true
-            autoSaveToStorage = true
-            alwaysAutoRefresh = true
-            scheme = "yurdunubil"
-            host = "auth"
-        }'''
-              if needle in s:
-                  s = s.replace(needle, replacement, 1)
-                  p.write_text(s, encoding="utf-8")
-                  changed = True
-
-          # 3) Launcher: after first run, always enter the session gate, not the legacy auth wrapper.
-          p = Path("app/src/main/java/tr/yurdunubil/app/ModernLaunchActivity.kt")
-          s = p.read_text(encoding="utf-8")
-          if "// FINAL_LAUNCH_ROUTING_FIX" not in s:
-              old = '''    private fun openAuth(register: Boolean) {
-        startActivity(Intent(this, ModernAuthActivity::class.java).putExtra("register", register))
-        finish()
-    }'''
-              new = '''    private fun openAuth(register: Boolean) {
-        startActivity(Intent(this, LaunchActivity::class.java).putExtra("register", register))
-        finish()
-    }'''
-              if old not in s:
-                  raise SystemExit("ModernLaunch openAuth block not found")
-              s = s.replace(old, new, 1)
-              p.write_text(s.rstrip() + "\n// FINAL_LAUNCH_ROUTING_FIX\n", encoding="utf-8")
-              changed = True
-
-          # 4) V2: never let the root handler compete with Arena/child screens.
+          # V2: Arena exit always returns to the Events tab instead of reopening itself.
           p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
           s = p.read_text(encoding="utf-8")
-          if "// FINAL_BACK_STACK_FIX" not in s:
-              old = '''    BackHandler {
+          old = '''    if (arenaOpen) {
+        BackHandler { arenaOpen = false }
+        ArenaRootScreen(darkMode = darkMode, onExit = { arenaOpen = false })
+        return
+    }'''
+          new = '''    if (arenaOpen) {
+        ArenaRootScreen(
+            darkMode = darkMode,
+            onExit = {
+                arenaOpen = false
+                tab = 2
+            }
+        )
+        return
+    }'''
+          if old in s:
+              s = s.replace(old, new, 1)
+
+          old = '''                2 -> { arenaOpen = true }'''
+          new = '''                2 -> EventsScreen(darkMode) { mode ->
+                    if (mode.arena) {
+                        tab = 2
+                        arenaOpen = true
+                    } else {
+                        startQuiz(mode.title, mode)
+                    }
+                }'''
+          if old in s:
+              s = s.replace(old, new, 1)
+
+          # Prevent the parent handler from competing with nested screens.
+          old = '''    BackHandler {
         when {
             quiz != null -> quiz = null
             study != null -> study = null
@@ -111,96 +74,57 @@ jobs:
             else -> showExitDialog = true
         }
     }'''
-              new = '''    BackHandler(enabled = quiz == null && study == null && province == null && !arenaOpen && !showExitDialog) {
+          new = '''    BackHandler(enabled = quiz == null && study == null && province == null && !arenaOpen && !showExitDialog) {
         if (tab != 0) tab = 0 else showExitDialog = true
     }'''
-              if old in s:
-                  s = s.replace(old, new, 1)
-                  changed = True
-              replacements = [
-                  ('''    if (study != null) {
-        val selected = study!!''', '''    if (study != null) {
-        BackHandler { study = null }
-        val selected = study!!'''),
-                  ('''    if (province != null) {
-        ProvinceDetailScreen''', '''    if (province != null) {
-        BackHandler { province = null }
-        ProvinceDetailScreen'''),
-                  ('''    if (arenaOpen) {
-        ArenaRootScreen''', '''    if (arenaOpen) {
-        BackHandler(enabled = true) { arenaOpen = false }
-        ArenaRootScreen'''),
-                  ('''    if (quiz != null) {
-        V2QuizScreen''', '''    if (quiz != null) {
-        BackHandler { quiz = null }
-        V2QuizScreen''')
-              ]
-              for old, new in replacements:
-                  if old in s:
-                      s = s.replace(old, new, 1)
-                      changed = True
-
-              # Critical: the Etkinlikler tab must render its own page. Previously it
-              # set arenaOpen=true on every recomposition, so Arena immediately reopened
-              # after the user pressed either back button.
-              old = '                2 -> { arenaOpen = true }'
-              new = '                2 -> EventsScreen(darkMode) { mode -> quizMode = mode; if (mode.id.startsWith("arena")) arenaOpen = true else startQuiz(mode.title, mode) }'
-              if old in s:
-                  s = s.replace(old, new, 1)
-                  changed = True
-
-              # Keep the quick Arena entry explicitly inside the Arena state.
-              p.write_text(s.rstrip() + "\n// FINAL_BACK_STACK_FIX\n", encoding="utf-8")
-
-          # 5) Arena: explicit one-enabled back handlers for each nested state.
-          p = Path("app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt")
-          s = p.read_text(encoding="utf-8")
-          if "// FINAL_ARENA_BACK_FIX" not in s:
-              old = '''    BackHandler {
-        when {
-            matchedId != null -> matchedId = null
-            selectedMode != null -> selectedMode = null
-            else -> onExit()
-        }
-    }'''
-              new = '''    BackHandler(enabled = matchedId != null) {
-        matchedId = null
-    }
-    BackHandler(enabled = matchedId == null && selectedMode != null) {
-        selectedMode = null
-    }
-    BackHandler(enabled = matchedId == null && selectedMode == null) {
-        onExit()
-    }'''
-              if old in s:
-                  s = s.replace(old, new, 1)
-                  changed = True
-              s = s.rstrip() + "\n// FINAL_ARENA_BACK_FIX\n"
-              p.write_text(s, encoding="utf-8")
-
-          # 6) Use the centralized local preferences so updates do not silently reset theme/settings.
-          p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
-          s = p.read_text(encoding="utf-8")
-          old = 'val prefs = remember { context.getSharedPreferences("yurdunu_bil_native", 0) }'
           if old in s:
-              s = s.replace(old, 'val prefs = remember { YBPreferences.get(context) }', 1)
-              changed = True
-          old = 'SettingsScreen(prefs, darkMode) { prefs.edit().putBoolean("dark_mode", it).apply(); darkMode = it }'
-          if old in s:
-              s = s.replace(old, 'SettingsScreen(prefs, darkMode) { YBPreferences.setDarkMode(prefs, it); darkMode = it }', 1)
-              changed = True
+              s = s.replace(old, new, 1)
+
+          # Centralize local preference storage so theme survives normal app updates.
+          s = s.replace('val prefs = remember { context.getSharedPreferences("yurdunu_bil_native", 0) }', 'val prefs = remember { YBPreferences.get(context) }', 1)
+          s = s.replace('SettingsScreen(prefs, darkMode) { prefs.edit().putBoolean("dark_mode", it).apply(); darkMode = it }', 'SettingsScreen(prefs, darkMode) { YBPreferences.setDarkMode(prefs, it); darkMode = it }', 1)
           p.write_text(s, encoding="utf-8")
 
-          if changed:
-              print("Final fixes applied")
-          else:
-              print("Final fixes already present")
-          PY
+          # Bump the test build.
+          p = Path("app/build.gradle.kts")
+          s = p.read_text(encoding="utf-8")
+          s = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 7', s, count=1)
+          s = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "0.5.2"', s, count=1)
+          p.write_text(s, encoding="utf-8")
 
+      - name: Persist source fixes
+        shell: bash
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet; then
-            git add app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt app/src/main/java/tr/yurdunubil/app/SupabaseClient.kt app/src/main/java/tr/yurdunubil/app/ModernLaunchActivity.kt app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt
-            git commit -m "fix: persist auth and finalize arena back stack"
+          git add app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt app/build.gradle.kts
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: finalize Arena back stack and dark theme"
             git push origin HEAD:main
           fi
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+
+      - name: Compile
+        run: gradle --no-daemon :app:compileDebugKotlin
+
+      - name: Build APK
+        run: gradle --no-daemon :app:assembleDebug
+
+      - name: Name APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/yurdunu-bil-v0.5.2-test.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: yurdunu-bil-v0.5.2-test
+          path: app/build/outputs/apk/debug/yurdunu-bil-v0.5.2-test.apk
