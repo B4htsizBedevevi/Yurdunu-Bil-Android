@@ -4,10 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 
-/** Production entry point: minimal Activity wrapper around the stable V2 UI. */
+/** Production entry point for the refreshed V4 experience. */
 class RetentionMainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { YurdunuBilMainV2App() }
+        setContent { YurdunuBilMainV4() }
     }
 }
