@@ -27,7 +27,6 @@
                 <data android:scheme="yurdunubil" android:host="auth" />
             </intent-filter>
         </activity>
-        <activity android:name=".ModernAuthActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".LaunchActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ModernLaunchActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
             <intent-filter>
