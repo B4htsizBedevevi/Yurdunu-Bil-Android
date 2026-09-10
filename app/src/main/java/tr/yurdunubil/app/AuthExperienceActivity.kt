@@ -310,90 +310,93 @@ private fun AuthScreen(
 private fun AuthBrandHero(register: Boolean) {
     val transition = rememberInfiniteTransition(label = "yb-auth-logo")
     val pulse by transition.animateFloat(
-        initialValue = 0.96f,
-        targetValue = 1.07f,
+        initialValue = 0.94f,
+        targetValue = 1.06f,
         animationSpec = infiniteRepeatable(
-            tween(1800, easing = FastOutSlowInEasing),
+            tween(1700, easing = FastOutSlowInEasing),
             RepeatMode.Reverse
         ),
         label = "pulse"
     )
     val floatY by transition.animateFloat(
-        initialValue = -3f,
-        targetValue = 4f,
+        initialValue = -4f,
+        targetValue = 5f,
         animationSpec = infiniteRepeatable(
-            tween(2200, easing = FastOutSlowInEasing),
+            tween(2100, easing = FastOutSlowInEasing),
             RepeatMode.Reverse
         ),
         label = "float"
     )
     val orbit by transition.animateFloat(
-        initialValue = -4f,
-        targetValue = 4f,
+        initialValue = -5f,
+        targetValue = 5f,
         animationSpec = infiniteRepeatable(
-            tween(3200, easing = FastOutSlowInEasing),
+            tween(2800, easing = FastOutSlowInEasing),
             RepeatMode.Reverse
         ),
         label = "orbit"
     )
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier.size(118.dp),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(Modifier.size(132.dp), contentAlignment = Alignment.Center) {
             Box(
                 Modifier
-                    .size(108.dp)
+                    .size(124.dp)
                     .scale(pulse)
-                    .alpha(.10f)
+                    .alpha(.16f)
                     .background(
                         Brush.radialGradient(listOf(AuthMintBright, Color.Transparent)),
                         RoundedCornerShape(50)
                     )
             )
             Surface(
-                modifier = Modifier
-                    .size(96.dp)
-                    .rotate(orbit),
-                shape = RoundedCornerShape(32.dp),
+                modifier = Modifier.size(112.dp).rotate(orbit),
+                shape = RoundedCornerShape(38.dp),
                 color = Color.Transparent,
-                border = BorderStroke(1.dp, AuthMint.copy(alpha = .20f))
+                border = BorderStroke(1.dp, AuthMint.copy(alpha = .25f))
             ) {}
-            Icon(
-                Icons.Default.Star,
-                contentDescription = null,
-                tint = AuthMintBright.copy(alpha = .72f),
-                modifier = Modifier.size(13.dp).offset(x = 47.dp, y = (-27).dp).alpha(.85f)
-            )
             Surface(
-                modifier = Modifier
-                    .size(82.dp)
-                    .graphicsLayer { translationY = floatY },
-                shape = RoundedCornerShape(27.dp),
-                color = Color(0xFF0D3C2E),
-                border = BorderStroke(1.5.dp, AuthMint.copy(alpha = .62f)),
-                shadowElevation = 18.dp
+                modifier = Modifier.size(96.dp).graphicsLayer { translationY = floatY },
+                shape = RoundedCornerShape(30.dp),
+                color = Color(0xFF0B362A),
+                border = BorderStroke(1.5.dp, AuthMint.copy(alpha = .72f)),
+                shadowElevation = 20.dp
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Box(
                         Modifier
-                            .size(62.dp)
-                            .alpha(.16f)
-                            .background(AuthMint, RoundedCornerShape(21.dp))
+                            .size(74.dp)
+                            .alpha(.12f)
+                            .background(AuthMintBright, RoundedCornerShape(24.dp))
                     )
                     androidx.compose.foundation.Image(
                         painter = painterResource(id = R.drawable.yurdunu_bil_app_icon),
                         contentDescription = "Yurdunu Bil logosu",
-                        modifier = Modifier.size(52.dp)
+                        modifier = Modifier.size(58.dp)
                     )
                 }
             }
+            Surface(
+                Modifier.size(10.dp).offset(x = 51.dp, y = (-38).dp),
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = AuthMintBright
+            ) {}
+            Surface(
+                Modifier.size(7.dp).offset(x = (-48).dp, y = 28.dp),
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = AuthMint.copy(alpha = .85f)
+            ) {}
         }
 
-        Spacer(Modifier.height(2.dp))
-        Text("Yurdunu Bil", color = AuthText, fontSize = 31.sp, fontWeight = FontWeight.Black, letterSpacing = (-0.5).sp)
-        Spacer(Modifier.height(2.dp))
+        Spacer(Modifier.height(1.dp))
+        Text(
+            "Yurdunu Bil",
+            color = AuthText,
+            fontSize = 31.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = (-0.5).sp
+        )
+        Spacer(Modifier.height(3.dp))
         Text(
             if (register) "Gel, birlikte keşfedelim."
             else "Türkiye'yi öğrenmenin daha keyifli yolu.",
@@ -402,10 +405,10 @@ private fun AuthBrandHero(register: Boolean) {
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
-        Spacer(Modifier.height(7.dp))
+        Spacer(Modifier.height(8.dp))
         Text(
-            if (register) "Sadece ders değil; harita, oyun, keşif ve biraz da eğlence."
-            else "Bir soru çöz, bir il öğren, haritada biraz daha yol al.",
+            if (register) "Hesabını aç; sonra bir isim, bir avatar ve ilk hedefini seç."
+            else "Bugün küçücük bir adım at. Bir soru bile yeter.",
             color = AuthMuted,
             fontSize = 11.sp,
             lineHeight = 16.sp,
@@ -413,42 +416,54 @@ private fun AuthBrandHero(register: Boolean) {
         )
     }
 }
-
 @Composable
 private fun AuthAmbientBackground() {
     val transition = rememberInfiniteTransition(label = "yb-auth-bg")
-    val alpha by transition.animateFloat(
-        initialValue = .05f,
-        targetValue = .12f,
-        animationSpec = infiniteRepeatable(tween(2400), RepeatMode.Reverse),
-        label = "ambient-alpha"
+    val drift1 by transition.animateFloat(
+        initialValue = -18f,
+        targetValue = 18f,
+        animationSpec = infiniteRepeatable(tween(5200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "drift1"
+    )
+    val drift2 by transition.animateFloat(
+        initialValue = 18f,
+        targetValue = -18f,
+        animationSpec = infiniteRepeatable(tween(6100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "drift2"
+    )
+    val glow by transition.animateFloat(
+        initialValue = .06f,
+        targetValue = .14f,
+        animationSpec = infiniteRepeatable(tween(2400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "glow"
     )
     Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = 105.dp)
+                .offset(x = drift1.dp, y = 95.dp)
+                .size(360.dp)
+                .alpha(glow)
+                .background(Brush.radialGradient(listOf(AuthMintBright, Color.Transparent)), RoundedCornerShape(50))
+        )
+        Box(
+            Modifier
+                .align(Alignment.CenterEnd)
+                .offset(x = 95.dp, y = drift2.dp)
                 .size(280.dp)
-                .alpha(alpha)
-                .background(
-                    Brush.radialGradient(listOf(AuthMint, Color.Transparent)),
-                    RoundedCornerShape(50)
-                )
+                .alpha(glow * .72f)
+                .background(Brush.radialGradient(listOf(Color(0xFF18A97C), Color.Transparent)), RoundedCornerShape(50))
         )
         Box(
             Modifier
                 .align(Alignment.BottomStart)
-                .offset(x = (-90).dp, y = 120.dp)
-                .size(250.dp)
-                .alpha(alpha * .7f)
-                .background(
-                    Brush.radialGradient(listOf(AuthMint, Color.Transparent)),
-                    RoundedCornerShape(50)
-                )
+                .offset(x = (-105).dp, y = 110.dp)
+                .size(320.dp)
+                .alpha(glow * .55f)
+                .background(Brush.radialGradient(listOf(Color(0xFF0A6D50), Color.Transparent)), RoundedCornerShape(50))
         )
     }
 }
-
 @Composable
 private fun AuthHeader(title: String, subtitle: String) {
     Text(title, color = AuthText, fontSize = 22.sp, fontWeight = FontWeight.Black)
