@@ -17,16 +17,25 @@ object YBPreferences {
 
     fun get(context: Context): SharedPreferences {
         val prefs = context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
-        migrate(prefs)
+        migrate(context, prefs)
         return prefs
     }
 
-    fun migrate(prefs: SharedPreferences) {
+    private fun migrate(context: Context, prefs: SharedPreferences) {
         // Older V4 builds used dark_theme. Never throw away a user's choice during migration.
         if (!prefs.contains(DARK_MODE) && prefs.contains(LEGACY_DARK_THEME)) {
             prefs.edit()
                 .putBoolean(DARK_MODE, prefs.getBoolean(LEGACY_DARK_THEME, false))
                 .apply()
+        }
+
+        // The first-run screen originally used a separate preference file. Bring it into
+        // the unified store so existing testers do not see the welcome screen again.
+        if (!prefs.contains(INTRO_SEEN)) {
+            val legacy = context.getSharedPreferences("yurdunu_bil_launch", Context.MODE_PRIVATE)
+            if (legacy.getBoolean(INTRO_SEEN, false)) {
+                prefs.edit().putBoolean(INTRO_SEEN, true).apply()
+            }
         }
     }
 
