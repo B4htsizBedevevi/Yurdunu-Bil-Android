@@ -15,8 +15,8 @@ android {
         applicationId = "tr.yurdunubil.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 8
-        versionName = "0.5.3"
+        versionCode = 9
+        versionName = "0.5.4"
         buildConfigField("String", "SUPABASE_URL", "\"https://phcdfnvqhhwkhrxsmuar.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_vwk3J5ag16XmMOm3x734MQ_-mMsJVe2\"")
     }
