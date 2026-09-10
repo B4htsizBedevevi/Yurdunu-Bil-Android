@@ -75,3 +75,5 @@ jobs:
           name: yurdunu-bil-v0.6.0-aab
           path: app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
+
+      # Triggered by a repository commit so the APK artifact is produced for testing.
