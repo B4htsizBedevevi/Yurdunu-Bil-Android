@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material.icons.filled.WaterDrop
@@ -56,7 +57,7 @@ object YBIcons {
     val Bolt: ImageVector get() = Icons.Default.Bolt
     val Library: ImageVector get() = Icons.Default.AutoStories
     val Tip: ImageVector get() = Icons.Default.Lightbulb
-    val Settings: ImageVector get() = Icons.Default.School
+    val Settings: ImageVector get() = Icons.Default.Settings
 
     // Stable avatar catalogue. Only the persisted ID leaves the device.
     val AvatarExplorer: ImageVector get() = Icons.Default.Explore
@@ -137,8 +138,33 @@ val YBAvatars = listOf(
     YBAvatar("home", "Yuvacı", YBIcons.AvatarHome, AvatarCategory.CHARACTER)
 )
 
+private val legacyAvatarAliases = mapOf(
+    "atlas-user" to "face",
+    "atlas-compass" to "compass",
+    "atlas-mountain" to "mountain",
+    "atlas-trees" to "forest",
+    "atlas-cloud" to "cloud",
+    "atlas-flag" to "flag",
+    "atlas-crown" to "crown",
+    "atlas-shield" to "shield",
+    "atlas-rocket" to "rocket",
+    "atlas-cat" to "cat",
+    "atlas-dog" to "face",
+    "atlas-bird" to "face",
+    "atlas-fish" to "water",
+    "atlas-plant" to "park",
+    "atlas-sun" to "sun",
+    "atlas-tent" to "explorer",
+    "atlas-anchor" to "anchor",
+    "atlas-heart" to "heart",
+    "atlas-diamond" to "diamond",
+    "atlas-waves" to "waves"
+)
+
 fun ybAvatar(id: String?): YBAvatar =
-    YBAvatars.firstOrNull { it.id == id } ?: YBAvatars.first()
+    YBAvatars.firstOrNull { it.id == id }
+        ?: YBAvatars.firstOrNull { it.id == legacyAvatarAliases[id] }
+        ?: YBAvatars.first()
 
 @Composable
 fun YBGameIcon(
