@@ -18,6 +18,7 @@
         <activity android:name=".SmartStudyCenterActivity" android:exported="false" />
         <activity android:name=".SocialCenterActivity" android:exported="false" />
         <activity android:name=".AdminCenterActivity" android:exported="false" />
+        <activity android:name=".ProfileOnboardingActivity" android:exported="false" />
         <activity android:name=".AdminNotificationActivity" android:exported="false" />
         <activity android:name=".AuthExperienceActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
             <intent-filter>
