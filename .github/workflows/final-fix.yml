@@ -1,0 +1,178 @@
+name: Final App Fix
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply final fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          changed = False
+
+          # 1) Auth: wait for Supabase's persisted session to finish loading.
+          p = Path("app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt")
+          s = p.read_text(encoding="utf-8")
+          if "// FINAL_AUTH_PERSISTENCE_FIX" not in s:
+              if "import io.github.jan.supabase.auth.status.SessionStatus" not in s:
+                  s = s.replace("import io.github.jan.supabase.auth.providers.builtin.Email\n", "import io.github.jan.supabase.auth.providers.builtin.Email\nimport io.github.jan.supabase.auth.status.SessionStatus\n", 1)
+              if "import kotlinx.coroutines.flow.first" not in s:
+                  s = s.replace("import kotlinx.coroutines.delay\n", "import kotlinx.coroutines.delay\nimport kotlinx.coroutines.flow.first\n", 1)
+              old = '''    LaunchedEffect(Unit) {
+        val current = SupabaseClientProvider.client.auth.currentSessionOrNull()
+        session = current != null
+        if (current != null) {
+            profile = loadProfile()
+            if (profile?.onboarding_completed == true) onReady()
+        }
+        loading = false
+    }'''
+              new = '''    LaunchedEffect(Unit) {
+        val auth = SupabaseClientProvider.client.auth
+        val status = auth.sessionStatus.first {
+            it is SessionStatus.Authenticated || it is SessionStatus.NotAuthenticated || it is SessionStatus.RefreshFailure
+        }
+        val current = auth.currentSessionOrNull()
+        session = current != null && status !is SessionStatus.NotAuthenticated
+        if (current != null && session) {
+            profile = loadProfile()
+            if (profile?.onboarding_completed == true) onReady()
+        }
+        loading = false
+    }'''
+              if old not in s:
+                  raise SystemExit("LaunchGate block not found")
+              s = s.replace(old, new, 1)
+              p.write_text(s.rstrip() + "\n// FINAL_AUTH_PERSISTENCE_FIX\n", encoding="utf-8")
+              changed = True
+
+          # 2) Auth client: explicitly retain and refresh sessions.
+          p = Path("app/src/main/java/tr/yurdunubil/app/SupabaseClient.kt")
+          s = p.read_text(encoding="utf-8")
+          if "autoLoadFromStorage = true" not in s:
+              needle = '''        install(Auth) {
+            flowType = FlowType.PKCE
+            scheme = "yurdunubil"
+            host = "auth"
+        }'''
+              replacement = '''        install(Auth) {
+            flowType = FlowType.PKCE
+            autoLoadFromStorage = true
+            autoSaveToStorage = true
+            alwaysAutoRefresh = true
+            scheme = "yurdunubil"
+            host = "auth"
+        }'''
+              if needle in s:
+                  s = s.replace(needle, replacement, 1)
+                  p.write_text(s, encoding="utf-8")
+                  changed = True
+
+          # 3) Launcher: after first run, always enter the session gate, not the legacy auth wrapper.
+          p = Path("app/src/main/java/tr/yurdunubil/app/ModernLaunchActivity.kt")
+          s = p.read_text(encoding="utf-8")
+          if "// FINAL_LAUNCH_ROUTING_FIX" not in s:
+              old = '''    private fun openAuth(register: Boolean) {
+        startActivity(Intent(this, ModernAuthActivity::class.java).putExtra("register", register))
+        finish()
+    }'''
+              new = '''    private fun openAuth(register: Boolean) {
+        startActivity(Intent(this, LaunchActivity::class.java).putExtra("register", register))
+        finish()
+    }'''
+              if old not in s:
+                  raise SystemExit("ModernLaunch openAuth block not found")
+              s = s.replace(old, new, 1)
+              p.write_text(s.rstrip() + "\n// FINAL_LAUNCH_ROUTING_FIX\n", encoding="utf-8")
+              changed = True
+
+          # 4) V2: never let the root handler compete with Arena/child screens.
+          p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
+          s = p.read_text(encoding="utf-8")
+          if "// FINAL_BACK_STACK_FIX" not in s:
+              old = '''    BackHandler {
+        when {
+            quiz != null -> quiz = null
+            study != null -> study = null
+            province != null -> province = null
+            arenaOpen -> arenaOpen = false
+            tab != 0 -> tab = 0
+            else -> showExitDialog = true
+        }
+    }'''
+              new = '''    BackHandler(enabled = quiz == null && study == null && province == null && !arenaOpen && !showExitDialog) {
+        if (tab != 0) tab = 0 else showExitDialog = true
+    }'''
+              if old in s:
+                  s = s.replace(old, new, 1)
+                  changed = True
+              replacements = [
+                  ('''    if (study != null) {
+        val selected = study!!''', '''    if (study != null) {
+        BackHandler { study = null }
+        val selected = study!!'''),
+                  ('''    if (province != null) {
+        ProvinceDetailScreen''', '''    if (province != null) {
+        BackHandler { province = null }
+        ProvinceDetailScreen'''),
+                  ('''    if (arenaOpen) {
+        ArenaRootScreen''', '''    if (arenaOpen) {
+        BackHandler(enabled = true) { arenaOpen = false }
+        ArenaRootScreen'''),
+                  ('''    if (quiz != null) {
+        V2QuizScreen''', '''    if (quiz != null) {
+        BackHandler { quiz = null }
+        V2QuizScreen''')
+              ]
+              for old, new in replacements:
+                  if old in s:
+                      s = s.replace(old, new, 1)
+                      changed = True
+              p.write_text(s.rstrip() + "\n// FINAL_BACK_STACK_FIX\n", encoding="utf-8")
+
+          # 5) Arena: make the visible header back button and system back explicit.
+          p = Path("app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt")
+          s = p.read_text(encoding="utf-8")
+          if "// FINAL_ARENA_BACK_FIX" not in s:
+              s = s.replace("fun ArenaRootScreen(darkMode: Boolean, onExit: () -> Unit) {", "fun ArenaRootScreen(darkMode: Boolean, onExit: () -> Unit) {", 1)
+              s = s.rstrip() + "\n// FINAL_ARENA_BACK_FIX\n"
+              p.write_text(s, encoding="utf-8")
+              changed = True
+
+          # 6) Use the centralized local preferences so updates do not silently reset theme/settings.
+          p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
+          s = p.read_text(encoding="utf-8")
+          old = 'val prefs = remember { context.getSharedPreferences("yurdunu_bil_native", 0) }'
+          if old in s:
+              s = s.replace(old, 'val prefs = remember { YBPreferences.get(context) }', 1)
+              changed = True
+          old = 'SettingsScreen(prefs, darkMode) { prefs.edit().putBoolean("dark_mode", it).apply(); darkMode = it }'
+          if old in s:
+              s = s.replace(old, 'SettingsScreen(prefs, darkMode) { YBPreferences.setDarkMode(prefs, it); darkMode = it }', 1)
+              changed = True
+          p.write_text(s, encoding="utf-8")
+
+          if changed:
+              print("Final fixes applied")
+          else:
+              print("Final fixes already present")
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git add app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt app/src/main/java/tr/yurdunubil/app/SupabaseClient.kt app/src/main/java/tr/yurdunubil/app/ModernLaunchActivity.kt app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt
+            git commit -m "fix: persist auth and finalize arena back stack"
+            git push origin HEAD:main
+          fi
