@@ -1,22 +1,19 @@
 package tr.yurdunubil.app
 
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-/**
- * Compact replacement used by the production V4 UI. Keeps the Android gesture
- * inset while reducing the visual navigation bar footprint.
- */
 @Composable
 fun NavigationBar(
     modifier: Modifier = Modifier,
-    containerColor: androidx.compose.ui.graphics.Color = NavigationBarDefaults.containerColor,
-    contentColor: androidx.compose.ui.graphics.Color = NavigationBarDefaults.contentColor,
+    containerColor: Color = NavigationBarDefaults.containerColor,
+    contentColor: Color = Color.Unspecified,
     tonalElevation: androidx.compose.ui.unit.Dp = NavigationBarDefaults.Elevation,
     content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit
 ) {
