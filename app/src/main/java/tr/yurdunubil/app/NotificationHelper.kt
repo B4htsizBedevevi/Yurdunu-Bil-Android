@@ -38,18 +38,18 @@ object NotificationHelper {
         DailyTemplate("Kütüphanede yeni bir tur zamanı", "Bir konu aç, bağlantıları keşfet ve öğrendiklerini sorularla pekiştir."),
         DailyTemplate("Hız + bilgi = Arena", "Kısa sürede doğru cevap ver. Rating'ini yükseltme zamanı."),
         DailyTemplate("Bugün de buradayız.", "Kısa bir test çöz, ritmini kaybetme."),
-        DailyTemplate("Bugünün 10 sorusu hazır! 📝", "Sadece birkaç dakikanı ayır. Sonuçlarını hemen gör."),
-        DailyTemplate("Türkiye haritasında kaybolma 😉", "Bugün bir bölge seç ve önemli yer şekillerini tekrar et."),
-        DailyTemplate("Bir konu daha tamamla ✅", "Kütüphanede küçük bir hedef belirle ve bugün onu bitir."),
+        DailyTemplate("Bugünün 10 sorusu hazır!", "Sadece birkaç dakikanı ayır. Sonuçlarını hemen gör."),
+        DailyTemplate("Türkiye haritasında kaybolma", "Bugün bir bölge seç ve önemli yer şekillerini tekrar et."),
+        DailyTemplate("Bir konu daha tamamla", "Kütüphanede küçük bir hedef belirle ve bugün onu bitir."),
         DailyTemplate("Rakiplerini bekletme!", "Bugün Türkiye coğrafyasında kim daha hızlı? Arena'ya gir."),
-        DailyTemplate("Bugün ne çalışıyoruz? 🎯", "Bir konu seç, kısa tekrarını yap ve hemen ardından kendini test et."),
-        DailyTemplate("Hedef uzak değil. 🚀", "Her çözdüğün soru seni biraz daha ileri götürüyor. Bugün de devam."),
-        DailyTemplate("Bugünkü küçük zaferin ne? 🏅", "10 soru çözmek bile ilerlemedir. Hadi başlayalım."),
-        DailyTemplate("Düzen, bilgiden güçlüdür. 💚", "Her gün biraz çalış. Sınav günü farkı sen göreceksin."),
-        DailyTemplate("Bugün kendin için çalış. 🇹🇷", "Kimse senin yerine öğrenemez. Küçük bir testle başla."),
+        DailyTemplate("Bugün ne çalışıyoruz?", "Bir konu seç, kısa tekrarını yap ve hemen ardından kendini test et."),
+        DailyTemplate("Hedef uzak değil.", "Her çözdüğün soru seni biraz daha ileri götürüyor. Bugün de devam."),
+        DailyTemplate("Bugünkü küçük zaferin ne?", "10 soru çözmek bile ilerlemedir. Hadi başlayalım."),
+        DailyTemplate("Düzen, bilgiden güçlüdür.", "Her gün biraz çalış. Sınav günü farkı sen göreceksin."),
+        DailyTemplate("Bugün kendin için çalış.", "Kimse senin yerine öğrenemez. Küçük bir testle başla."),
         DailyTemplate("10 dakikalık mola değil, 10 soruluk tur!", "Telefonu bırakmadan önce 10 coğrafya sorusunu tamamla."),
-        DailyTemplate("Konu seni bekliyor 📚", "Daha önce zorlandığın bir başlığa geri dön ve bilgini tazele."),
-        DailyTemplate("Türkiye Ustası olmak kolay değil 👑", "Bugün bir Arena maçıyla kendini sınamaya ne dersin?")
+        DailyTemplate("Konu seni bekliyor", "Daha önce zorlandığın bir başlığa geri dön ve bilgini tazele."),
+        DailyTemplate("Türkiye Ustası olmak kolay değil", "Bugün bir Arena maçıyla kendini sınamaya ne dersin?")
     )
 
     fun ensureChannel(context: Context) {
@@ -79,7 +79,7 @@ object NotificationHelper {
             val pending = PendingIntent.getActivity(context, 4812, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
-                .setContentTitle("Yurdunu Bil hazır! 🎯")
+                .setContentTitle("Yurdunu Bil hazır!")
                 .setContentText("Bildirim sistemi çalışıyor. Bildirim merkezini aç ve arkadaşlarını bul.")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
