@@ -111,7 +111,7 @@ class LaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         runCatching { SupabaseClientProvider.client.handleDeeplinks(intent) }
-        setContent { LaunchGate(onReady = ::openApp) }
+        setContent { LaunchGate(onReady = ::openApp, initialMode = intent.getBooleanExtra("register", false)) }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -128,14 +128,13 @@ class LaunchActivity : ComponentActivity() {
 }
 
 @Composable
-private fun LaunchGate(onReady: () -> Unit) {
-    var loading by remember { mutableStateOf(true) }
+private fun LaunchGate(onReady: () -> Unit, initialMode: Boolean) {
+    var loading by remember { mutableStateOf(false) }
     var session by remember { mutableStateOf(false) }
     var profile by remember { mutableStateOf<ProfileGate?>(null) }
-    var authMode by remember { mutableStateOf(false) }
+    var authMode by remember { mutableStateOf(initialMode) }
 
     LaunchedEffect(Unit) {
-        delay(180)
         val current = SupabaseClientProvider.client.auth.currentSessionOrNull()
         session = current != null
         if (current != null) {
@@ -551,3 +550,4 @@ private fun ProfileOnboarding(existing: ProfileGate?, onComplete: () -> Unit) {
         }
     }
 }
+// Auth startup polish applied
