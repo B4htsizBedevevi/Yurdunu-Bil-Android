@@ -48,8 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.background
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -72,16 +71,13 @@ class AuthExperienceActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         runCatching { SupabaseClientProvider.client.handleDeeplinks(intent) }
-        val recovery = intent.dataString?.contains("type=recovery", ignoreCase = true) == true ||
-            intent.dataString?.contains("recovery", ignoreCase = true) == true
+        val recovery = intent.dataString?.contains("type=recovery", ignoreCase = true) == true || intent.dataString?.contains("recovery", ignoreCase = true) == true
         setContent {
             AuthExperienceScreen(
                 initialRegister = intent.getBooleanExtra("register", false),
                 recovery = recovery,
                 onDone = {
-                    startActivity(Intent(this, RetentionMainActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    })
+                    startActivity(Intent(this, RetentionMainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK })
                 },
                 onBack = { finish() }
             )
@@ -90,12 +86,7 @@ class AuthExperienceActivity : ComponentActivity() {
 }
 
 @Composable
-private fun AuthExperienceScreen(
-    initialRegister: Boolean,
-    recovery: Boolean,
-    onDone: () -> Unit,
-    onBack: () -> Unit
-) {
+private fun AuthExperienceScreen(initialRegister: Boolean, recovery: Boolean, onDone: () -> Unit, onBack: () -> Unit) {
     var register by remember { mutableStateOf(initialRegister) }
     var forgot by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
@@ -107,28 +98,17 @@ private fun AuthExperienceScreen(
     var message by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
-
     fun clearMessages() { message = null; error = null }
 
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(AuthBg, Color(0xFF0A3029), AuthBg)))) {
-        LazyColumn(
-            Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
+        LazyColumn(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             item {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (forgot || recovery) {
-                        IconButton(onClick = { if (recovery) onBack() else { forgot = false; clearMessages() } }) { Icon(Icons.Default.ArrowBack, "Geri", tint = AuthText) }
-                    } else Spacer(Modifier.width(48.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text("Yurdunu Bil", color = AuthText, fontSize = 28.sp, fontWeight = FontWeight.Black)
-                        Text("KPSS • Türkiye Coğrafyası", color = AuthGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
+                    if (forgot || recovery) IconButton(onClick = { if (recovery) onBack() else { forgot = false; clearMessages() } }) { Icon(Icons.Default.ArrowBack, "Geri", tint = AuthText) } else Spacer(Modifier.width(48.dp))
+                    Column(Modifier.weight(1f)) { Text("Yurdunu Bil", color = AuthText, fontSize = 28.sp, fontWeight = FontWeight.Black); Text("KPSS • Türkiye Coğrafyası", color = AuthGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold) }
                     Icon(Icons.Default.Map, null, tint = AuthGreen)
                 }
             }
-
             if (recovery) {
                 item {
                     AuthCard {
@@ -146,16 +126,12 @@ private fun AuthExperienceScreen(
                                     require(newPassword.length >= 6) { "Şifre en az 6 karakter olmalı." }
                                     require(newPassword == confirmPassword) { "Şifreler aynı olmalı." }
                                     SupabaseClientProvider.client.auth.updateUser { password = newPassword }
-                                }.onSuccess { message = "Şifren güncellendi. Artık yeni şifrenle giriş yapabilirsin." }
-                                    .onFailure { error = friendlyAuthError(it) }
+                                }.onSuccess { message = "Şifren güncellendi. Artık yeni şifrenle giriş yapabilirsin." }.onFailure { error = friendlyAuthError(it) }
                                 busy = false
                             }
                         })
                         AuthMessage(message = message, error = error)
-                        if (message != null) {
-                            Spacer(Modifier.height(8.dp))
-                            TextButton(onClick = onDone) { Text("Uygulamaya devam et", color = AuthGreen, fontWeight = FontWeight.Bold) }
-                        }
+                        if (message != null) { Spacer(Modifier.height(8.dp)); TextButton(onClick = onDone) { Text("Uygulamaya devam et", color = AuthGreen, fontWeight = FontWeight.Bold) } }
                     }
                 }
             } else if (forgot) {
@@ -172,9 +148,7 @@ private fun AuthExperienceScreen(
                                 runCatching {
                                     require(email.contains("@")) { "Geçerli bir e-posta adresi gir." }
                                     SupabaseClientProvider.client.auth.resetPasswordForEmail(email = email.trim(), redirectUrl = "yurdunubil://auth")
-                                }.onSuccess {
-                                    message = "Şifre yenileme bağlantısı e-posta adresine gönderildi. Gelen kutunu ve spam klasörünü kontrol et."
-                                }.onFailure { error = friendlyAuthError(it) }
+                                }.onSuccess { message = "Şifre yenileme bağlantısı e-posta adresine gönderildi. Gelen kutunu ve spam klasörünü kontrol et." }.onFailure { error = friendlyAuthError(it) }
                                 busy = false
                             }
                         })
@@ -185,8 +159,8 @@ private fun AuthExperienceScreen(
                 item {
                     AuthCard {
                         Row(Modifier.fillMaxWidth().background(Color(0xFF17372D), RoundedCornerShape(16.dp)).padding(4.dp)) {
-                            AuthTab(text = "Giriş Yap", selected = !register, modifier = Modifier.weight(1f)) { register = false; clearMessages() }
-                            AuthTab(text = "Yeni Hesap", selected = register, modifier = Modifier.weight(1f)) { register = true; clearMessages() }
+                            AuthTab(text = "Giriş Yap", selected = !register, modifier = Modifier.weight(1f), onClick = { register = false; clearMessages() })
+                            AuthTab(text = "Yeni Hesap", selected = register, modifier = Modifier.weight(1f), onClick = { register = true; clearMessages() })
                         }
                         Spacer(Modifier.height(16.dp))
                         Text(if (register) "KPSS yolculuğuna katıl." else "Kaldığın yerden devam et.", color = AuthText, fontSize = 25.sp, fontWeight = FontWeight.Black)
@@ -194,11 +168,7 @@ private fun AuthExperienceScreen(
                         EmailField(value = email, onValueChange = { email = it; clearMessages() })
                         Spacer(Modifier.height(10.dp))
                         AuthField(label = "Şifre", value = password, onValueChange = { password = it; clearMessages() }, visible = showPassword, toggle = { showPassword = !showPassword })
-                        if (!register) {
-                            TextButton(onClick = { forgot = true; clearMessages() }, modifier = Modifier.align(Alignment.End)) {
-                                Text("Şifremi unuttum", color = AuthGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
+                        if (!register) TextButton(onClick = { forgot = true; clearMessages() }, modifier = Modifier.align(Alignment.End)) { Text("Şifremi unuttum", color = AuthGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                         Spacer(Modifier.height(4.dp))
                         AuthButton(text = if (register) "Hesap Oluştur" else "Giriş Yap", busy = busy, onClick = {
                             scope.launch {
@@ -206,15 +176,10 @@ private fun AuthExperienceScreen(
                                 runCatching {
                                     require(email.contains("@")) { "Geçerli bir e-posta adresi gir." }
                                     require(password.length >= 6) { "Şifre en az 6 karakter olmalı." }
-                                    if (register) {
-                                        SupabaseClientProvider.client.auth.signUpWith(Email) { this.email = email.trim(); this.password = password }
-                                    } else {
-                                        SupabaseClientProvider.client.auth.signInWith(Email) { this.email = email.trim(); this.password = password }
-                                    }
+                                    if (register) SupabaseClientProvider.client.auth.signUpWith(Email) { this.email = email.trim(); this.password = password }
+                                    else SupabaseClientProvider.client.auth.signInWith(Email) { this.email = email.trim(); this.password = password }
                                 }.onSuccess {
-                                    if (register && SupabaseClientProvider.client.auth.currentSessionOrNull() == null) {
-                                        message = "Hesabın oluşturuldu. E-posta kutundaki doğrulama bağlantısını kontrol et."
-                                    } else onDone()
+                                    if (register && SupabaseClientProvider.client.auth.currentSessionOrNull() == null) message = "Hesabın oluşturuldu. E-posta kutundaki doğrulama bağlantısını kontrol et." else onDone()
                                 }.onFailure { error = friendlyAuthError(it) }
                                 busy = false
                             }
@@ -228,44 +193,22 @@ private fun AuthExperienceScreen(
 }
 
 @Composable
-private fun AuthCard(content: @Composable ColumnScope.() -> Unit) {
-    Card(shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = AuthCard)) {
-        Column(Modifier.fillMaxWidth().padding(18.dp), content = content)
-    }
-}
+private fun AuthCard(content: @Composable ColumnScope.() -> Unit) { Card(shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = AuthCard)) { Column(Modifier.fillMaxWidth().padding(18.dp), content = content) } }
 
 @Composable
-private fun EmailField(value: String, onValueChange: (String) -> Unit) {
-    OutlinedTextField(value = value, onValueChange = onValueChange, modifier = Modifier.fillMaxWidth(), label = { Text("E-posta") }, placeholder = { Text("ornek@mail.com") }, leadingIcon = { Icon(Icons.Default.Email, null) }, singleLine = true)
-}
+private fun EmailField(value: String, onValueChange: (String) -> Unit) { OutlinedTextField(value = value, onValueChange = onValueChange, modifier = Modifier.fillMaxWidth(), label = { Text("E-posta") }, placeholder = { Text("ornek@mail.com") }, leadingIcon = { Icon(Icons.Default.Email, null) }, singleLine = true) }
 
 @Composable
-private fun AuthField(label: String, value: String, onValueChange: (String) -> Unit, visible: Boolean, toggle: () -> Unit) {
-    OutlinedTextField(value = value, onValueChange = onValueChange, modifier = Modifier.fillMaxWidth(), label = { Text(label) }, leadingIcon = { Icon(Icons.Default.Lock, null) }, trailingIcon = { IconButton(onClick = toggle) { Icon(if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null) } }, singleLine = true, visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation())
-}
+private fun AuthField(label: String, value: String, onValueChange: (String) -> Unit, visible: Boolean, toggle: () -> Unit) { OutlinedTextField(value = value, onValueChange = onValueChange, modifier = Modifier.fillMaxWidth(), label = { Text(label) }, leadingIcon = { Icon(Icons.Default.Lock, null) }, trailingIcon = { IconButton(onClick = toggle) { Icon(if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null) } }, singleLine = true, visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation()) }
 
 @Composable
-private fun AuthButton(text: String, busy: Boolean, onClick: () -> Unit) {
-    Button(onClick = onClick, enabled = !busy, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = AuthGreen, contentColor = Color(0xFF06251B))) {
-        if (busy) CircularProgressIndicator(modifier = Modifier.size(21.dp), color = Color(0xFF06251B), strokeWidth = 2.dp) else Text(text, fontWeight = FontWeight.Black)
-    }
-}
+private fun AuthButton(text: String, busy: Boolean, onClick: () -> Unit) { Button(onClick = onClick, enabled = !busy, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = AuthGreen, contentColor = Color(0xFF06251B))) { if (busy) CircularProgressIndicator(modifier = Modifier.size(21.dp), color = Color(0xFF06251B), strokeWidth = 2.dp) else Text(text, fontWeight = FontWeight.Black) } }
 
 @Composable
-private fun AuthTab(text: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    Box(modifier = modifier.clip(RoundedCornerShape(13.dp)).background(if (selected) Color.White.copy(alpha = .12f) else Color.Transparent).clickable(onClick = onClick).padding(vertical = 11.dp), contentAlignment = Alignment.Center) {
-        Text(text, color = if (selected) AuthText else AuthMuted, fontSize = 13.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium)
-    }
-}
+private fun AuthTab(text: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) { Box(modifier = modifier.clip(RoundedCornerShape(13.dp)).background(if (selected) Color.White.copy(alpha = .12f) else Color.Transparent).clickable(onClick = onClick).padding(vertical = 11.dp), contentAlignment = Alignment.Center) { Text(text, color = if (selected) AuthText else AuthMuted, fontSize = 13.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium) } }
 
 @Composable
-private fun AuthMessage(message: String?, error: String?) {
-    val value = error ?: message
-    if (value != null) {
-        Spacer(Modifier.height(10.dp))
-        Text(value, color = if (error == null) AuthGreen else Color(0xFFFFB5AD), fontSize = 11.sp)
-    }
-}
+private fun AuthMessage(message: String?, error: String?) { val value = error ?: message; if (value != null) { Spacer(Modifier.height(10.dp)); Text(value, color = if (error == null) AuthGreen else Color(0xFFFFB5AD), fontSize = 11.sp) } }
 
 private fun friendlyAuthError(error: Throwable): String {
     val raw = (error.message ?: "").lowercase()
