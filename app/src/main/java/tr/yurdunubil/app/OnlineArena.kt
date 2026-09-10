@@ -120,13 +120,13 @@ fun OnlineArenaScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("🌐", fontSize = 42.sp)
+            Icon(YBIcons.AvatarCompass, null, tint = green, modifier = Modifier.size(44.dp))
             Spacer(Modifier.height(12.dp))
             Text("Çevrimiçi Arena için giriş yap", color = text, fontSize = 21.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(7.dp))
             Text("Canlı eşleşmelere katılmak, rakip bulmak ve Arena ilerlemeni hesabında saklamak için giriş yapmalısın.", color = muted, fontSize = 12.sp, lineHeight = 18.sp)
             Spacer(Modifier.height(18.dp))
-            Button(onClick = { context.startActivity(Intent(context, LaunchActivity::class.java)) }, colors = ButtonDefaults.buttonColors(containerColor = green), shape = RoundedCornerShape(16.dp)) {
+            Button(onClick = { context.startActivity(Intent(context, AuthExperienceActivity::class.java).putExtra("register", false)) }, colors = ButtonDefaults.buttonColors(containerColor = green), shape = RoundedCornerShape(16.dp)) {
                 Text("Hesapla devam et", color = Color(0xFF06221B), fontWeight = FontWeight.Black)
             }
             Spacer(Modifier.height(8.dp))
@@ -250,7 +250,7 @@ fun OnlineArenaScreen(
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("🔒", fontSize = 13.sp)
+            Icon(YBIcons.AvatarShield, null, tint = green, modifier = Modifier.size(17.dp))
             Spacer(Modifier.width(6.dp))
             Column {
                 Text("Güvenli Arena altyapısı", color = green, fontSize = 10.sp, fontWeight = FontWeight.Black)
