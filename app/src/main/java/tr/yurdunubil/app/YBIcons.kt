@@ -46,7 +46,7 @@ import compose.icons.tablericons.outline.Map as TablerMap
 import compose.icons.tablericons.outline.Swords as TablerSwords
 import compose.icons.tablericons.outline.Target as TablerTarget
 
-/** One product-wide vector language. No user-facing emoji are needed for UI symbols. */
+/** One product-wide vector language. */
 object YBIcons {
     val Back: ImageVector get() = Icons.Default.ArrowBack
     val Home: ImageVector get() = Icons.Default.Home
@@ -63,8 +63,6 @@ object YBIcons {
     val AvatarUser: ImageVector get() = Icons.Default.Person
     val Shield: ImageVector get() = Icons.Default.Shield
     val Explore: ImageVector get() = Icons.Default.Explore
-
-    // Stable avatar catalogue. Only the persisted ID leaves the device.
     val AvatarExplorer: ImageVector get() = Icons.Default.Explore
     val AvatarCompass: ImageVector get() = Icons.Default.TravelExplore
     val AvatarMountain: ImageVector get() = Icons.Default.Terrain
@@ -97,7 +95,6 @@ object YBIcons {
 }
 
 data class YBAvatar(val id: String, val name: String, val icon: ImageVector, val category: AvatarCategory)
-
 enum class AvatarCategory(val label: String) { GEOGRAPHY("Kaşif"), STUDY("Ders"), ARENA("Arena"), NATURE("Doğa"), CHARACTER("Karakter") }
 
 val YBAvatars = listOf(
@@ -109,7 +106,6 @@ val YBAvatars = listOf(
 )
 
 private val legacyAvatarAliases = mapOf("atlas-user" to "face", "atlas-compass" to "compass", "atlas-mountain" to "mountain", "atlas-trees" to "forest", "atlas-cloud" to "cloud", "atlas-flag" to "flag", "atlas-crown" to "crown", "atlas-shield" to "shield", "atlas-rocket" to "rocket", "atlas-cat" to "cat", "atlas-dog" to "face", "atlas-bird" to "face", "atlas-fish" to "water", "atlas-plant" to "park", "atlas-sun" to "sun", "atlas-tent" to "explorer", "atlas-anchor" to "anchor", "atlas-heart" to "heart", "atlas-diamond" to "diamond", "atlas-waves" to "waves")
-
 fun ybAvatar(id: String?): YBAvatar = YBAvatars.firstOrNull { it.id == id } ?: YBAvatars.firstOrNull { it.id == legacyAvatarAliases[id] } ?: YBAvatars.first()
 
 @Composable
