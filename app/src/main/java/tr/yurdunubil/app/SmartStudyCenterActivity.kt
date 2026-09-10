@@ -36,6 +36,7 @@ class SmartStudyCenterActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SmartStudyCenterScreen(onBack: () -> Unit) {
     BackHandler { onBack() }
