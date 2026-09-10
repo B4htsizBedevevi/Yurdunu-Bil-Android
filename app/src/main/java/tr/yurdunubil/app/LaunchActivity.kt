@@ -259,7 +259,7 @@ private fun AuthGate(mode: Boolean, onModeChange: (Boolean) -> Unit, onAuthentic
                         Spacer(Modifier.width(10.dp))
                         Column {
                             Text("Yurdunu Bil", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Black)
-                            Text("Geleceğini Bil.", color = Accent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("Türkiye'yi öğren. Hedefini büyüt.", color = Accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                     Spacer(Modifier.height(13.dp))
@@ -267,7 +267,7 @@ private fun AuthGate(mode: Boolean, onModeChange: (Boolean) -> Unit, onAuthentic
                         Row(Modifier.padding(horizontal = 11.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Map, null, tint = Accent, modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("KPSS • TÜRKİYE COĞRAFYASI", color = AccentSoft, fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = .8.sp)
+                            Text("KPSS • TÜRKİYE COĞRAFYASI • YENİ NESİL", color = AccentSoft, fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = .65.sp)
                         }
                     }
                     Spacer(Modifier.height(18.dp))
@@ -301,7 +301,7 @@ private fun AuthGate(mode: Boolean, onModeChange: (Boolean) -> Unit, onAuthentic
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
+                shape = RoundedCornerShape(30.dp),
                 colors = CardDefaults.cardColors(containerColor = Glass),
                 border = BorderStroke(1.dp, Color.White.copy(alpha = .12f))
             ) {
@@ -379,13 +379,13 @@ private fun AuthGate(mode: Boolean, onModeChange: (Boolean) -> Unit, onAuthentic
                     Button(
                         onClick = { scope.launch { performAuth(mode, email, password, onAuthenticated, { notice = it }, { error = it }, { busy = it }) } },
                         enabled = !busy && ready,
-                        modifier = Modifier.fillMaxWidth().height(57.dp),
+                        modifier = Modifier.fillMaxWidth().height(60.dp),
                         shape = RoundedCornerShape(19.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color(0xFF06251B), disabledContainerColor = Color(0xFF2A4A40))
                     ) {
                         if (busy) CircularProgressIndicator(color = Color(0xFF06251B), strokeWidth = 2.dp, modifier = Modifier.size(22.dp))
                         else {
-                            Text(if (mode) "Hesabımı Oluştur" else "Giriş Yap", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(if (mode) "Haritaya Katıl" else "Devam Et", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
                             Spacer(Modifier.width(8.dp))
                             Icon(Icons.Default.ArrowForward, null)
                         }
@@ -396,13 +396,15 @@ private fun AuthGate(mode: Boolean, onModeChange: (Boolean) -> Unit, onAuthentic
 
         item {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text("Türkiye'yi öğren • Kendini geliştir • Hedefine ilerle", color = Muted, fontSize = 11.sp)
+                Text("Türkiye'yi öğren • Test çöz • Arena'da yarış", color = Muted, fontSize = 11.sp)
                 Spacer(Modifier.height(7.dp))
                 Text("KPSS • COĞRAFYA • ÖĞRENME • YARIŞ", color = Accent.copy(alpha = .88f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = .4.sp)
             }
         }
     }
 }
+
+// AUTH PRESENTATION V2
 
 private suspend fun performAuth(
     mode: Boolean,
