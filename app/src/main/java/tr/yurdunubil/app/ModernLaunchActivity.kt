@@ -69,8 +69,7 @@ private val LaunchMuted = Color(0xFFA5BCB4)
 class ModernLaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val prefs = getSharedPreferences("yurdunu_bil_launch", MODE_PRIVATE)
-        if (prefs.getBoolean("welcome_seen", false)) {
+        if (YBPreferences.hasSeenIntro(this)) {
             openAuth(false)
             return
         }
@@ -83,7 +82,7 @@ class ModernLaunchActivity : ComponentActivity() {
     }
 
     private fun markWelcomeSeen() {
-        getSharedPreferences("yurdunu_bil_launch", MODE_PRIVATE).edit().putBoolean("welcome_seen", true).apply()
+        YBPreferences.markIntroSeen(this)
     }
 
     private fun openAuth(register: Boolean) {
@@ -185,19 +184,13 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
             Spacer(Modifier.weight(1f))
             AnimatedVisibility(visible = contentVisible, enter = fadeIn(tween(650, delayMillis = 250)) + slideInVertically(tween(650, delayMillis = 250)) { it / 4 }) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Button(
-                        onClick = onRegister,
-                        modifier = Modifier.fillMaxWidth().height(57.dp),
-                        shape = RoundedCornerShape(18.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = LaunchGreen, contentColor = LaunchBgTop)
-                    ) { Text("Hemen Keşfet", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold) }
+                    Button(onClick = onRegister, modifier = Modifier.fillMaxWidth().height(57.dp), shape = RoundedCornerShape(18.dp), colors = ButtonDefaults.buttonColors(containerColor = LaunchGreen, contentColor = LaunchBgTop)) {
+                        Text("Hemen Keşfet", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                    }
                     Spacer(Modifier.height(10.dp))
-                    OutlinedButton(
-                        onClick = onLogin,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        shape = RoundedCornerShape(17.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = LaunchText)
-                    ) { Text("Hesabımla devam et", fontWeight = FontWeight.Bold) }
+                    OutlinedButton(onClick = onLogin, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(17.dp), colors = ButtonDefaults.outlinedButtonColors(contentColor = LaunchText)) {
+                        Text("Hesabımla devam et", fontWeight = FontWeight.Bold)
+                    }
                     Spacer(Modifier.height(8.dp))
                     Text("KPSS • COĞRAFYA • ÖĞREN • YARIŞ", color = LaunchMuted.copy(alpha = 0.82f), fontSize = 10.sp, textAlign = TextAlign.Center)
                 }
