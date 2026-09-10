@@ -133,4 +133,4 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
 }
 
 @Composable
-private fun Stat(value: String, label: String) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Text(value, color = LaunchGreen, fontSize = 18.sp, fontWeight = FontWeight.Black); Text(label, color = LaunchMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold) } }
+private fun Stat(value: String, label: String, icon: androidx.compose.ui.graphics.vector.ImageVector) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Icon(icon, null, tint = LaunchGreen, modifier = Modifier.size(18.dp)); Text(value, color = LaunchGreen, fontSize = 13.sp, fontWeight = FontWeight.Black); Text(label, color = LaunchMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold) } }
