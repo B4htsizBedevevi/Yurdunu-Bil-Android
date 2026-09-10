@@ -3,6 +3,7 @@ package tr.yurdunubil.app
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Book
@@ -147,13 +148,19 @@ fun YBGameIcon(
 ) {
     val icon = when {
         id.contains("speed", true) -> YBIcons.Bolt
+        id.contains("mountain", true) -> YBIcons.AvatarMountain
+        id.contains("agriculture", true) -> YBIcons.AvatarPark
+        id.contains("factory", true) -> Icons.Default.Build
+        id.contains("tourism", true) -> YBIcons.AvatarExplorer
+        id.contains("danger", true) -> YBIcons.AvatarShield
+        id.contains("match", true) -> YBIcons.Target
         id.contains("hard", true) || id.contains("master", true) -> YBIcons.Trophy
         id.contains("region", true) || id.contains("agriculture", true) -> YBIcons.Map
         id.contains("duel", true) || id.contains("arena", true) -> YBIcons.Swords
         id.contains("quick", true) || id.contains("chain", true) -> YBIcons.Target
         id.contains("map", true) -> YBIcons.Map
-        id.contains("climate", true) -> YBIcons.Cloud
-        id.contains("water", true) -> YBIcons.AvatarWaves
+        id.contains("climate", true) -> YBIcons.AvatarCloud
+        id.contains("water", true) -> YBIcons.AvatarWater
         id.contains("population", true) -> YBIcons.AvatarTurkey
         id.contains("library", true) || id.contains("study", true) -> YBIcons.Library
         else -> YBIcons.Library
