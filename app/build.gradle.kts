@@ -42,16 +42,11 @@ android {
     }
 
     buildTypes {
-        getByName("debug") {
-            isMinifyEnabled = false
-        }
+        getByName("debug") { isMinifyEnabled = false }
         getByName("release") {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
@@ -65,7 +60,14 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+            // Legacy Compose directional icons are intentionally retained for now;
+            // suppress only the compiler's deprecation diagnostic until migration.
+            freeCompilerArgs.add("-Xsuppress-warning=DEPRECATION")
+        }
+    }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
 }
 
