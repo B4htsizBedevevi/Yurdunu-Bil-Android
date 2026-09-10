@@ -95,8 +95,10 @@ import kotlinx.serialization.json.put
 private val LC = YurdunuBilColors
 private val Ink = Color(0xFFF5FAF7)
 private val Muted = Color(0xFFB8C9C2)
-private val Glass = Color(0xFF10241E).copy(alpha = 0.88f)
+private val Glass = Color(0xFF0B211B).copy(alpha = 0.92f)
+private val GlassSoft = Color(0xFF17372D).copy(alpha = .62f)
 private val Accent = Color(0xFF35E7A1)
+private val AccentSoft = Color(0xFFBDF7DF)
 
 @Serializable
 data class ProfileGate(
@@ -166,28 +168,28 @@ private fun LoginAtmosphere() {
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(Color(0xFF061A20), Color(0xFF0A3029), Color(0xFF051511))
+                    listOf(Color(0xFF041712), Color(0xFF0A3029), Color(0xFF03100C))
                 )
             )
     ) {
         val w = size.width
         val h = size.height
-        drawCircle(Color(0xFF19D995).copy(alpha = .12f), w * .65f, androidx.compose.ui.geometry.Offset(w * .82f, h * .07f))
-        drawCircle(Color(0xFF3E8FA3).copy(alpha = .13f), w * .54f, androidx.compose.ui.geometry.Offset(w * .02f, h * .42f))
-        drawCircle(Color(0xFFD7B45A).copy(alpha = .06f), w * .48f, androidx.compose.ui.geometry.Offset(w * .98f, h * .83f))
+        drawCircle(Color(0xFF19D995).copy(alpha = .13f), w * .68f, androidx.compose.ui.geometry.Offset(w * .84f, h * .06f))
+        drawCircle(Color(0xFF3E8FA3).copy(alpha = .10f), w * .54f, androidx.compose.ui.geometry.Offset(w * .02f, h * .39f))
+        drawCircle(Color(0xFFD7B45A).copy(alpha = .05f), w * .48f, androidx.compose.ui.geometry.Offset(w * .98f, h * .86f))
 
         val map = Path().apply {
-            moveTo(w * .12f, h * .27f)
-            lineTo(w * .20f, h * .22f)
+            moveTo(w * .10f, h * .27f)
+            lineTo(w * .20f, h * .21f)
             lineTo(w * .31f, h * .24f)
-            lineTo(w * .39f, h * .20f)
+            lineTo(w * .40f, h * .20f)
             lineTo(w * .51f, h * .23f)
-            lineTo(w * .62f, h * .19f)
-            lineTo(w * .74f, h * .24f)
+            lineTo(w * .63f, h * .19f)
+            lineTo(w * .75f, h * .24f)
             lineTo(w * .87f, h * .22f)
             lineTo(w * .91f, h * .31f)
-            lineTo(w * .83f, h * .36f)
-            lineTo(w * .72f, h * .34f)
+            lineTo(w * .82f, h * .36f)
+            lineTo(w * .71f, h * .34f)
             lineTo(w * .64f, h * .39f)
             lineTo(w * .51f, h * .35f)
             lineTo(w * .39f, h * .40f)
@@ -195,8 +197,8 @@ private fun LoginAtmosphere() {
             lineTo(w * .17f, h * .39f)
             close()
         }
-        drawPath(map, Accent.copy(alpha = .08f))
-        drawPath(map, Accent.copy(alpha = .28f), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.5f, cap = StrokeCap.Round))
+        drawPath(map, Accent.copy(alpha = .07f))
+        drawPath(map, Accent.copy(alpha = .25f), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.5f, cap = StrokeCap.Round))
 
         val horizon = Path().apply {
             moveTo(0f, h * .70f)
@@ -211,8 +213,8 @@ private fun LoginAtmosphere() {
             lineTo(0f, h)
             close()
         }
-        drawPath(horizon, Color(0xFF061712).copy(alpha = .82f))
-        drawPath(horizon, Color(0xFF4B9B76).copy(alpha = .20f), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f))
+        drawPath(horizon, Color(0xFF05120E).copy(alpha = .84f))
+        drawPath(horizon, Color(0xFF4B9B76).copy(alpha = .17f), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f))
 
         listOf(.18f to .25f, .33f to .29f, .49f to .24f, .66f to .30f, .81f to .27f).forEach { (x, y) ->
             drawCircle(Accent.copy(alpha = .48f), 4f, androidx.compose.ui.geometry.Offset(w * x, h * y))
@@ -242,11 +244,12 @@ private fun AuthGate(mode: Boolean, onModeChange: (Boolean) -> Unit, onAuthentic
     var notice by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val ready = email.contains("@") && password.length >= 6
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 22.dp),
-        verticalArrangement = Arrangement.spacedBy(15.dp)
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
             AnimatedVisibility(visible = true, enter = fadeIn() + slideInVertically(initialOffsetY = { -35 })) {
@@ -255,24 +258,32 @@ private fun AuthGate(mode: Boolean, onModeChange: (Boolean) -> Unit, onAuthentic
                         LogoMark()
                         Spacer(Modifier.width(10.dp))
                         Column {
-                            Text("Yurdunu Bil", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                            Text("Yurdunu Bil", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Black)
                             Text("Geleceğini Bil.", color = Accent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                     }
-                    Spacer(Modifier.height(22.dp))
+                    Spacer(Modifier.height(13.dp))
+                    Surface(color = Accent.copy(alpha = .09f), shape = RoundedCornerShape(50), border = BorderStroke(1.dp, Accent.copy(alpha = .16f))) {
+                        Row(Modifier.padding(horizontal = 11.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Map, null, tint = Accent, modifier = Modifier.size(14.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("KPSS • TÜRKİYE COĞRAFYASI", color = AccentSoft, fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = .8.sp)
+                        }
+                    }
+                    Spacer(Modifier.height(18.dp))
                     Text(
-                        if (mode) "Türkiye'yi keşfetmeye başla." else "Kamu kariyerine giden yolda kendini geliştir.",
+                        if (mode) "KPSS yolculuğuna katıl." else "Kaldığın yerden devam et.",
                         color = Ink,
-                        fontSize = 27.sp,
-                        lineHeight = 32.sp,
+                        fontSize = 28.sp,
+                        lineHeight = 33.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        "Coğrafyayı öğren, netlerini artır, hedeflerine adım adım ilerle.",
+                        "Konuları öğren, testlerle pekiştir ve ilerlemeni adım adım takip et.",
                         color = Muted,
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp
                     )
                 }
             }
@@ -290,36 +301,40 @@ private fun AuthGate(mode: Boolean, onModeChange: (Boolean) -> Unit, onAuthentic
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(30.dp),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(containerColor = Glass),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = .13f))
+                border = BorderStroke(1.dp, Color.White.copy(alpha = .12f))
             ) {
                 Column(Modifier.fillMaxWidth().padding(18.dp)) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Color.White.copy(alpha = .055f)).padding(5.dp),
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(GlassSoft).padding(5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         AuthTab("Giriş Yap", selected = !mode, modifier = Modifier.weight(1f)) { onModeChange(false); error = null; notice = null }
                         AuthTab("Yeni Hesap", selected = mode, modifier = Modifier.weight(1f)) { onModeChange(true); error = null; notice = null }
                     }
-                    Spacer(Modifier.height(18.dp))
+                    Spacer(Modifier.height(17.dp))
 
+                    Text("E-POSTA", color = Accent.copy(alpha = .84f), fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = 1.1.sp)
+                    Spacer(Modifier.height(5.dp))
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it.trimStart(); error = null; notice = null },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("E-posta") },
+                        placeholder = { Text("ornek@mail.com") },
                         leadingIcon = { Icon(Icons.Default.Email, null) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                         colors = loginFieldColors()
                     )
-                    Spacer(Modifier.height(11.dp))
+                    Spacer(Modifier.height(12.dp))
+                    Text("ŞİFRE", color = Accent.copy(alpha = .84f), fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = 1.1.sp)
+                    Spacer(Modifier.height(5.dp))
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it; error = null; notice = null },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Şifre") },
+                        placeholder = { Text("En az 6 karakter") },
                         leadingIcon = { Icon(Icons.Default.Lock, null) },
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -330,59 +345,60 @@ private fun AuthGate(mode: Boolean, onModeChange: (Boolean) -> Unit, onAuthentic
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = {
-                            if (!busy && email.contains("@") && password.length >= 6) {
+                            if (!busy && ready) {
                                 scope.launch { performAuth(mode, email, password, onAuthenticated, { notice = it }, { error = it }, { busy = it }) }
                             }
                         }),
                         colors = loginFieldColors()
                     )
 
-                    Spacer(Modifier.height(10.dp))
+                    AnimatedVisibility(visible = password.isNotEmpty() && password.length < 6, enter = fadeIn()) {
+                        Text("Şifre en az 6 karakter olmalı.", color = Color(0xFFFFC2BA), fontSize = 10.sp, modifier = Modifier.padding(top = 5.dp))
+                    }
+
+                    Spacer(Modifier.height(8.dp))
                     AnimatedContent(targetState = error ?: notice, label = "auth-message") { message ->
                         if (message != null) {
                             val good = notice != null && error == null
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.CheckCircle, null, tint = if (good) Accent else Color(0xFFFF9B91), modifier = Modifier.size(17.dp))
                                 Spacer(Modifier.width(7.dp))
-                                Text(message, color = if (good) Color(0xFFBDF7DF) else Color(0xFFFFB5AD), fontSize = 12.sp, lineHeight = 17.sp)
+                                Text(message, color = if (good) AccentSoft else Color(0xFFFFB5AD), fontSize = 11.sp, lineHeight = 17.sp)
                             }
                         } else {
-                            Spacer(Modifier.height(17.dp))
+                            Text(
+                                if (mode) "Kayıt sonrası e-posta doğrulaması istenebilir." else "Bilgilerin cihazında değil, hesabında saklanır.",
+                                color = Muted,
+                                fontSize = 10.sp,
+                                lineHeight = 16.sp
+                            )
                         }
                     }
 
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(10.dp))
                     Button(
                         onClick = { scope.launch { performAuth(mode, email, password, onAuthenticated, { notice = it }, { error = it }, { busy = it }) } },
-                        enabled = !busy && email.contains("@") && password.length >= 6,
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        enabled = !busy && ready,
+                        modifier = Modifier.fillMaxWidth().height(57.dp),
                         shape = RoundedCornerShape(19.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color(0xFF06251B), disabledContainerColor = Color(0xFF2A4A40))
                     ) {
                         if (busy) CircularProgressIndicator(color = Color(0xFF06251B), strokeWidth = 2.dp, modifier = Modifier.size(22.dp))
                         else {
-                            Text(if (mode) "Hesap Oluştur" else "Giriş Yap", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(if (mode) "Hesabımı Oluştur" else "Giriş Yap", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
                             Spacer(Modifier.width(8.dp))
                             Icon(Icons.Default.ArrowForward, null)
                         }
                     }
-                    Spacer(Modifier.height(13.dp))
-                    Text(
-                        if (mode) "Hesap oluşturduktan sonra e-posta doğrulaman istenebilir." else "Yeni Android hesabın yoksa önce Yeni Hesap'a dokun.",
-                        color = Muted,
-                        fontSize = 11.sp,
-                        lineHeight = 16.sp,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
                 }
             }
         }
 
         item {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text("Türkiye'yi öğren • Kendini geliştir • Hedefine ilerle", color = Muted, fontSize = 12.sp)
-                Spacer(Modifier.height(8.dp))
-                Text("KPSS • Coğrafya • Öğrenme • Yarış", color = Accent.copy(alpha = .9f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text("Türkiye'yi öğren • Kendini geliştir • Hedefine ilerle", color = Muted, fontSize = 11.sp)
+                Spacer(Modifier.height(7.dp))
+                Text("KPSS • COĞRAFYA • ÖĞRENME • YARIŞ", color = Accent.copy(alpha = .88f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = .4.sp)
             }
         }
     }
@@ -469,6 +485,8 @@ private fun loginFieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedLeadingIconColor = Muted,
     focusedTrailingIconColor = Accent,
     unfocusedTrailingIconColor = Muted,
+    focusedContainerColor = Color.White.copy(alpha = .045f),
+    unfocusedContainerColor = Color.White.copy(alpha = .025f)
 )
 
 @Composable
@@ -550,4 +568,3 @@ private fun ProfileOnboarding(existing: ProfileGate?, onComplete: () -> Unit) {
         }
     }
 }
-// Auth startup polish applied
