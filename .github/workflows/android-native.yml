@@ -18,6 +18,11 @@ jobs:
     name: Build Android
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      YB_KEYSTORE_BASE64: ${{ secrets.YB_KEYSTORE_BASE64 }}
+      YB_KEYSTORE_PASSWORD: ${{ secrets.YB_KEYSTORE_PASSWORD }}
+      YB_KEY_ALIAS: ${{ secrets.YB_KEY_ALIAS }}
+      YB_KEY_PASSWORD: ${{ secrets.YB_KEY_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,6 +53,17 @@ jobs:
           name: yurdunu-bil-v0.5.4-test
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      - name: Prepare release signing when configured
+        shell: bash
+        run: |
+          if [[ -n "$YB_KEYSTORE_BASE64" && -n "$YB_KEYSTORE_PASSWORD" && -n "$YB_KEY_ALIAS" && -n "$YB_KEY_PASSWORD" ]]; then
+            echo "$YB_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/yurdunu-bil-release.jks"
+            echo "YB_KEYSTORE_FILE=$RUNNER_TEMP/yurdunu-bil-release.jks" >> "$GITHUB_ENV"
+            echo "Release signing configured."
+          else
+            echo "Release signing secrets not configured; building unsigned release AAB."
+          fi
 
       - name: Build release AAB
         run: gradle --no-daemon :app:bundleRelease
