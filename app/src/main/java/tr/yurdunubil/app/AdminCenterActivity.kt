@@ -1,9 +1,9 @@
 package tr.yurdunubil.app
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,13 +49,13 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.serialization.Serializable
 
-class AdminCenterActivity : Activity() {
+class AdminCenterActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); setContent { AdminCenterScreen(onBack = { finish() }) } }
 }
 
 @Serializable data class AdminProfileRow(val role: String? = null, val username: String? = null)
 
-@androidx.compose.runtime.Composable
+@Composable
 private fun AdminCenterScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val client = remember { SupabaseClientProvider.client }
@@ -82,7 +84,7 @@ private fun AdminCenterScreen(onBack: () -> Unit) {
     }
 }
 
-@androidx.compose.runtime.Composable
+@Composable
 private fun AdminCard(emoji: String, title: String, body: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
     Card(Modifier.padding(horizontal = 16.dp).fillMaxWidth().clickable(onClick = onClick), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
         Row(Modifier.padding(17.dp), verticalAlignment = Alignment.CenterVertically) { Text(emoji, fontSize = 26.sp); Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text(title, fontSize = 16.sp, fontWeight = FontWeight.Black); Text(body, color = Color.Gray, fontSize = 11.sp) }; Icon(icon, null, tint = Color(0xFF18A878)) }
