@@ -41,3 +41,30 @@ jobs:
           name: yurdunu-bil-v0.5.4-test
           path: app/build/outputs/apk/debug/yurdunu-bil-v0.5.4-test.apk
           if-no-files-found: error
+
+      # Release/AAB path. If signing secrets are configured, this produces a
+      # Play-Store-ready signed AAB. Without them, CI still verifies that the
+      # release bundle can be assembled and uploads the unsigned bundle.
+      - name: Prepare release signing
+        if: ${{ secrets.YB_KEYSTORE_BASE64 != '' }}
+        env:
+          YB_KEYSTORE_BASE64: ${{ secrets.YB_KEYSTORE_BASE64 }}
+        run: |
+          echo "$YB_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/yurdunu-bil-release.jks"
+          echo "YB_KEYSTORE_FILE=$RUNNER_TEMP/yurdunu-bil-release.jks" >> "$GITHUB_ENV"
+          echo "YB_KEYSTORE_PASSWORD=${{ secrets.YB_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "YB_KEY_ALIAS=${{ secrets.YB_KEY_ALIAS }}" >> "$GITHUB_ENV"
+          echo "YB_KEY_PASSWORD=${{ secrets.YB_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+
+      - name: Build release AAB
+        run: gradle --no-daemon :app:bundleRelease
+
+      - name: Prepare release AAB
+        run: cp app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/yurdunu-bil-v0.5.4.aab
+
+      - name: Upload release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: yurdunu-bil-v0.5.4-aab
+          path: app/build/outputs/bundle/release/yurdunu-bil-v0.5.4.aab
+          if-no-files-found: error
