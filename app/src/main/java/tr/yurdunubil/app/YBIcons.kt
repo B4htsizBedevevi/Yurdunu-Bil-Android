@@ -8,6 +8,8 @@ import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Whatshot
@@ -16,31 +18,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import compose.icons.tablericons.OutlineGroup
-import compose.icons.tablericons.outline.Anchor
-import compose.icons.tablericons.outline.Cat
-import compose.icons.tablericons.outline.Compass
-import compose.icons.tablericons.outline.Crown
-import compose.icons.tablericons.outline.Diamond
-import compose.icons.tablericons.outline.Dog
-import compose.icons.tablericons.outline.Fish
-import compose.icons.tablericons.outline.Flag
-import compose.icons.tablericons.outline.Heart
-import compose.icons.tablericons.outline.Map
-import compose.icons.tablericons.outline.Mountain
-import compose.icons.tablericons.outline.Rocket
-import compose.icons.tablericons.outline.Shield
-import compose.icons.tablericons.outline.Sun
 import compose.icons.tablericons.outline.Swords
 import compose.icons.tablericons.outline.Target
-import compose.icons.tablericons.outline.Tent
-import compose.icons.tablericons.outline.Trees
-import compose.icons.tablericons.outline.User
-/** Product-wide icon language for Yurdunu Bil. All user-facing symbols are vector icons, not emoji. */
+
+/** Product-wide icon language. User-facing symbols are vectors, not emoji. */
 object YBIcons {
     val Back: ImageVector get() = Icons.Default.ArrowBack
     val Home: ImageVector get() = Icons.Default.Home
     val Target: ImageVector get() = OutlineGroup.Target
-    val Map: ImageVector get() = OutlineGroup.Map
+    val Map: ImageVector get() = Icons.Default.Map
     val Swords: ImageVector get() = OutlineGroup.Swords
     val Trophy: ImageVector get() = Icons.Default.EmojiEvents
     val Star: ImageVector get() = Icons.Default.Star
@@ -50,27 +36,27 @@ object YBIcons {
     val Tip: ImageVector get() = Icons.Default.Lightbulb
     val Settings: ImageVector get() = Icons.Default.Settings
 
-    // Stable avatar set. IDs are persisted in profiles.avatar_id so the visual never changes between builds.
-    val AvatarUser: ImageVector get() = OutlineGroup.User
-    val AvatarCompass: ImageVector get() = OutlineGroup.Compass
-    val AvatarMountain: ImageVector get() = OutlineGroup.Mountain
-    val AvatarTrees: ImageVector get() = OutlineGroup.Trees
-    val AvatarCloudSun: ImageVector get() = OutlineGroup.Sun
-    val AvatarFlag: ImageVector get() = OutlineGroup.Flag
-    val AvatarCrown: ImageVector get() = OutlineGroup.Crown
-    val AvatarShield: ImageVector get() = OutlineGroup.Shield
-    val AvatarRocket: ImageVector get() = OutlineGroup.Rocket
-    val AvatarCat: ImageVector get() = OutlineGroup.Cat
-    val AvatarDog: ImageVector get() = OutlineGroup.Dog
-    val AvatarBird: ImageVector get() = OutlineGroup.Rocket
-    val AvatarFish: ImageVector get() = OutlineGroup.Fish
-    val AvatarPlant: ImageVector get() = OutlineGroup.Trees
-    val AvatarSun: ImageVector get() = OutlineGroup.Sun
-    val AvatarTent: ImageVector get() = OutlineGroup.Tent
-    val AvatarAnchor: ImageVector get() = OutlineGroup.Anchor
-    val AvatarHeart: ImageVector get() = OutlineGroup.Heart
-    val AvatarDiamond: ImageVector get() = OutlineGroup.Diamond
-    val AvatarWaves: ImageVector get() = OutlineGroup.Map
+    // Stable avatar catalogue. IDs are persisted in profiles.avatar_id.
+    val AvatarUser: ImageVector get() = Icons.Default.Person
+    val AvatarCompass: ImageVector get() = OutlineGroup.Target
+    val AvatarMountain: ImageVector get() = Icons.Default.Map
+    val AvatarTrees: ImageVector get() = Icons.Default.Home
+    val AvatarCloudSun: ImageVector get() = Icons.Default.Star
+    val AvatarFlag: ImageVector get() = Icons.Default.Map
+    val AvatarCrown: ImageVector get() = Icons.Default.EmojiEvents
+    val AvatarShield: ImageVector get() = Icons.Default.Settings
+    val AvatarRocket: ImageVector get() = Icons.Default.Bolt
+    val AvatarCat: ImageVector get() = Icons.Default.Person
+    val AvatarDog: ImageVector get() = Icons.Default.Person
+    val AvatarBird: ImageVector get() = Icons.Default.Bolt
+    val AvatarFish: ImageVector get() = OutlineGroup.Swords
+    val AvatarPlant: ImageVector get() = Icons.Default.Home
+    val AvatarSun: ImageVector get() = Icons.Default.Whatshot
+    val AvatarTent: ImageVector get() = Icons.Default.Home
+    val AvatarAnchor: ImageVector get() = OutlineGroup.Swords
+    val AvatarHeart: ImageVector get() = Icons.Default.Star
+    val AvatarDiamond: ImageVector get() = Icons.Default.EmojiEvents
+    val AvatarWaves: ImageVector get() = Icons.Default.Map
 }
 
 data class YBAvatar(val id: String, val name: String, val icon: ImageVector)
