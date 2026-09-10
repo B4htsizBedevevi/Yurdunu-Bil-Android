@@ -44,8 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -58,7 +57,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 
 private val LaunchBgTop = Color(0xFF041713)
 private val LaunchBgMid = Color(0xFF07352A)
@@ -67,20 +65,30 @@ private val LaunchGreen = Color(0xFF27D996)
 private val LaunchText = Color(0xFFF2FBF7)
 private val LaunchMuted = Color(0xFFA5BCB4)
 
-/** Crash-safe launcher. Startup remains local-only: no database, auth or network work. */
+/** First-run welcome screen. Subsequent launches go directly to the real auth/session gate. */
 class ModernLaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val prefs = getSharedPreferences("yurdunu_bil_launch", MODE_PRIVATE)
+        if (prefs.getBoolean("welcome_seen", false)) {
+            openAuth(false)
+            return
+        }
         setContent {
             SafeLaunchScreen(
-                onRegister = { openAuth(true) },
-                onLogin = { openAuth(false) }
+                onRegister = { markWelcomeSeen(); openAuth(true) },
+                onLogin = { markWelcomeSeen(); openAuth(false) }
             )
         }
     }
 
+    private fun markWelcomeSeen() {
+        getSharedPreferences("yurdunu_bil_launch", MODE_PRIVATE).edit().putBoolean("welcome_seen", true).apply()
+    }
+
     private fun openAuth(register: Boolean) {
         startActivity(Intent(this, ModernAuthActivity::class.java).putExtra("register", register))
+        finish()
     }
 }
 
@@ -103,10 +111,7 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
         label = "logoScale"
     )
 
-    LaunchedEffect(Unit) {
-        delay(120)
-        contentVisible = true
-    }
+    LaunchedEffect(Unit) { contentVisible = true }
 
     Box(
         modifier = Modifier
@@ -116,7 +121,6 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
             .navigationBarsPadding()
             .padding(horizontal = 20.dp, vertical = 18.dp)
     ) {
-        // Geography-inspired contour lines: calmer and more meaningful than floating circles.
         Canvas(Modifier.fillMaxSize()) {
             repeat(10) { index ->
                 val y = size.height * (.08f + index * .083f)
@@ -130,21 +134,11 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
             drawCircle(LaunchGreen.copy(alpha = .05f), radius = 2.5f, center = Offset(size.width * .88f, size.height * .78f))
         }
 
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             Spacer(Modifier.height(22.dp))
-
-            AnimatedVisibility(
-                visible = contentVisible,
-                enter = fadeIn(tween(700)) + scaleIn(tween(700), initialScale = 0.72f)
-            ) {
+            AnimatedVisibility(visible = contentVisible, enter = fadeIn(tween(700)) + scaleIn(tween(700), initialScale = 0.72f)) {
                 Box(
-                    modifier = Modifier
-                        .size(104.dp)
-                        .scale(logoScale)
-                        .clip(RoundedCornerShape(31.dp))
+                    modifier = Modifier.size(104.dp).scale(logoScale).clip(RoundedCornerShape(31.dp))
                         .background(LaunchGreen.copy(alpha = glowAlpha))
                         .border(1.dp, LaunchGreen.copy(alpha = 0.55f), RoundedCornerShape(31.dp)),
                     contentAlignment = Alignment.Center
@@ -158,10 +152,7 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
                 }
             }
 
-            AnimatedVisibility(
-                visible = contentVisible,
-                enter = fadeIn(tween(550, delayMillis = 180)) + slideInVertically(tween(550, delayMillis = 180)) { it / 3 }
-            ) {
+            AnimatedVisibility(visible = contentVisible, enter = fadeIn(tween(550, delayMillis = 120)) + slideInVertically(tween(550, delayMillis = 120)) { it / 3 }) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Spacer(Modifier.height(14.dp))
                     Text("Yurdunu Bil", color = LaunchText, fontSize = 31.sp, fontWeight = FontWeight.Black)
@@ -172,17 +163,12 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
                     Spacer(Modifier.height(10.dp))
                     Text(
                         "KPSS'ye hazırlanırken Türkiye'yi daha iyi tanı. Konuları öğren, testlerle pekiştir, günlük görevlerini tamamla ve Arena'da kendini dene.",
-                        color = LaunchMuted,
-                        fontSize = 13.sp,
-                        lineHeight = 19.sp,
-                        textAlign = TextAlign.Center,
+                        color = LaunchMuted, fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(22.dp))
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(20.dp))
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp))
                             .background(Color.White.copy(alpha = 0.055f))
                             .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(20.dp))
                             .padding(vertical = 15.dp),
@@ -197,11 +183,7 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
             }
 
             Spacer(Modifier.weight(1f))
-
-            AnimatedVisibility(
-                visible = contentVisible,
-                enter = fadeIn(tween(650, delayMillis = 300)) + slideInVertically(tween(650, delayMillis = 300)) { it / 4 }
-            ) {
+            AnimatedVisibility(visible = contentVisible, enter = fadeIn(tween(650, delayMillis = 250)) + slideInVertically(tween(650, delayMillis = 250)) { it / 4 }) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Button(
                         onClick = onRegister,
@@ -217,12 +199,7 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = LaunchText)
                     ) { Text("Hesabımla devam et", fontWeight = FontWeight.Bold) }
                     Spacer(Modifier.height(8.dp))
-                    Text(
-                        "KPSS • COĞRAFYA • ÖĞREN • YARIŞ",
-                        color = LaunchMuted.copy(alpha = 0.82f),
-                        fontSize = 10.sp,
-                        textAlign = TextAlign.Center
-                    )
+                    Text("KPSS • COĞRAFYA • ÖĞREN • YARIŞ", color = LaunchMuted.copy(alpha = 0.82f), fontSize = 10.sp, textAlign = TextAlign.Center)
                 }
             }
         }
