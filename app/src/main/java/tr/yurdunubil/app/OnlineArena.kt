@@ -2,7 +2,6 @@ package tr.yurdunubil.app
 
 import android.content.Intent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -19,8 +18,9 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 
 @Serializable
 data class ArenaQueueRow(
@@ -49,13 +49,13 @@ object OnlineArenaRepository {
     fun signedIn(): Boolean = client.auth.currentSessionOrNull() != null
 
     suspend fun queue(mode: String): ArenaQueueRow = client.postgrest
-        .rpc("enqueue_arena", kotlinx.serialization.json.buildJsonObject {
-            put("p_mode", mode)
+        .rpc("enqueue_arena", buildJsonObject {
+            put("p_mode", JsonPrimitive(mode))
         }).decodeSingle()
 
     suspend fun tryMatch(mode: String): ArenaMatchRow = client.postgrest
-        .rpc("try_match_arena", kotlinx.serialization.json.buildJsonObject {
-            put("p_mode", mode)
+        .rpc("try_match_arena", buildJsonObject {
+            put("p_mode", JsonPrimitive(mode))
         }).decodeSingle()
 
     suspend fun leaveQueue() {
@@ -63,8 +63,8 @@ object OnlineArenaRepository {
     }
 
     suspend fun markReady(matchId: String) {
-        client.postgrest.rpc("mark_arena_ready", kotlinx.serialization.json.buildJsonObject {
-            put("p_match_id", matchId)
+        client.postgrest.rpc("mark_arena_ready", buildJsonObject {
+            put("p_match_id", JsonPrimitive(matchId))
         })
     }
 }
@@ -84,7 +84,6 @@ fun OnlineArenaScreen(
     val green = Color(0xFF18C986)
     val gold = Color(0xFFFFC857)
     var searching by remember { mutableStateOf(false) }
-    var queue by remember { mutableStateOf<ArenaQueueRow?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var matched by remember { mutableStateOf<ArenaMatchRow?>(null) }
 
@@ -92,14 +91,14 @@ fun OnlineArenaScreen(
         if (!searching) return@LaunchedEffect
         while (searching && matched == null) {
             try {
-                matched = OnlineArenaRepository.tryMatch(mode.id)
-                if (matched != null) {
-                    searching = false
-                    onMatched(matched!!.id)
-                    break
-                }
-            } catch (_: Exception) { }
-            delay(1800)
+                val result = OnlineArenaRepository.tryMatch(mode.id)
+                matched = result
+                searching = false
+                onMatched(result.id)
+                break
+            } catch (_: Exception) {
+                delay(1800L)
+            }
         }
     }
 
@@ -168,8 +167,12 @@ fun OnlineArenaScreen(
                         error = null
                         searching = true
                         scope.launch {
-                            try { queue = OnlineArenaRepository.queue(mode.id) }
-                            catch (e: Exception) { searching = false; error = e.message ?: "Arena kuyruğuna bağlanılamadı." }
+                            try {
+                                OnlineArenaRepository.queue(mode.id)
+                            } catch (e: Exception) {
+                                searching = false
+                                error = e.message ?: "Arena kuyruğuna bağlanılamadı."
+                            }
                         }
                     },
                     enabled = !searching,
