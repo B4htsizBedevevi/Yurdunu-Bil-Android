@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,9 +35,9 @@ fun HomePulseCard(prefs: SharedPreferences, darkMode: Boolean, onQuiz: () -> Uni
             Spacer(Modifier.height(4.dp))
             Text("Sıkılmadan ilerle: 3 küçük hamle.", color = text, fontSize = 16.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(10.dp))
-            HomePulseRow("⚡", "10 soru", if (solved > 0) "Toplam $solved soru çözdün." else "Hızlı 10 ile ritmi başlat.", onQuiz, text, muted, Color(0xFF18C986))
-            HomePulseRow("📚", "1 konu kartı", "Bir konuyu hızlıca tekrar et.", onLibrary, text, muted, Color(0xFF5AA8FF))
-            HomePulseRow("⚔️", "Arena", if (streak > 0) "$streak günlük serin var. Şimdi düelloya gir." else "Rakip bul ve ilk Arena maçını dene.", onArena, text, muted, Color(0xFFFFC857))
+            HomePulseRow(YBIcons.Bolt, "10 soru", if (solved > 0) "Toplam $solved soru çözdün." else "Hızlı 10 ile ritmi başlat.", onQuiz, text, muted, Color(0xFF18C986))
+            HomePulseRow(YBIcons.Library, "1 konu kartı", "Bir konuyu hızlıca tekrar et.", onLibrary, text, muted, Color(0xFF5AA8FF))
+            HomePulseRow(YBIcons.Swords, "Arena", if (streak > 0) "$streak günlük serin var. Şimdi düelloya gir." else "Rakip bul ve ilk Arena maçını dene.", onArena, text, muted, Color(0xFFFFC857))
             if (dailyDone) {
                 Spacer(Modifier.height(4.dp))
                 Text("✓ Bugünün görevi tamamlandı. Yarın yeni rota açılacak.", color = Color(0xFF18C986), fontSize = 9.sp, fontWeight = FontWeight.Bold)
@@ -46,10 +47,10 @@ fun HomePulseCard(prefs: SharedPreferences, darkMode: Boolean, onQuiz: () -> Uni
 }
 
 @Composable
-private fun HomePulseRow(icon: String, title: String, subtitle: String, onClick: () -> Unit, text: Color, muted: Color, accent: Color) {
+private fun HomePulseRow(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: () -> Unit, text: Color, muted: Color, accent: Color) {
     Row(Modifier.fillMaxWidth().background(accent.copy(alpha = .08f), RoundedCornerShape(13.dp))) {
         Column(Modifier.padding(horizontal = 11.dp, vertical = 9.dp).weight(1f)) {
-            Row { Text(icon, fontSize = 17.sp); Spacer(Modifier.width(8.dp)); Text(title, color = text, fontSize = 12.sp, fontWeight = FontWeight.Black) }
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) { Icon(icon, null, tint = accent, modifier = Modifier.size(17.dp)); Spacer(Modifier.width(8.dp)); Text(title, color = text, fontSize = 12.sp, fontWeight = FontWeight.Black) }
             Spacer(Modifier.height(2.dp))
             Text(subtitle, color = muted, fontSize = 9.sp, maxLines = 1)
         }
