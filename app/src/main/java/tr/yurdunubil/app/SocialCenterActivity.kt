@@ -191,7 +191,7 @@ private fun SocialCenterScreen(onBack: () -> Unit) {
                         items(notifications, key = { notification -> notification.id }) { notification ->
                             Card(Modifier.fillMaxWidth().clickable { scope.launch { runCatching { SocialRepository.markRead(notification.id) }; refresh(false) } }, shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = if (notification.read_at == null) card2 else card)) {
                                 Row(Modifier.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Text(notificationEmoji(notification.type), fontSize = 26.sp)
+                                    Icon(notificationIcon(notification.type), null, tint = green, modifier = Modifier.size(28.dp))
                                     Spacer(Modifier.width(11.dp))
                                     Column(Modifier.weight(1f)) {
                                         Text(notification.title, color = text, fontWeight = FontWeight.Black, fontSize = 14.sp)
@@ -240,7 +240,7 @@ private fun FriendRequestCard(request: IncomingFriendRequestRow, card: Color, te
 private fun UserCard(user: SocialUserRow, card: Color, text: Color, muted: Color, green: Color, onAdd: () -> Unit) {
     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = card)) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("👤", fontSize = 25.sp); Spacer(Modifier.width(10.dp))
+            Icon(ybAvatar(user.avatar_id).icon, null, tint = green, modifier = Modifier.size(28.dp)); Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
                 Text(user.display_name?.takeIf { value -> value.isNotBlank() } ?: (user.username ?: "Kullanıcı"), color = text, fontWeight = FontWeight.Black)
                 Text("@${user.username ?: "kullanici"}", color = muted, fontSize = 11.sp)
@@ -254,7 +254,7 @@ private fun UserCard(user: SocialUserRow, card: Color, text: Color, muted: Color
 private fun FriendCard(friend: FriendRow, card: Color, text: Color, muted: Color, green: Color) {
     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = card)) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("🧭", fontSize = 25.sp); Spacer(Modifier.width(10.dp))
+            Icon(ybAvatar(friend.avatar_id).icon, null, tint = green, modifier = Modifier.size(28.dp))
             Column(Modifier.weight(1f)) {
                 Text(friend.display_name?.takeIf { value -> value.isNotBlank() } ?: (friend.username ?: "Kullanıcı"), color = text, fontWeight = FontWeight.Black)
                 Text("@${friend.username ?: "kullanici"}", color = muted, fontSize = 11.sp)
@@ -276,7 +276,7 @@ private fun StreakCard(progress: ProgressRow, green: Color, card: Color, text: C
     Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = card)) {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("🔥", fontSize = 30.sp); Spacer(Modifier.width(10.dp))
+                Icon(YBIcons.Flame, null, tint = green, modifier = Modifier.size(30.dp)); Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text("Çalışma serin", color = text, fontWeight = FontWeight.Black, fontSize = 17.sp)
                     Text(if (progress.daily_completed) "Bugünün görevi tamamlandı!" else "Bugün çalışarak serini koru.", color = muted, fontSize = 11.sp)
@@ -302,7 +302,7 @@ private fun RowScope.MiniStat(label: String, value: String, text: Color, muted: 
 private fun EmptySocial(title: String, body: String) {
     Card(shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF10251E))) {
         Column(Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("🧭", fontSize = 28.sp); Spacer(Modifier.height(8.dp)); Text(title, color = Color.White, fontWeight = FontWeight.Black); Text(body, color = Color(0xFF91AAA1), fontSize = 11.sp)
+            Icon(YBIcons.AvatarCompass, null, tint = Color(0xFF28DE98), modifier = Modifier.size(30.dp)); Spacer(Modifier.height(8.dp)); Text(title, color = Color.White, fontWeight = FontWeight.Black); Text(body, color = Color(0xFF91AAA1), fontSize = 11.sp)
         }
     }
 }
