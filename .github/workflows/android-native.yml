@@ -22,42 +22,35 @@ jobs:
           p = Path("app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt")
           s = p.read_text(encoding="utf-8")
           marker = "// Auth startup polish applied"
-          s = s.replace(
-              'setContent { LaunchGate(onReady = ::openApp) }',
-              'setContent { LaunchGate(onReady = ::openApp, initialMode = intent.getBooleanExtra("register", false)) }',
-              1
-          )
-          s = s.replace(
-              'private fun LaunchGate(onReady: () -> Unit) {',
-              'private fun LaunchGate(onReady: () -> Unit, initialMode: Boolean) {',
-              1
-          )
-          s = s.replace('var loading by remember { mutableStateOf(true) }', 'var loading by remember { mutableStateOf(false) }', 1)
-          s = s.replace('var authMode by remember { mutableStateOf(false) }', 'var authMode by remember { mutableStateOf(initialMode) }', 1)
-          s = s.replace('        delay(180)\n', '', 1)
-          # Wait for Supabase Auth storage restoration before deciding that the user is signed out.
-          s = s.replace(
-              '    LaunchedEffect(Unit) {\n        val current = SupabaseClientProvider.client.auth.currentSessionOrNull()',
-              '    LaunchedEffect(Unit) {\n        SupabaseClientProvider.client.auth.awaitInitialization()\n        val current = SupabaseClientProvider.client.auth.currentSessionOrNull()',
-              1
-          )
-          p.write_text(s.rstrip() + "\n" + marker + "\n", encoding="utf-8")
-
-          # Make mobile session persistence explicit.
-          p = Path("app/src/main/java/tr/yurdunubil/app/SupabaseClient.kt")
-          s = p.read_text(encoding="utf-8")
-          s = s.replace(
-              '            flowType = FlowType.PKCE\n            scheme = "yurdunubil"',
-              '            flowType = FlowType.PKCE\n            autoLoadFromStorage = true\n            autoSaveToStorage = true\n            alwaysAutoRefresh = true\n            scheme = "yurdunubil"',
-              1
-          )
-          p.write_text(s, encoding="utf-8")
+          if marker not in s:
+              s = s.replace(
+                  'setContent { LaunchGate(onReady = ::openApp) }',
+                  'setContent { LaunchGate(onReady = ::openApp, initialMode = intent.getBooleanExtra("register", false)) }',
+                  1
+              )
+              s = s.replace(
+                  'private fun LaunchGate(onReady: () -> Unit) {',
+                  'private fun LaunchGate(onReady: () -> Unit, initialMode: Boolean) {',
+                  1
+              )
+              s = s.replace(
+                  'var loading by remember { mutableStateOf(true) }',
+                  'var loading by remember { mutableStateOf(false) }',
+                  1
+              )
+              s = s.replace(
+                  'var authMode by remember { mutableStateOf(false) }',
+                  'var authMode by remember { mutableStateOf(initialMode) }',
+                  1
+              )
+              s = s.replace('        delay(180)\n', '', 1)
+              p.write_text(s.rstrip() + "\n" + marker + "\n", encoding="utf-8")
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet -- app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt app/src/main/java/tr/yurdunubil/app/SupabaseClient.kt; then
-            git add app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt app/src/main/java/tr/yurdunubil/app/SupabaseClient.kt
-            git commit -m "fix: restore auth session before login gate"
+          if ! git diff --quiet -- app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt; then
+            git add app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt
+            git commit -m "fix: remove auth startup loading gate"
             git push origin HEAD:main
           fi
 
@@ -69,38 +62,13 @@ jobs:
           s = p.read_text(encoding="utf-8")
           marker = "// V2 syntax repair applied"
           if marker not in s:
-              s = s.rstrip() + "\n}\n" + marker + "\n"
-          s = s.replace('val prefs = remember { context.getSharedPreferences("yurdunu_bil_native", 0) }', 'val prefs = remember { YBPreferences.get(context) }', 1)
-          s = s.replace('SettingsScreen(prefs, darkMode) { prefs.edit().putBoolean("dark_mode", it).apply(); darkMode = it }', 'SettingsScreen(prefs, darkMode) { YBPreferences.setDarkMode(prefs, it); darkMode = it }', 1)
-          old = '''    BackHandler {
-        when {
-            quiz != null -> quiz = null
-            study != null -> study = null
-            province != null -> province = null
-            arenaOpen -> arenaOpen = false
-            tab != 0 -> tab = 0
-            else -> showExitDialog = true
-        }
-    }'''
-          new = '''    BackHandler(enabled = quiz == null && study == null && province == null && !arenaOpen && !showExitDialog) {
-        if (tab != 0) tab = 0 else showExitDialog = true
-    }'''
-          s = s.replace(old, new, 1)
-          for old, new in [
-              ('    if (study != null) {\n        val selected = study!!', '    if (study != null) {\n        BackHandler { study = null }\n        val selected = study!!'),
-              ('    if (province != null) {\n        ProvinceDetailScreen', '    if (province != null) {\n        BackHandler { province = null }\n        ProvinceDetailScreen'),
-              ('    if (arenaOpen) {\n        ArenaRootScreen', '    if (arenaOpen) {\n        BackHandler { arenaOpen = false }\n        ArenaRootScreen'),
-              ('    if (quiz != null) {\n        V2QuizScreen', '    if (quiz != null) {\n        BackHandler { quiz = null }\n        V2QuizScreen')
-          ]:
-              if old in s and new not in s:
-                  s = s.replace(old, new, 1)
-          p.write_text(s, encoding="utf-8")
+              p.write_text(s.rstrip() + "\n}\n" + marker + "\n", encoding="utf-8")
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if ! git diff --quiet -- app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt; then
             git add app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt
-            git commit -m "fix: persist settings and harden child back navigation"
+            git commit -m "fix: close V2 composable syntax"
             git push origin HEAD:main
           fi
 
@@ -135,18 +103,39 @@ jobs:
           marker = "// Dedicated Arena wiring applied"
           if marker in s:
               raise SystemExit(0)
+
           replacements = [
-              ('var quizMode by remember { mutableStateOf(SharedGameModes.quick) }\n    var showExitDialog by remember { mutableStateOf(false) }', 'var quizMode by remember { mutableStateOf(SharedGameModes.quick) }\n    var arenaOpen by remember { mutableStateOf(false) }\n    var showExitDialog by remember { mutableStateOf(false) }'),
-              ('            province != null -> province = null\n            tab != 0 -> tab = 0', '            province != null -> province = null\n            arenaOpen -> arenaOpen = false\n            tab != 0 -> tab = 0'),
-              ('    if (quiz != null) {\n        V2QuizScreen(quizTitle, quizMode, quiz!!, prefs, darkMode) { quiz = null }\n        return\n    }', '    if (arenaOpen) {\n        ArenaRootScreen(darkMode = darkMode, onExit = { arenaOpen = false })\n        return\n    }\n    if (quiz != null) {\n        V2QuizScreen(quizTitle, quizMode, quiz!!, prefs, darkMode) { quiz = null }\n        return\n    }'),
-              ('                0 -> HomeScreen(prefs, darkMode, { startQuiz("Hızlı 10", SharedGameModes.quick) }, { startQuiz(SharedQuestionPool.dailyMode().title, SharedQuestionPool.dailyMode()) }, { tab = 2 }, { tab = 1 })', '                0 -> HomeScreen(prefs, darkMode, { startQuiz("Hızlı 10", SharedGameModes.quick) }, { startQuiz(SharedQuestionPool.dailyMode().title, SharedQuestionPool.dailyMode()) }, { tab = 2; arenaOpen = true }, { tab = 1 })'),
-              ('                2 -> EventsScreen(darkMode) { startQuiz(it.title, it) }', '                2 -> { arenaOpen = true }'),
-              ('        item { LastActivityCard(prefs, darkMode) }', '        item { LastActivityCard(prefs, darkMode) }\n        item { HomePulseCard(prefs, darkMode, quick, events, library) }')
+              (
+                  'var quizMode by remember { mutableStateOf(SharedGameModes.quick) }\n    var showExitDialog by remember { mutableStateOf(false) }',
+                  'var quizMode by remember { mutableStateOf(SharedGameModes.quick) }\n    var arenaOpen by remember { mutableStateOf(false) }\n    var showExitDialog by remember { mutableStateOf(false) }'
+              ),
+              (
+                  '            province != null -> province = null\n            tab != 0 -> tab = 0',
+                  '            province != null -> province = null\n            arenaOpen -> arenaOpen = false\n            tab != 0 -> tab = 0'
+              ),
+              (
+                  '    if (quiz != null) {\n        V2QuizScreen(quizTitle, quizMode, quiz!!, prefs, darkMode) { quiz = null }\n        return\n    }',
+                  '    if (arenaOpen) {\n        ArenaRootScreen(darkMode = darkMode, onExit = { arenaOpen = false })\n        return\n    }\n    if (quiz != null) {\n        V2QuizScreen(quizTitle, quizMode, quiz!!, prefs, darkMode) { quiz = null }\n        return\n    }'
+              ),
+              (
+                  '                0 -> HomeScreen(prefs, darkMode, { startQuiz("Hızlı 10", SharedGameModes.quick) }, { startQuiz(SharedQuestionPool.dailyMode().title, SharedQuestionPool.dailyMode()) }, { tab = 2 }, { tab = 1 })',
+                  '                0 -> HomeScreen(prefs, darkMode, { startQuiz("Hızlı 10", SharedGameModes.quick) }, { startQuiz(SharedQuestionPool.dailyMode().title, SharedQuestionPool.dailyMode()) }, { tab = 2; arenaOpen = true }, { tab = 1 })'
+              ),
+              (
+                  '                2 -> EventsScreen(darkMode) { startQuiz(it.title, it) }',
+                  '                2 -> { arenaOpen = true }'
+              ),
+              (
+                  '        item { LastActivityCard(prefs, darkMode) }',
+                  '        item { LastActivityCard(prefs, darkMode) }\n        item { HomePulseCard(prefs, darkMode, quick, events, library) }'
+              )
           ]
+
           for old, new in replacements:
               if old not in s:
                   raise SystemExit(f"Arena/home replacement target not found: {old[:80]}")
               s = s.replace(old, new, 1)
+
           p.write_text(s.rstrip() + "\n" + marker + "\n", encoding="utf-8")
           PY
           git config user.name "github-actions[bot]"
