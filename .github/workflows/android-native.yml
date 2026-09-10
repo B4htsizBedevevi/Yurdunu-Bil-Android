@@ -15,6 +15,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Polish auth startup flow
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt")
+          s = p.read_text(encoding="utf-8")
+          marker = "// Auth startup polish applied"
+          if marker not in s:
+              s = s.replace(
+                  'setContent { LaunchGate(onReady = ::openApp) }',
+                  'setContent { LaunchGate(onReady = ::openApp, initialMode = intent.getBooleanExtra("register", false)) }',
+                  1
+              )
+              s = s.replace(
+                  'private fun LaunchGate(onReady: () -> Unit) {',
+                  'private fun LaunchGate(onReady: () -> Unit, initialMode: Boolean) {',
+                  1
+              )
+              s = s.replace(
+                  'var loading by remember { mutableStateOf(true) }',
+                  'var loading by remember { mutableStateOf(false) }',
+                  1
+              )
+              s = s.replace(
+                  'var authMode by remember { mutableStateOf(false) }',
+                  'var authMode by remember { mutableStateOf(initialMode) }',
+                  1
+              )
+              s = s.replace('        delay(180)\n', '', 1)
+              p.write_text(s.rstrip() + "\n" + marker + "\n", encoding="utf-8")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt; then
+            git add app/src/main/java/tr/yurdunubil/app/LaunchActivity.kt
+            git commit -m "fix: remove auth startup loading gate"
+            git push origin HEAD:main
+          fi
+
       - name: Repair V2 Kotlin syntax
         run: |
           python3 - <<'PY'
