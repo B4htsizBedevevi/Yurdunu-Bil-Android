@@ -17,15 +17,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import java.time.Instant
 
 @Serializable
@@ -86,6 +87,7 @@ private object ArenaOnlineRepositoryV2 {
 fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: String, onBack: () -> Unit) {
     BackHandler { onBack() }
     val scope = rememberCoroutineScope()
+    val client = remember { SupabaseClientProvider.client }
     val text = if (darkMode) Color(0xFFF1F7F4) else Color(0xFF06221B)
     val muted = if (darkMode) Color(0xFF92ADA2) else Color(0xFF70847B)
     val bg = if (darkMode) Color(0xFF06100D) else Color(0xFFF2F6F4)
@@ -139,7 +141,7 @@ fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: S
 
     LaunchedEffect(match?.current_round) { selected = null; answered = false }
 
-    val myId = SupabaseClientProvider.client.auth.currentUserOrNull()?.id
+    val myId = client.auth.currentUserOrNull()?.id
     val mine = players.firstOrNull { it.user_id == myId }
     val opponent = players.firstOrNull { it.user_id != myId }
     val finished = match?.status == "finished"
