@@ -45,9 +45,6 @@ jobs:
           path: app/build/outputs/apk/debug/yurdunu-bil-v0.5.4-test.apk
           if-no-files-found: error
 
-      # Release/AAB path. If signing secrets are configured, this produces a
-      # Play-Store-ready signed AAB. Without them, CI still verifies that the
-      # release bundle can be assembled and uploads the unsigned bundle.
       - name: Prepare release signing
         if: ${{ secrets.YB_KEYSTORE_BASE64 != '' }}
         env:
