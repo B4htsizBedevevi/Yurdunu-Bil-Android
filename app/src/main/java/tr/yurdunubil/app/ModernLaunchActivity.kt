@@ -86,7 +86,7 @@ class ModernLaunchActivity : ComponentActivity() {
     }
 
     private fun openAuth(register: Boolean) {
-        startActivity(Intent(this, ModernAuthActivity::class.java).putExtra("register", register))
+        startActivity(Intent(this, AuthExperienceActivity::class.java).putExtra("register", register))
         finish()
     }
 }
@@ -95,104 +95,37 @@ class ModernLaunchActivity : ComponentActivity() {
 private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
     var contentVisible by remember { mutableStateOf(false) }
     val pulse = rememberInfiniteTransition(label = "launchPulse")
-    val glowAlpha by pulse.animateFloat(
-        initialValue = 0.12f,
-        targetValue = 0.28f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "logoGlow"
-    )
-    val logoScale by animateFloatAsState(
-        targetValue = if (contentVisible) 1f else 0.72f,
-        animationSpec = tween(720, easing = FastOutSlowInEasing),
-        label = "logoScale"
-    )
-
+    val glowAlpha by pulse.animateFloat(initialValue = 0.12f, targetValue = 0.28f, animationSpec = infiniteRepeatable(animation = tween(1500, easing = FastOutSlowInEasing), repeatMode = RepeatMode.Reverse), label = "logoGlow")
+    val logoScale by animateFloatAsState(targetValue = if (contentVisible) 1f else 0.72f, animationSpec = tween(720, easing = FastOutSlowInEasing), label = "logoScale")
     LaunchedEffect(Unit) { contentVisible = true }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(LaunchBgTop, LaunchBgMid, LaunchBgBottom)))
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 18.dp)
-    ) {
+    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(LaunchBgTop, LaunchBgMid, LaunchBgBottom))).statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 18.dp)) {
         Canvas(Modifier.fillMaxSize()) {
-            repeat(10) { index ->
-                val y = size.height * (.08f + index * .083f)
-                val path = Path().apply {
-                    moveTo(-30f, y)
-                    cubicTo(size.width * .25f, y - 65f, size.width * .62f, y + 52f, size.width + 30f, y - 12f)
-                }
-                drawPath(path, LaunchGreen.copy(alpha = .045f), style = Stroke(width = 2f))
-            }
+            repeat(10) { index -> val y = size.height * (.08f + index * .083f); val path = Path().apply { moveTo(-30f, y); cubicTo(size.width * .25f, y - 65f, size.width * .62f, y + 52f, size.width + 30f, y - 12f) }; drawPath(path, LaunchGreen.copy(alpha = .045f), style = Stroke(width = 2f)) }
             drawCircle(LaunchGreen.copy(alpha = .07f), radius = 3f, center = Offset(size.width * .10f, size.height * .16f))
             drawCircle(LaunchGreen.copy(alpha = .05f), radius = 2.5f, center = Offset(size.width * .88f, size.height * .78f))
         }
-
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             Spacer(Modifier.height(22.dp))
             AnimatedVisibility(visible = contentVisible, enter = fadeIn(tween(700)) + scaleIn(tween(700), initialScale = 0.72f)) {
-                Box(
-                    modifier = Modifier.size(104.dp).scale(logoScale).clip(RoundedCornerShape(31.dp))
-                        .background(LaunchGreen.copy(alpha = glowAlpha))
-                        .border(1.dp, LaunchGreen.copy(alpha = 0.55f), RoundedCornerShape(31.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.yurdunu_bil_app_icon),
-                        contentDescription = "Yurdunu Bil logosu",
-                        modifier = Modifier.size(82.dp).clip(RoundedCornerShape(25.dp)),
-                        contentScale = ContentScale.Crop
-                    )
+                Box(Modifier.size(104.dp).scale(logoScale).clip(RoundedCornerShape(31.dp)).background(LaunchGreen.copy(alpha = glowAlpha)).border(1.dp, LaunchGreen.copy(alpha = 0.55f), RoundedCornerShape(31.dp)), contentAlignment = Alignment.Center) {
+                    Image(painter = painterResource(R.drawable.yurdunu_bil_app_icon), contentDescription = "Yurdunu Bil logosu", modifier = Modifier.size(82.dp).clip(RoundedCornerShape(25.dp)), contentScale = ContentScale.Crop)
                 }
             }
-
             AnimatedVisibility(visible = contentVisible, enter = fadeIn(tween(550, delayMillis = 120)) + slideInVertically(tween(550, delayMillis = 120)) { it / 3 }) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(Modifier.height(14.dp))
-                    Text("Yurdunu Bil", color = LaunchText, fontSize = 31.sp, fontWeight = FontWeight.Black)
-                    Text("Geleceğini Bil.", color = LaunchGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(26.dp))
-                    Text("Türkiye coğrafyasını", color = LaunchText, fontSize = 28.sp, fontWeight = FontWeight.Black)
-                    Text("oynayarak öğren.", color = LaunchGreen, fontSize = 28.sp, fontWeight = FontWeight.Black)
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        "KPSS'ye hazırlanırken Türkiye'yi daha iyi tanı. Konuları öğren, testlerle pekiştir, günlük görevlerini tamamla ve Arena'da kendini dene.",
-                        color = LaunchMuted, fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Spacer(Modifier.height(14.dp)); Text("Yurdunu Bil", color = LaunchText, fontSize = 31.sp, fontWeight = FontWeight.Black); Text("Geleceğini Bil.", color = LaunchGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(26.dp)); Text("Türkiye coğrafyasını", color = LaunchText, fontSize = 28.sp, fontWeight = FontWeight.Black); Text("oynayarak öğren.", color = LaunchGreen, fontSize = 28.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(10.dp))
+                    Text("KPSS'ye hazırlanırken Türkiye'yi daha iyi tanı. Konuları öğren, testlerle pekiştir, günlük görevlerini tamamla ve Arena'da kendini dene.", color = LaunchMuted, fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(22.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp))
-                            .background(Color.White.copy(alpha = 0.055f))
-                            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(20.dp))
-                            .padding(vertical = 15.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Stat("12+", "Konu")
-                        Stat("∞", "Test")
-                        Stat("⚡", "Arena")
-                    }
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Color.White.copy(alpha = 0.055f)).border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(20.dp)).padding(vertical = 15.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) { Stat("12+", "Konu"); Stat("∞", "Test"); Stat("⚡", "Arena") }
                 }
             }
-
             Spacer(Modifier.weight(1f))
             AnimatedVisibility(visible = contentVisible, enter = fadeIn(tween(650, delayMillis = 250)) + slideInVertically(tween(650, delayMillis = 250)) { it / 4 }) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Button(onClick = onRegister, modifier = Modifier.fillMaxWidth().height(57.dp), shape = RoundedCornerShape(18.dp), colors = ButtonDefaults.buttonColors(containerColor = LaunchGreen, contentColor = LaunchBgTop)) {
-                        Text("Hemen Keşfet", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    OutlinedButton(onClick = onLogin, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(17.dp), colors = ButtonDefaults.outlinedButtonColors(contentColor = LaunchText)) {
-                        Text("Hesabımla devam et", fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Text("KPSS • COĞRAFYA • ÖĞREN • YARIŞ", color = LaunchMuted.copy(alpha = 0.82f), fontSize = 10.sp, textAlign = TextAlign.Center)
+                    Button(onClick = onRegister, modifier = Modifier.fillMaxWidth().height(57.dp), shape = RoundedCornerShape(18.dp), colors = ButtonDefaults.buttonColors(containerColor = LaunchGreen, contentColor = LaunchBgTop)) { Text("Hemen Keşfet", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold) }
+                    Spacer(Modifier.height(10.dp)); OutlinedButton(onClick = onLogin, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(17.dp), colors = ButtonDefaults.outlinedButtonColors(contentColor = LaunchText)) { Text("Hesabımla devam et", fontWeight = FontWeight.Bold) }
+                    Spacer(Modifier.height(8.dp)); Text("KPSS • COĞRAFYA • ÖĞREN • YARIŞ", color = LaunchMuted.copy(alpha = 0.82f), fontSize = 10.sp, textAlign = TextAlign.Center)
                 }
             }
         }
@@ -200,9 +133,4 @@ private fun SafeLaunchScreen(onRegister: () -> Unit, onLogin: () -> Unit) {
 }
 
 @Composable
-private fun Stat(value: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, color = LaunchGreen, fontSize = 18.sp, fontWeight = FontWeight.Black)
-        Text(label, color = LaunchMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-    }
-}
+private fun Stat(value: String, label: String) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Text(value, color = LaunchGreen, fontSize = 18.sp, fontWeight = FontWeight.Black); Text(label, color = LaunchMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold) } }
