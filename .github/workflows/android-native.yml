@@ -21,9 +21,11 @@ jobs:
           from pathlib import Path
           changed = False
 
-          # ArenaRoot: exactly one back handler is active for each nested state.
           p = Path("app/src/main/java/tr/yurdunubil/app/ArenaRootScreen.kt")
           s = p.read_text(encoding="utf-8")
+          if "import androidx.compose.foundation.background" not in s:
+              s = s.replace("import androidx.activity.compose.BackHandler\n", "import androidx.activity.compose.BackHandler\nimport androidx.compose.foundation.background\n", 1)
+              changed = True
           old = '''    BackHandler {
         when {
             matchedId != null -> matchedId = null
@@ -43,13 +45,40 @@ jobs:
           if old in s:
               s = s.replace(old, new, 1)
               changed = True
+          if "Box(Modifier.fillMaxSize().background(if (darkMode) YBColors.DarkBg else YBColors.LightBg))" not in s:
+              old = '''    val mode = selectedMode
+    val matchId = matchedId
+    when {
+        mode == null -> ArenaHubScreen('''
+              new = '''    val mode = selectedMode
+    val matchId = matchedId
+    Box(Modifier.fillMaxSize().background(if (darkMode) YBColors.DarkBg else YBColors.LightBg)) {
+        when {
+        mode == null -> ArenaHubScreen('''
+              if old in s:
+                  s = s.replace(old, new, 1)
+                  s = s.replace('''        else -> OnlineArenaScreen(
+            darkMode = darkMode,
+            mode = mode,
+            onBack = { selectedMode = null },
+            onMatched = { matchedId = it }
+        )
+    }
+}''','''        else -> OnlineArenaScreen(
+            darkMode = darkMode,
+            mode = mode,
+            onBack = { selectedMode = null },
+            onMatched = { matchedId = it }
+        )
+        }
+    }
+}''',1)
+                  changed = True
           if "// ARENA_BACK_STACK_HARDENED" not in s:
               s = s.rstrip() + "\n// ARENA_BACK_STACK_HARDENED\n"
               changed = True
           p.write_text(s, encoding="utf-8")
 
-          # V2: parent handler must not compete with child screens, and the
-          # Etkinlikler tab must not reopen Arena after Arena is closed.
           p = Path("app/src/main/java/tr/yurdunubil/app/YurdunuBilMainV2.kt")
           s = p.read_text(encoding="utf-8")
           old = '''    BackHandler {
@@ -85,15 +114,11 @@ jobs:
         V2QuizScreen''', '''    if (quiz != null) {
         BackHandler { quiz = null }
         V2QuizScreen'''),
-              ('                2 -> { arenaOpen = true }', '                2 -> EventsScreen(darkMode) { mode -> if (mode.id.startsWith("arena")) { arenaOpen = true } else { startQuiz(mode.title, mode) } }')
+              ('                2 -> { arenaOpen = true }', '                2 -> EventsScreen(darkMode) { mode -> if (mode.arena) { arenaOpen = true } else { startQuiz(mode.title, mode) } }')
           ]:
               if old in s:
                   s = s.replace(old, new, 1)
                   changed = True
-          p.write_text(s, encoding="utf-8")
-
-          # Centralized preferences keep theme/settings stable across updates.
-          s = p.read_text(encoding="utf-8")
           old = 'val prefs = remember { context.getSharedPreferences("yurdunu_bil_native", 0) }'
           if old in s:
               s = s.replace(old, 'val prefs = remember { YBPreferences.get(context) }', 1)
