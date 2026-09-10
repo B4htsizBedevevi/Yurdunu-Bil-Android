@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -224,9 +225,9 @@ private fun AuthScreen(
 
                         Spacer(Modifier.height(18.dp))
                         AuthHeader(
-                            if (register) "Aramıza hoş geldin 👋" else "Tekrar hoş geldin 👋",
-                            if (register) "Hesabını açalım. Sonra kullanıcı adını ve sana yakışan avatarı seçersin."
-                            else "Kaldığın yerden devam edelim. Türkiye'nin dört bir yanında keşfedilecek çok şey var."
+                            if (register) "Hadi başlayalım ✨" else "Yeniden buradasın 👋",
+                            if (register) "Kendine bir isim seç, avatarını kap ve Türkiye'yi keşfetmeye başlayalım."
+                            else "Bugün 5 dakika bile ayırsan, dünkü halinden bir adım öndesin."
                         )
                         Spacer(Modifier.height(17.dp))
 
@@ -251,7 +252,7 @@ private fun AuthScreen(
                         }
 
                         Spacer(Modifier.height(12.dp))
-                        AuthButton(if (register) "Hesabımı oluştur" else "Hadi başlayalım", busy) {
+                        AuthButton(if (register) "Hesabımı aç →" else "Devam edelim →", busy) {
                             runAction({
                                 require(email.contains("@")) { "Geçerli bir e-posta adresi gir." }
                                 require(password.length >= 6) { "Şifre en az 6 karakter olmalı." }
@@ -381,24 +382,17 @@ private fun AuthBrandHero(register: Boolean) {
                             .alpha(.16f)
                             .background(AuthMint, RoundedCornerShape(21.dp))
                     )
-                    Icon(
-                        YBIcons.Map,
+                    androidx.compose.foundation.Image(
+                        painter = painterResource(id = R.drawable.yurdunu_bil_app_icon),
                         contentDescription = "Yurdunu Bil logosu",
-                        tint = AuthMintBright,
-                        modifier = Modifier.size(47.dp)
-                    )
-                    Icon(
-                        YBIcons.AvatarMountain,
-                        contentDescription = null,
-                        tint = AuthText.copy(alpha = .78f),
-                        modifier = Modifier.size(21.dp).offset(x = 10.dp, y = 9.dp)
+                        modifier = Modifier.size(52.dp)
                     )
                 }
             }
         }
 
         Spacer(Modifier.height(2.dp))
-        Text("Yurdunu Bil", color = AuthText, fontSize = 31.sp, fontWeight = FontWeight.Black)
+        Text("Yurdunu Bil", color = AuthText, fontSize = 31.sp, fontWeight = FontWeight.Black, letterSpacing = (-0.5).sp)
         Spacer(Modifier.height(2.dp))
         Text(
             if (register) "Gel, birlikte keşfedelim."
