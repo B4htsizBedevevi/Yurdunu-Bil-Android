@@ -12,25 +12,14 @@ fun ArenaRootScreen(darkMode: Boolean, onExit: () -> Unit) {
     var selectedMode by remember { mutableStateOf<SharedGameMode?>(null) }
     var matchedId by remember { mutableStateOf<String?>(null) }
 
-    // Keep exactly one enabled back handler for each nested Arena state.
-    // The root surface also owns the actual light/dark background.
-    // Stable APK build trigger.
-    BackHandler(enabled = matchedId != null) {
-        matchedId = null
-    }
-    BackHandler(enabled = matchedId == null && selectedMode != null) {
-        selectedMode = null
-    }
-    BackHandler(enabled = matchedId == null && selectedMode == null) {
-        onExit()
-    }
+    BackHandler(enabled = matchedId != null) { matchedId = null }
+    BackHandler(enabled = matchedId == null && selectedMode != null) { selectedMode = null }
+    BackHandler(enabled = matchedId == null && selectedMode == null) { onExit() }
 
     val mode = selectedMode
     val matchId = matchedId
     Box(
-        Modifier
-            .fillMaxSize()
-            .background(if (darkMode) YBColors.DarkBg else YBColors.LightBg)
+        Modifier.fillMaxSize().background(if (darkMode) YBColors.DarkBg else YBColors.LightBg)
     ) {
         when {
             mode == null -> ArenaHubScreen(
@@ -38,7 +27,7 @@ fun ArenaRootScreen(darkMode: Boolean, onExit: () -> Unit) {
                 onLaunch = { selectedMode = it },
                 onBack = onExit
             )
-            matchId != null -> ArenaMatchScreen(
+            matchId != null -> ArenaOnlineMatchScreenV2(
                 darkMode = darkMode,
                 mode = mode,
                 matchId = matchId,
