@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -40,60 +41,32 @@ class SocialCenterActivity : ComponentActivity() {
 }
 
 @Serializable
-data class SocialNotificationRow(
-    val id: Long,
-    val type: String,
-    val title: String,
-    val body: String,
-    val data: JsonObject? = null,
-    val read_at: String? = null,
-    val created_at: String? = null
-)
+data class SocialNotificationRow(val id: Long, val type: String, val title: String, val body: String, val data: JsonObject? = null, val read_at: String? = null, val created_at: String? = null)
 
 @Serializable
-data class SocialUserRow(
-    val id: String,
-    val username: String? = null,
-    val display_name: String? = null,
-    val avatar_id: String? = null
-)
+data class SocialUserRow(val id: String, val username: String? = null, val display_name: String? = null, val avatar_id: String? = null)
 
 @Serializable
-data class IncomingFriendRequestRow(
-    val id: Long,
-    val sender_id: String,
-    val status: String,
-    val created_at: String? = null
-)
+data class IncomingFriendRequestRow(val id: Long, val sender_id: String, val status: String, val created_at: String? = null)
 
 private object SocialRepository {
     private val client get() = SupabaseClientProvider.client
 
     suspend fun notifications(): List<SocialNotificationRow> = client.postgrest.from("notifications")
-        .select { order("created_at", Order.DESCENDING); limit(50) }
-        .decodeList()
+        .select { order("created_at", Order.DESCENDING); limit(50) }.decodeList()
 
     suspend fun markRead(id: Long) {
         client.postgrest.from("notifications").update(mapOf("read_at" to java.time.Instant.now().toString())) { filter { eq("id", id) } }
     }
 
-    suspend fun searchUsers(query: String): List<SocialUserRow> = client.postgrest.rpc(
-        "search_users", buildJsonObject { put("p_query", JsonPrimitive(query)) }
-    ).decodeList()
+    suspend fun searchUsers(query: String): List<SocialUserRow> = client.postgrest.rpc("search_users", buildJsonObject { put("p_query", JsonPrimitive(query)) }).decodeList()
 
-    suspend fun sendRequest(userId: String) = client.postgrest.rpc(
-        "send_friend_request", buildJsonObject { put("p_receiver_id", JsonPrimitive(userId)) }
-    )
+    suspend fun sendRequest(userId: String) = client.postgrest.rpc("send_friend_request", buildJsonObject { put("p_receiver_id", JsonPrimitive(userId)) })
 
-    suspend fun incomingRequests(): List<IncomingFriendRequestRow> = client.postgrest.from("friend_requests")
-        .select { filter { eq("status", "pending") }; limit(30) }
-        .decodeList()
+    suspend fun incomingRequests(myId: String): List<IncomingFriendRequestRow> = client.postgrest.from("friend_requests")
+        .select { filter { eq("receiver_id", myId); eq("status", "pending") }; order("created_at", Order.DESCENDING); limit(30) }.decodeList()
 
-    suspend fun respond(id: Long, accept: Boolean) = client.postgrest.rpc(
-        "respond_friend_request", buildJsonObject {
-            put("p_request_id", JsonPrimitive(id)); put("p_accept", JsonPrimitive(accept))
-        }
-    )
+    suspend fun respond(id: Long, accept: Boolean) = client.postgrest.rpc("respond_friend_request", buildJsonObject { put("p_request_id", JsonPrimitive(id)); put("p_accept", JsonPrimitive(accept)) })
 }
 
 @Composable
@@ -101,7 +74,7 @@ private fun SocialCenterScreen(onBack: () -> Unit) {
     BackHandler { onBack() }
     val scope = rememberCoroutineScope()
     val client = remember { SupabaseClientProvider.client }
-    val dark = true
+    val myId = client.auth.currentUserOrNull()?.id
     val bg = Color(0xFF06140F)
     val card = Color(0xFF10251E)
     val text = Color(0xFFF3FBF7)
@@ -121,7 +94,7 @@ private fun SocialCenterScreen(onBack: () -> Unit) {
             error = null
             runCatching {
                 notifications = SocialRepository.notifications()
-                requests = SocialRepository.incomingRequests()
+                if (myId != null) requests = SocialRepository.incomingRequests(myId)
             }.onFailure { error = it.message ?: "Sosyal veriler alınamadı." }
             busy = false
         }
@@ -129,19 +102,14 @@ private fun SocialCenterScreen(onBack: () -> Unit) {
 
     LaunchedEffect(Unit) { refresh() }
     LaunchedEffect(query) {
-        if (query.trim().length >= 2) {
-            runCatching { users = SocialRepository.searchUsers(query.trim()) }
-                .onFailure { error = it.message ?: "Kullanıcılar aranamadı." }
-        } else users = emptyList()
+        if (query.trim().length >= 2) runCatching { users = SocialRepository.searchUsers(query.trim()) }
+            .onFailure { error = it.message ?: "Kullanıcılar aranamadı." }
+        else users = emptyList()
     }
 
     MaterialTheme(colorScheme = darkColorScheme(primary = green, background = bg, surface = card, onSurface = text)) {
         Scaffold(containerColor = bg, topBar = {
-            TopAppBar(
-                title = { Text("Sosyal", fontWeight = FontWeight.Black) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Geri") } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = bg, titleContentColor = text, navigationIconContentColor = text)
-            )
+            TopAppBar(title = { Text("Sosyal", fontWeight = FontWeight.Black) }, navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Geri") } }, colors = TopAppBarDefaults.topAppBarColors(containerColor = bg, titleContentColor = text, navigationIconContentColor = text))
         }) { pad ->
             Column(Modifier.fillMaxSize().padding(pad)) {
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -150,21 +118,15 @@ private fun SocialCenterScreen(onBack: () -> Unit) {
                 }
                 if (error != null) Text(error!!, color = Color(0xFFFF8E83), fontSize = 11.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
                 if (busy) LinearProgressIndicator(Modifier.fillMaxWidth(), color = green)
-
                 if (tab == 0) {
                     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                         if (notifications.isEmpty()) item { EmptySocial("Henüz bildirimin yok.", "Arkadaşlık, seri ve önemli gelişmeler burada görünecek.") }
                         items(notifications, key = { it.id }) { n ->
-                            Card(Modifier.fillMaxWidth().clickable {
-                                scope.launch { runCatching { SocialRepository.markRead(n.id) }; refresh() }
-                            }, shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = if (n.read_at == null) Color(0xFF12352A) else card)) {
+                            Card(Modifier.fillMaxWidth().clickable { scope.launch { runCatching { SocialRepository.markRead(n.id) }; refresh() } }, shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = if (n.read_at == null) Color(0xFF12352A) else card)) {
                                 Row(Modifier.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Text(if (n.type == "friend_request") "👋" else if (n.type == "streak_warning") "🔥" else "🔔", fontSize = 26.sp)
                                     Spacer(Modifier.width(11.dp))
-                                    Column(Modifier.weight(1f)) {
-                                        Text(n.title, color = text, fontWeight = FontWeight.Black, fontSize = 14.sp)
-                                        Text(n.body, color = muted, fontSize = 11.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                    }
+                                    Column(Modifier.weight(1f)) { Text(n.title, color = text, fontWeight = FontWeight.Black, fontSize = 14.sp); Text(n.body, color = muted, fontSize = 11.sp, maxLines = 2, overflow = TextOverflow.Ellipsis) }
                                     if (n.read_at == null) Box(Modifier.size(8.dp).background(green, RoundedCornerShape(50)))
                                 }
                             }
@@ -172,17 +134,12 @@ private fun SocialCenterScreen(onBack: () -> Unit) {
                     }
                 } else {
                     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        item {
-                            OutlinedTextField(value = query, onValueChange = { query = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Kullanıcı veya görünen ad ara") }, leadingIcon = { Icon(Icons.Default.PersonAdd, null) }, shape = RoundedCornerShape(15.dp))
-                        }
+                        item { OutlinedTextField(value = query, onValueChange = { query = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Kullanıcı veya görünen ad ara") }, leadingIcon = { Icon(Icons.Default.PersonAdd, null) }, shape = RoundedCornerShape(15.dp)) }
                         if (requests.isNotEmpty()) item { Text("Gelen istekler", color = green, fontWeight = FontWeight.Black, fontSize = 13.sp) }
                         items(requests, key = { "r${it.id}" }) { request ->
                             Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = card)) {
                                 Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Column(Modifier.weight(1f)) {
-                                        Text("Yeni arkadaşlık isteği", color = text, fontWeight = FontWeight.Black)
-                                        Text(request.sender_id.take(8) + "…", color = muted, fontSize = 11.sp)
-                                    }
+                                    Column(Modifier.weight(1f)) { Text("Yeni arkadaşlık isteği", color = text, fontWeight = FontWeight.Black); Text(request.sender_id.take(8) + "…", color = muted, fontSize = 11.sp) }
                                     TextButton(onClick = { scope.launch { runCatching { SocialRepository.respond(request.id, false) }; refresh() } }) { Text("Reddet", color = muted) }
                                     Button(onClick = { scope.launch { runCatching { SocialRepository.respond(request.id, true) }; refresh() } }, colors = ButtonDefaults.buttonColors(containerColor = green, contentColor = Color(0xFF06221B)), shape = RoundedCornerShape(12.dp)) { Text("Kabul", fontWeight = FontWeight.Black) }
                                 }
@@ -192,13 +149,9 @@ private fun SocialCenterScreen(onBack: () -> Unit) {
                         items(users, key = { it.id }) { user ->
                             Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = card)) {
                                 Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Text("👤", fontSize = 25.sp)
-                                    Spacer(Modifier.width(10.dp))
-                                    Column(Modifier.weight(1f)) {
-                                        Text(user.display_name?.takeIf { it.isNotBlank() } ?: (user.username ?: "Kullanıcı"), color = text, fontWeight = FontWeight.Black)
-                                        Text("@${user.username ?: "kullanici"}", color = muted, fontSize = 11.sp)
-                                    }
-                                    Button(onClick = { scope.launch { runCatching { SocialRepository.sendRequest(user.id) }; refresh() } }, colors = ButtonDefaults.buttonColors(containerColor = green, contentColor = Color(0xFF06221B)), shape = RoundedCornerShape(12.dp)) { Text("Ekle", fontWeight = FontWeight.Black) }
+                                    Text("👤", fontSize = 25.sp); Spacer(Modifier.width(10.dp))
+                                    Column(Modifier.weight(1f)) { Text(user.display_name?.takeIf { it.isNotBlank() } ?: (user.username ?: "Kullanıcı"), color = text, fontWeight = FontWeight.Black); Text("@${user.username ?: "kullanici"}", color = muted, fontSize = 11.sp) }
+                                    Button(onClick = { scope.launch { runCatching { SocialRepository.sendRequest(user.id) }.onFailure { error = it.message }; refresh() } }, colors = ButtonDefaults.buttonColors(containerColor = green, contentColor = Color(0xFF06221B)), shape = RoundedCornerShape(12.dp)) { Text("Ekle", fontWeight = FontWeight.Black) }
                                 }
                             }
                         }
@@ -213,10 +166,6 @@ private fun SocialCenterScreen(onBack: () -> Unit) {
 @Composable
 private fun EmptySocial(title: String, body: String) {
     Column(Modifier.fillMaxWidth().padding(vertical = 70.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("🌿", fontSize = 38.sp)
-        Spacer(Modifier.height(10.dp))
-        Text(title, color = Color(0xFFF3FBF7), fontWeight = FontWeight.Black, fontSize = 18.sp)
-        Spacer(Modifier.height(5.dp))
-        Text(body, color = Color(0xFF91AAA1), fontSize = 11.sp, lineHeight = 17.sp)
+        Text("🌿", fontSize = 38.sp); Spacer(Modifier.height(10.dp)); Text(title, color = Color(0xFFF3FBF7), fontWeight = FontWeight.Black, fontSize = 18.sp); Spacer(Modifier.height(5.dp)); Text(body, color = Color(0xFF91AAA1), fontSize = 11.sp, lineHeight = 17.sp)
     }
 }
