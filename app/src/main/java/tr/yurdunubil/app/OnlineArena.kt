@@ -48,15 +48,23 @@ object OnlineArenaRepository {
 
     fun signedIn(): Boolean = client.auth.currentSessionOrNull() != null
 
+    /**
+     * The RPC returns the composite row itself as a JSON object (not a JSON array),
+     * so decodeAs<T>() must be used instead of decodeSingle<T>() which expects a list.
+     */
     suspend fun queue(mode: String): ArenaQueueRow = client.postgrest
         .rpc("enqueue_arena", buildJsonObject {
             put("p_mode", JsonPrimitive(mode))
-        }).decodeSingle()
+        }).decodeAs()
 
-    suspend fun tryMatch(mode: String): ArenaMatchRow = client.postgrest
+    /**
+     * try_match_arena returns one arena_matches composite row when a match is found.
+     * When nobody is available it returns JSON null and the caller retries.
+     */
+    suspend fun tryMatch(mode: String): ArenaMatchRow? = client.postgrest
         .rpc("try_match_arena", buildJsonObject {
             put("p_mode", JsonPrimitive(mode))
-        }).decodeSingle()
+        }).decodeAs<ArenaMatchRow?>()
 
     suspend fun leaveQueue() {
         client.postgrest.rpc("leave_arena_queue")
@@ -92,11 +100,15 @@ fun OnlineArenaScreen(
         while (searching && matched == null) {
             try {
                 val result = OnlineArenaRepository.tryMatch(mode.id)
-                matched = result
-                searching = false
-                onMatched(result.id)
-                break
+                if (result != null) {
+                    matched = result
+                    searching = false
+                    onMatched(result.id)
+                    break
+                }
+                delay(1800L)
             } catch (_: Exception) {
+                // Keep the player in the queue and retry quietly while the backend is reachable.
                 delay(1800L)
             }
         }
