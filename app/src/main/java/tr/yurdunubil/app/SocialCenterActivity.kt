@@ -307,11 +307,11 @@ private fun EmptySocial(title: String, body: String) {
     }
 }
 
-private fun notificationEmoji(type: String): String = when (type) {
-    "friend_request" -> "👋"
-    "friend_request_accepted" -> "🤝"
-    "streak_warning" -> "🔥"
-    "arena_result" -> "⚔️"
-    "achievement" -> "🏆"
-    else -> "🔔"
+private fun notificationIcon(type: String): androidx.compose.ui.graphics.vector.ImageVector = when (type) {
+    "friend_request" -> YBIcons.AvatarUser
+    "friend_request_accepted" -> YBIcons.AvatarHeart
+    "streak_warning" -> YBIcons.Flame
+    "arena_result" -> YBIcons.Swords
+    "achievement" -> YBIcons.Trophy
+    else -> YBIcons.AvatarShield
 }
