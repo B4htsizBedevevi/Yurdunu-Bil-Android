@@ -17,12 +17,10 @@ object NotificationHelper {
     private const val DAILY_REQUEST = 4811
     private const val DAILY_NOTIFICATION = 4814
 
-    private data class DailyTemplate(val title: String, val body: String)
+    data class DailyTemplate(val title: String, val body: String)
 
     // Local fallback templates keep daily reminders useful even before remote FCM is configured.
-    // The selection is deterministic by date, so every user sees the same daily theme without
-    // changing randomly while the receiver is being retried. The list is intentionally longer
-    // than a week to avoid repetitive wording.
+    // The selection is deterministic by date, so a receiver retry on the same day cannot change it.
     private val dailyTemplates = listOf(
         DailyTemplate("Bugünün Coğrafya Görevi 📚", "Bugün 10 soru çöz. Küçük bir çalışma bile serini canlı tutar."),
         DailyTemplate("Türkiye'yi biraz daha tanı 🇹🇷", "Kütüphaneden bir konu seç, kısa bir tekrar yap ve kendini test et."),
@@ -59,11 +57,7 @@ object NotificationHelper {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (manager.getNotificationChannel(CHANNEL_ID) == null) {
                 manager.createNotificationChannel(
-                    NotificationChannel(
-                        CHANNEL_ID,
-                        "Çalışma Hatırlatmaları",
-                        NotificationManager.IMPORTANCE_DEFAULT
-                    ).apply {
+                    NotificationChannel(CHANNEL_ID, "Çalışma Hatırlatmaları", NotificationManager.IMPORTANCE_DEFAULT).apply {
                         description = "Yurdunu Bil günlük çalışma ve ilerleme hatırlatmaları"
                     }
                 )
@@ -72,11 +66,10 @@ object NotificationHelper {
     }
 
     fun canNotify(context: Context): Boolean = runCatching {
-        android.os.Build.VERSION.SDK_INT < 33 ||
-            ContextCompat.checkSelfPermission(
-                context,
-                "android.permission.POST_NOTIFICATIONS"
-            ) == PackageManager.PERMISSION_GRANTED
+        android.os.Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(
+            context,
+            "android.permission.POST_NOTIFICATIONS"
+        ) == PackageManager.PERMISSION_GRANTED
     }.getOrDefault(false)
 
     fun sendTest(context: Context) {
@@ -84,12 +77,7 @@ object NotificationHelper {
             if (!canNotify(context)) return
             ensureChannel(context)
             val intent = Intent(context, ModernLaunchActivity::class.java)
-            val pending = PendingIntent.getActivity(
-                context,
-                4812,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+            val pending = PendingIntent.getActivity(context, 4812, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
                 .setContentTitle("Yurdunu Bil hazır! 🎯")
@@ -98,8 +86,7 @@ object NotificationHelper {
                 .setAutoCancel(true)
                 .setContentIntent(pending)
                 .build()
-            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-                .notify(4813, notification)
+            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(4813, notification)
         }
     }
 
@@ -107,12 +94,7 @@ object NotificationHelper {
         runCatching {
             ensureChannel(context)
             val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            val pending = PendingIntent.getBroadcast(
-                context,
-                DAILY_REQUEST,
-                Intent(context, DailyReminderReceiver::class.java),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+            val pending = PendingIntent.getBroadcast(context, DAILY_REQUEST, Intent(context, DailyReminderReceiver::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val now = Calendar.getInstance()
             val first = Calendar.getInstance().apply {
                 set(Calendar.HOUR_OF_DAY, 20)
@@ -121,29 +103,19 @@ object NotificationHelper {
                 set(Calendar.MILLISECOND, 0)
                 if (!after(now)) add(Calendar.DAY_OF_YEAR, 1)
             }
-            alarm.setInexactRepeating(
-                AlarmManager.RTC_WAKEUP,
-                first.timeInMillis,
-                AlarmManager.INTERVAL_DAY,
-                pending
-            )
+            alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, first.timeInMillis, AlarmManager.INTERVAL_DAY, pending)
         }
     }
 
     fun cancelDaily(context: Context) {
         runCatching {
             val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            val pending = PendingIntent.getBroadcast(
-                context,
-                DAILY_REQUEST,
-                Intent(context, DailyReminderReceiver::class.java),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+            val pending = PendingIntent.getBroadcast(context, DAILY_REQUEST, Intent(context, DailyReminderReceiver::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             alarm.cancel(pending)
         }
     }
 
-    private fun todayTemplate(): DailyTemplate {
+    fun todayTemplate(): DailyTemplate {
         val calendar = Calendar.getInstance()
         val year = calendar.get(Calendar.YEAR)
         val day = calendar.get(Calendar.DAY_OF_YEAR)
@@ -157,14 +129,9 @@ class DailyReminderReceiver : BroadcastReceiver() {
         runCatching {
             if (!NotificationHelper.canNotify(context)) return
             NotificationHelper.ensureChannel(context)
-            val template = NotificationHelper.run { todayTemplate() }
+            val template = NotificationHelper.todayTemplate()
             val openIntent = Intent(context, ModernLaunchActivity::class.java)
-            val pending = PendingIntent.getActivity(
-                context,
-                4815,
-                openIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+            val pending = PendingIntent.getActivity(context, 4815, openIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val notification = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
                 .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
                 .setContentTitle(template.title)
@@ -173,8 +140,7 @@ class DailyReminderReceiver : BroadcastReceiver() {
                 .setAutoCancel(true)
                 .setContentIntent(pending)
                 .build()
-            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-                .notify(4814, notification)
+            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(DAILY_NOTIFICATION, notification)
         }
     }
 }
