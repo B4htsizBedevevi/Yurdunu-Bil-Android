@@ -57,7 +57,7 @@ private val Red = Color(0xFFE65353)
 @Composable
 fun YurdunuBilMainV2App() {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val prefs = remember { context.getSharedPreferences("yurdunu_bil_native", 0) }
+    val prefs = remember { YBPreferences.get(context) }
     var darkMode by remember { mutableStateOf(prefs.getBoolean("dark_mode", false)) }
     var tab by remember { mutableIntStateOf(0) }
     var study by remember { mutableStateOf<Topic?>(null) }
@@ -83,15 +83,8 @@ fun YurdunuBilMainV2App() {
         }
     }
 
-    BackHandler {
-        when {
-            quiz != null -> quiz = null
-            study != null -> study = null
-            province != null -> province = null
-            arenaOpen -> arenaOpen = false
-            tab != 0 -> tab = 0
-            else -> showExitDialog = true
-        }
+    BackHandler(enabled = quiz == null && study == null && province == null && !arenaOpen && !showExitDialog) {
+        if (tab != 0) tab = 0 else showExitDialog = true
     }
 
     if (showExitDialog) {
@@ -116,6 +109,7 @@ fun YurdunuBilMainV2App() {
     }
 
     if (study != null) {
+        BackHandler { study = null }
         val selected = study!!
         LibraryStudyScreen(selected, { study = null }) {
             study = null
@@ -124,14 +118,17 @@ fun YurdunuBilMainV2App() {
         return
     }
     if (province != null) {
+        BackHandler { province = null }
         ProvinceDetailScreen(province!!, onBack = { province = null }, darkMode = darkMode)
         return
     }
     if (arenaOpen) {
+        BackHandler { arenaOpen = false }
         ArenaRootScreen(darkMode = darkMode, onExit = { arenaOpen = false })
         return
     }
     if (quiz != null) {
+        BackHandler { quiz = null }
         V2QuizScreen(quizTitle, quizMode, quiz!!, prefs, darkMode) { quiz = null }
         return
     }
@@ -168,8 +165,10 @@ fun YurdunuBilMainV2App() {
             when (tab) {
                 0 -> HomeScreen(prefs, darkMode, { startQuiz("Hızlı 10", SharedGameModes.quick) }, { startQuiz(SharedQuestionPool.dailyMode().title, SharedQuestionPool.dailyMode()) }, { tab = 2; arenaOpen = true }, { tab = 1 })
                 1 -> LibraryScreen(darkMode, { study = it }, { province = it })
-                2 -> { arenaOpen = true }
-                else -> SettingsScreen(prefs, darkMode) { prefs.edit().putBoolean("dark_mode", it).apply(); darkMode = it }
+                2 -> EventsScreen(darkMode) { mode ->
+                    if (mode.arena) arenaOpen = true else startQuiz(mode.title, mode)
+                }
+                else -> SettingsScreen(prefs, darkMode) { YBPreferences.setDarkMode(prefs, it); darkMode = it }
             }
         }
     }
