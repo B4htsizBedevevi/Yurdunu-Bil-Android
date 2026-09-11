@@ -18,7 +18,7 @@ object NotificationHelper {
     const val DAILY_NOTIFICATION_ID = 4814
     private const val PREFS = "yurdunu_bil_native"
     private const val NOTIFICATIONS_ENABLED = "notifications_enabled"
-    const val SMALL_ICON = android.R.drawable.ic_dialog_info
+    const val SMALL_ICON = tr.yurdunubil.app.R.drawable.ic_stat_yurdunu_bil
 
     data class DailyTemplate(val title: String, val body: String)
 
@@ -68,15 +68,13 @@ object NotificationHelper {
         android.os.Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(context, "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED
     }.getOrDefault(false)
 
-    fun isEnabled(context: Context): Boolean =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(NOTIFICATIONS_ENABLED, false)
+    fun isEnabled(context: Context): Boolean = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(NOTIFICATIONS_ENABLED, false)
 
-    /** Sends an immediate notification independently from the daily reminder toggle, so test/preview really tests the OS notification path. */
     fun sendNow(context: Context, title: String, body: String, openSocial: Boolean = true) {
         runCatching {
             if (!canNotify(context)) return
             ensureChannel(context)
-            val intent = if (openSocial) Intent(context, SocialCenterActivity::class.java) else Intent(context, RetentionMainActivity::class.java)
+            val intent = if (openSocial) Intent(context, SocialModernActivity::class.java) else Intent(context, RetentionMainActivity::class.java)
             val requestCode = (System.currentTimeMillis() and 0x7fffffff).toInt()
             val pending = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
@@ -92,25 +90,17 @@ object NotificationHelper {
         }
     }
 
-    fun sendTest(context: Context) {
-        sendNow(context, "Yurdunu Bil hazır!", "Bildirim sistemi çalışıyor. Bildirime dokunarak uygulamaya dönebilirsin.")
-    }
+    fun sendTest(context: Context) = sendNow(context, "Yurdunu Bil hazır!", "Bildirim sistemi çalışıyor. Bildirime dokunarak uygulamaya dönebilirsin.")
 
     fun scheduleDaily(context: Context) {
         runCatching {
-            if (!isEnabled(context) || !canNotify(context)) {
-                cancelDaily(context)
-                return
-            }
+            if (!isEnabled(context) || !canNotify(context)) { cancelDaily(context); return }
             ensureChannel(context)
             val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val pending = PendingIntent.getBroadcast(context, DAILY_REQUEST, Intent(context, DailyReminderReceiver::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val now = Calendar.getInstance()
             val first = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, 20)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
+                set(Calendar.HOUR_OF_DAY, 20); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
                 if (!after(now)) add(Calendar.DAY_OF_YEAR, 1)
             }
             alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, first.timeInMillis, AlarmManager.INTERVAL_DAY, pending)
@@ -126,34 +116,21 @@ object NotificationHelper {
     }
 
     fun todayTemplate(): DailyTemplate {
-        val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val day = calendar.get(Calendar.DAY_OF_YEAR)
-        val index = Math.floorMod(year * 37 + day * 17, dailyTemplates.size)
-        return dailyTemplates[index]
+        val calendar = Calendar.getInstance(); val year = calendar.get(Calendar.YEAR); val day = calendar.get(Calendar.DAY_OF_YEAR)
+        return dailyTemplates[Math.floorMod(year * 37 + day * 17, dailyTemplates.size)]
     }
 }
 
 class DailyReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         runCatching {
-            if (!NotificationHelper.isEnabled(context) || !NotificationHelper.canNotify(context)) {
-                NotificationHelper.cancelDaily(context)
-                return
-            }
+            if (!NotificationHelper.isEnabled(context) || !NotificationHelper.canNotify(context)) { NotificationHelper.cancelDaily(context); return }
             NotificationHelper.ensureChannel(context)
             val template = NotificationHelper.todayTemplate()
-            val openIntent = Intent(context, SocialCenterActivity::class.java)
-            val pending = PendingIntent.getActivity(context, 4815, openIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val pending = PendingIntent.getActivity(context, 4815, Intent(context, SocialModernActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val notification = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
-                .setSmallIcon(NotificationHelper.SMALL_ICON)
-                .setContentTitle(template.title)
-                .setContentText(template.body)
-                .setStyle(NotificationCompat.BigTextStyle().bigText(template.body))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true)
-                .setContentIntent(pending)
-                .build()
+                .setSmallIcon(NotificationHelper.SMALL_ICON).setContentTitle(template.title).setContentText(template.body)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(template.body)).setPriority(NotificationCompat.PRIORITY_DEFAULT).setAutoCancel(true).setContentIntent(pending).build()
             (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(NotificationHelper.DAILY_NOTIFICATION_ID, notification)
         }
     }
@@ -161,10 +138,6 @@ class DailyReminderReceiver : BroadcastReceiver() {
 
 class NotificationBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
-        runCatching {
-            if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
-                if (NotificationHelper.isEnabled(context) && NotificationHelper.canNotify(context)) NotificationHelper.scheduleDaily(context)
-            }
-        }
+        runCatching { if (intent?.action == Intent.ACTION_BOOT_COMPLETED && NotificationHelper.isEnabled(context) && NotificationHelper.canNotify(context)) NotificationHelper.scheduleDaily(context) }
     }
 }
