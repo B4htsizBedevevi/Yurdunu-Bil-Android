@@ -1,0 +1,13 @@
+# Local / generated files
+.gradle/
+.idea/
+build/
+*/build/
+local.properties
+
+# Firebase Android config is injected by CI from GitHub Secrets
+app/google-services.json
+
+# Signing material
+*.jks
+*.keystore
