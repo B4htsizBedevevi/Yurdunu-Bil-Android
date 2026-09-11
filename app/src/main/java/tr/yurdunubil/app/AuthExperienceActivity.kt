@@ -268,9 +268,15 @@ private fun AuthScreen(
                                 require(password.length >= 6) { "Şifre en az 6 karakter olmalı." }
 
                                 if (register) {
-                                    SupabaseClientProvider.client.auth.signUpWith(Email) {
+                                    val created = SupabaseClientProvider.client.auth.signUpWith(Email) {
                                         this.email = email.trim()
                                         this.password = password
+                                    }
+
+                                    // Supabase can return an obfuscated/fake user for an existing
+                                    // confirmed email when identity-enumeration protection is enabled.
+                                    if (created?.identities?.isEmpty() == true) {
+                                        throw IllegalStateException("email_already_registered")
                                     }
                                 } else {
                                     SupabaseClientProvider.client.auth.signInWith(Email) {
@@ -693,6 +699,7 @@ private fun isAlreadyRegisteredError(error: Throwable): Boolean {
         raw.contains("already registered") ||
         raw.contains("email address is already registered") ||
         raw.contains("email_exists") ||
+        raw.contains("email_already_registered") ||
         raw.contains("duplicate")
 }
 
