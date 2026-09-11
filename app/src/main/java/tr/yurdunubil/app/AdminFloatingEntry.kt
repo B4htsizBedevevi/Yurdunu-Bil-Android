@@ -31,30 +31,19 @@ fun AdminFloatingEntry() {
     val context = LocalContext.current
     val client = remember { SupabaseClientProvider.client }
     var isAdmin by remember { mutableStateOf(false) }
-
     LaunchedEffect(Unit) {
         runCatching {
             val user = client.auth.currentUserOrNull() ?: return@runCatching
-            val profile = client.postgrest.from("profiles").select {
-                filter { eq("id", user.id) }
-                limit(1)
-            }.decodeSingle<AdminGateProfile>()
+            val profile = client.postgrest.from("profiles").select { filter { eq("id", user.id) }; limit(1) }.decodeSingle<AdminGateProfile>()
             isAdmin = profile.role == "admin"
         }
     }
-
     if (!isAdmin) return
-
-    Box(
-        modifier = Modifier.fillMaxSize().padding(end = 16.dp, bottom = 150.dp),
-        contentAlignment = Alignment.BottomEnd
-    ) {
+    Box(Modifier.fillMaxSize().padding(end = 16.dp, bottom = 150.dp), contentAlignment = Alignment.BottomEnd) {
         FloatingActionButton(
-            onClick = { context.startActivity(Intent(context, AdminCenterActivity::class.java)) },
+            onClick = { context.startActivity(Intent(context, AdminModernActivity::class.java)) },
             containerColor = Color(0xFFFFC857),
             contentColor = Color(0xFF2A2108)
-        ) {
-            Icon(Icons.Default.AdminPanelSettings, contentDescription = "Admin Merkezi")
-        }
+        ) { Icon(Icons.Default.AdminPanelSettings, contentDescription = "Admin Panel") }
     }
 }
