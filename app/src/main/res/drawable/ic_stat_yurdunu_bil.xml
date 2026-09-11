@@ -4,7 +4,10 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+    <!-- Yurdunu Bil notification mark: monochrome compass/map emblem.
+         Android status-bar icons must be monochrome; the full-color brand logo
+         remains the large notification icon. -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M12,2A10,10 0,1 0,12 22A10,10 0,1 0,12 2M12,4A8,8 0,1 1,12 20A8,8 0,1 1,12 4M15.7,7.2L13.7,13.7L7.3,15.8L9.3,9.3L15.7,7.2M13.2,10L11.2,10.8L10.5,12.8L12.5,12L13.2,10Z"/>
+        android:pathData="M12,1.75C6.34,1.75 1.75,6.34 1.75,12S6.34,22.25 12,22.25 22.25,17.66 22.25,12 17.66,1.75 12,1.75zM12,3.6c4.64,0 8.4,3.76 8.4,8.4s-3.76,8.4-8.4,8.4-8.4,-3.76 -8.4,-8.4S7.36,3.6 12,3.6zM15.9,6.65l-2.03,5.25c-0.08,0.2 -0.24,0.36 -0.44,0.44l-5.28,2.03 2.03,-5.28c0.08,-0.2 0.24,-0.36 0.44,-0.44l5.28,-2zM12.95,9.35l-1.45,0.55 -0.55,1.45 1.45,-0.55 0.55,-1.45zM6.2,16.95c1.55,0.97 3.42,1.54 5.42,1.54 3.08,0 5.84,-1.23 7.88,-3.23 -1.87,0.72 -3.88,1.1 -5.98,1.1 -2.68,0 -5.2,-0.55 -7.32,-1.53z"/>
 </vector>
