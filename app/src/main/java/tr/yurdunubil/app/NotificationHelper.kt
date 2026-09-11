@@ -70,23 +70,29 @@ object NotificationHelper {
     fun isEnabled(context: Context): Boolean =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(NOTIFICATIONS_ENABLED, false)
 
-    fun sendTest(context: Context) {
+    /** Sends an immediate notification. This is deliberately independent from the daily reminder toggle so the test/preview button really tests the OS notification path. */
+    fun sendNow(context: Context, title: String, body: String, openSocial: Boolean = true) {
         runCatching {
-            // The in-app toggle is authoritative. A test notification must never bypass it.
-            if (!isEnabled(context) || !canNotify(context)) return
+            if (!canNotify(context)) return
             ensureChannel(context)
-            val intent = Intent(context, SocialCenterActivity::class.java)
-            val pending = PendingIntent.getActivity(context, 4812, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val intent = if (openSocial) Intent(context, SocialCenterActivity::class.java) else Intent(context, RetentionMainActivity::class.java)
+            val requestCode = (System.currentTimeMillis() and 0x7fffffff).toInt()
+            val pending = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
-                .setContentTitle("Yurdunu Bil hazır!")
-                .setContentText("Bildirim sistemi çalışıyor. Bildirim merkezini aç ve arkadaşlarını bul.")
+                .setContentTitle(title.take(80))
+                .setContentText(body.take(220))
+                .setStyle(NotificationCompat.BigTextStyle().bigText(body.take(220)))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
                 .setContentIntent(pending)
                 .build()
-            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(4813, notification)
+            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(requestCode, notification)
         }
+    }
+
+    fun sendTest(context: Context) {
+        sendNow(context, "Yurdunu Bil hazır!", "Bildirim sistemi çalışıyor. Bildirime dokunarak uygulamaya dönebilirsin.")
     }
 
     fun scheduleDaily(context: Context) {
@@ -130,8 +136,6 @@ object NotificationHelper {
 class DailyReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         runCatching {
-            // Check both the OS permission and the user's in-app preference at delivery time.
-            // This prevents a previously scheduled alarm from firing after the user disabled notifications.
             if (!NotificationHelper.isEnabled(context) || !NotificationHelper.canNotify(context)) {
                 NotificationHelper.cancelDaily(context)
                 return
@@ -144,6 +148,7 @@ class DailyReminderReceiver : BroadcastReceiver() {
                 .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
                 .setContentTitle(template.title)
                 .setContentText(template.body)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(template.body))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
                 .setContentIntent(pending)
