@@ -114,11 +114,13 @@ private fun AuthScreen(
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+    var existingAccountHint by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     fun clearFeedback() {
         message = null
         error = null
+        existingAccountHint = false
     }
 
     fun runAction(block: suspend () -> Unit, success: () -> Unit) {
@@ -127,7 +129,15 @@ private fun AuthScreen(
             clearFeedback()
             runCatching { block() }
                 .onSuccess { success() }
-                .onFailure { error = friendlyAuthError(it) }
+                .onFailure {
+                    val alreadyRegistered = register && isAlreadyRegisteredError(it)
+                    existingAccountHint = alreadyRegistered
+                    error = if (alreadyRegistered) {
+                        "Bu e-posta ile bir Yurdunu Bil hesabı zaten bulunuyor olabilir."
+                    } else {
+                        friendlyAuthError(it)
+                    }
+                }
             busy = false
         }
     }
@@ -287,6 +297,60 @@ private fun AuthScreen(
                     if (error != null) {
                         Spacer(Modifier.height(11.dp))
                         FeedbackCard(error!!, positive = false)
+                    }
+
+                    if (existingAccountHint) {
+                        Spacer(Modifier.height(10.dp))
+                        Surface(
+                            color = AuthMint.copy(alpha = .07f),
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, AuthMint.copy(alpha = .18f))
+                        ) {
+                            Column(Modifier.fillMaxWidth().padding(13.dp)) {
+                                Text(
+                                    "Bu hesap zaten senin olabilir 👋",
+                                    color = AuthSoft,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Black
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    "Yeni hesap açmak yerine mevcut hesabına giriş yapabilir veya şifreni sıfırlayabilirsin.",
+                                    color = AuthMuted,
+                                    fontSize = 10.sp,
+                                    lineHeight = 15.sp
+                                )
+                                Spacer(Modifier.height(9.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    OutlinedButton(
+                                        onClick = {
+                                            register = false
+                                            forgot = false
+                                            existingAccountHint = false
+                                            error = null
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = AuthMint)
+                                    ) {
+                                        Text("Giriş Yap", fontWeight = FontWeight.Black, fontSize = 10.sp)
+                                    }
+                                    OutlinedButton(
+                                        onClick = {
+                                            register = false
+                                            forgot = true
+                                            existingAccountHint = false
+                                            error = null
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = AuthMint)
+                                    ) {
+                                        Text("Şifremi Unuttum", fontWeight = FontWeight.Black, fontSize = 9.sp)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -622,6 +686,15 @@ private fun authFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedContainerColor = Color.White.copy(alpha = .045f),
     unfocusedContainerColor = Color.White.copy(alpha = .025f)
 )
+
+private fun isAlreadyRegisteredError(error: Throwable): Boolean {
+    val raw = (error.message ?: "").lowercase()
+    return raw.contains("user already registered") ||
+        raw.contains("already registered") ||
+        raw.contains("email address is already registered") ||
+        raw.contains("email_exists") ||
+        raw.contains("duplicate")
+}
 
 private fun friendlyAuthError(error: Throwable): String {
     val raw = (error.message ?: "").lowercase()
