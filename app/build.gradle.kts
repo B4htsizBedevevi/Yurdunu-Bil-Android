@@ -7,7 +7,6 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
-// google-services.json is intentionally injected by CI/local setup rather than committed.
 if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
 }
@@ -20,8 +19,8 @@ android {
         applicationId = "tr.yurdunubil.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 14
-        versionName = "0.7.1"
+        versionCode = 16
+        versionName = "0.7.3"
         buildConfigField("String", "SUPABASE_URL", "\"https://phcdfnvqhhwkhrxsmuar.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_vwk3J5ag16XmMOm3x734MQ_-mMsJVe2\"")
     }
@@ -61,17 +60,6 @@ android {
     }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
 }
-
-val syncCanonicalAppIcon = tasks.register("syncCanonicalAppIcon") {
-    outputs.file(file("src/main/res/drawable/yurdunu_bil_app_icon.png"))
-    doLast {
-        val source = rootProject.file("file_00000000915c81f4882e3e45e01e1320.png")
-        val target = file("src/main/res/drawable/yurdunu_bil_app_icon.png")
-        require(source.exists()) { "Canonical app icon missing: ${source.absolutePath}" }
-        target.parentFile.mkdirs(); source.copyTo(target, overwrite = true)
-    }
-}
-tasks.named("preBuild") { dependsOn(syncCanonicalAppIcon) }
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2026.06.00")
