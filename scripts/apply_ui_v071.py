@@ -15,30 +15,19 @@ changed = False
 changed |= replace(
     'app/src/main/java/tr/yurdunubil/app/ModernMainV4.kt',
     '0 -> HomeV4(p, prefs, { launchQuiz("Hızlı 10", SharedGameModes.quick) }) { arenaOpen = true }',
+    '0 -> HomeModernV5(p.bg, p.card, p.text, p.muted, p.green, p.gold, prefs, { launchQuiz("Hızlı 10", SharedGameModes.quick) }, { arenaOpen = true }, { context.startActivity(Intent(context, SocialModernActivity::class.java)) })',
+)
+# If the previous UI patch already changed the home call, add the notification callback to it.
+changed |= replace(
+    'app/src/main/java/tr/yurdunubil/app/ModernMainV4.kt',
     '0 -> HomeModernV5(p.bg, p.card, p.text, p.muted, p.green, p.gold, prefs, { launchQuiz("Hızlı 10", SharedGameModes.quick) }) { arenaOpen = true }',
+    '0 -> HomeModernV5(p.bg, p.card, p.text, p.muted, p.green, p.gold, prefs, { launchQuiz("Hızlı 10", SharedGameModes.quick) }, { arenaOpen = true }, { context.startActivity(Intent(context, SocialModernActivity::class.java)) })',
 )
-changed |= replace(
-    'app/src/main/java/tr/yurdunubil/app/AdminFloatingEntry.kt',
-    'Intent(context, AdminCenterActivity::class.java)',
-    'Intent(context, AdminModernActivity::class.java)',
-)
-changed |= replace(
-    'app/src/main/java/tr/yurdunubil/app/SocialFloatingEntry.kt',
-    'Intent(context, SocialCenterActivity::class.java)',
-    'Intent(context, SocialModernActivity::class.java)',
-)
-changed |= replace(
-    'app/src/main/AndroidManifest.xml',
-    '        <activity android:name=".SocialCenterActivity" android:exported="false" />',
-    '        <activity android:name=".SocialCenterActivity" android:exported="false" />\n        <activity android:name=".SocialModernActivity" android:exported="false" />',
-)
-changed |= replace(
-    'app/src/main/AndroidManifest.xml',
-    '        <activity android:name=".AdminCenterActivity" android:exported="false" />',
-    '        <activity android:name=".AdminCenterActivity" android:exported="false" />\n        <activity android:name=".AdminModernActivity" android:exported="false" />',
-)
+changed |= replace('app/src/main/java/tr/yurdunubil/app/AdminFloatingEntry.kt', 'Intent(context, AdminCenterActivity::class.java)', 'Intent(context, AdminModernActivity::class.java)')
+changed |= replace('app/src/main/java/tr/yurdunubil/app/SocialFloatingEntry.kt', 'Intent(context, SocialCenterActivity::class.java)', 'Intent(context, SocialModernActivity::class.java)')
+changed |= replace('app/src/main/AndroidManifest.xml', '        <activity android:name=".SocialCenterActivity" android:exported="false" />', '        <activity android:name=".SocialCenterActivity" android:exported="false" />\n        <activity android:name=".SocialModernActivity" android:exported="false" />')
+changed |= replace('app/src/main/AndroidManifest.xml', '        <activity android:name=".AdminCenterActivity" android:exported="false" />', '        <activity android:name=".AdminCenterActivity" android:exported="false" />\n        <activity android:name=".AdminModernActivity" android:exported="false" />')
 
-# Bump the native build after the UI refresh.
 p = ROOT / 'app/build.gradle.kts'
 s = p.read_text(encoding='utf-8')
 s2 = s.replace('versionCode = 14', 'versionCode = 15', 1).replace('versionName = "0.7.1"', 'versionName = "0.7.2"', 1)
