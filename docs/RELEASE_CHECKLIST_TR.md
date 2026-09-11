@@ -1,10 +1,10 @@
-# Yurdunu Bil — 0.6.3 yayın kontrol listesi
+# Yurdunu Bil — 0.6.4 yayın kontrol listesi
 
 ## Teknik
-- [ ] GitHub Actions debug APK build başarılı
+- [x] GitHub Actions debug APK build başarılı
 - [ ] Release AAB build başarılı
 - [ ] Release AAB imzalı
-- [ ] versionCode 14 / versionName 0.6.3
+- [x] versionCode 15 / versionName 0.6.4
 - [ ] Uygulama açılışında crash yok
 - [ ] Hesap silme akışı gerçek bir test hesabıyla doğrulandı
 - [ ] Kayıt / giriş / şifre yenileme test edildi
@@ -15,7 +15,7 @@
 - [ ] Admin FCM gönderimi gerçek cihazda doğrulandı
 - [ ] Otomatik 09:00 / 14:00 / 20:00 bildirimleri gerçek cihazda doğrulandı
 - [ ] Telefon yeniden başlatıldıktan sonra otomatik bildirim planı yeniden kuruldu
-- [ ] Arena eşleşme / cevap / bitiş akışı test edildi
+- [ ] Arena iki cihaz eşleşme / cevap / bitiş akışı test edildi
 - [ ] Sosyal merkez / arkadaş istekleri test edildi
 
 ## Google Play
