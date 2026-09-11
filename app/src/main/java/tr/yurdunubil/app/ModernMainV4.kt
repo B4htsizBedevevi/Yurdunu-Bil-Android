@@ -33,7 +33,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.jan.supabase.functions.functions
 import kotlinx.coroutines.MainScope
+import kotlinx.serialization.json.buildJsonObject
 import kotlin.math.roundToInt
 
 private data class AppPalette(
@@ -158,24 +160,204 @@ fun YurdunuBilMainV4() {
 }
 
 @Composable private fun SettingsV4(p: AppPalette, prefs: SharedPreferences, dark: Boolean, setDark: (Boolean) -> Unit) {
-    val context = LocalContext.current; val activity = context as? Activity; var notifications by rememberSaveable { mutableStateOf(prefs.getBoolean("notifications_enabled", false)) }; var message by rememberSaveable { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val activity = context as? Activity
+    var notifications by rememberSaveable { mutableStateOf(prefs.getBoolean("notifications_enabled", false)) }
+    var message by rememberSaveable { mutableStateOf<String?>(null) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    var deletingAccount by rememberSaveable { mutableStateOf(false) }
+
     LazyColumn(contentPadding = PaddingValues(top = 12.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item { Column(Modifier.padding(horizontal = 16.dp)) { Text("Ayarlar", color = p.text, fontSize = 29.sp, fontWeight = FontWeight.Black); Text("Tema, bildirim, ilerleme ve hesap deneyimi.", color = p.muted, fontSize = 12.sp) } }
-        item { AppCard(p, Modifier.padding(horizontal = 16.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.DarkMode, null, tint = p.green, modifier = Modifier.size(23.dp)); Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text("Karanlık tema", color = p.text, fontWeight = FontWeight.Black); Text("Koyu arayüzü kalıcı olarak kullan", color = p.muted, fontSize = 10.sp) }; Switch(checked = dark, onCheckedChange = setDark, colors = SwitchDefaults.colors(checkedThumbColor = p.green, checkedTrackColor = p.green.copy(alpha = .28f))) } } }
-        item { AppCard(p, Modifier.padding(horizontal = 16.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Icon(YBIcons.AvatarShield, null, tint = p.green, modifier = Modifier.size(23.dp)); Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text("Bildirimler", color = p.text, fontWeight = FontWeight.Black); Text("Kapalıysa uygulama bildirimi gönderilmez", color = p.muted, fontSize = 10.sp) }; Switch(checked = notifications, onCheckedChange = { value -> if (value && android.os.Build.VERSION.SDK_INT >= 33 && activity?.checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED) { activity.requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 9001); message = "Bildirim izni istendi. İzin verdikten sonra tekrar aç." } else { notifications = value; prefs.edit().putBoolean("notifications_enabled", value).apply(); if (value) {
-                                MainScope().launch {
-                                    NotificationHelper.registerCurrentToken(context)
-                                    NotificationAutomation.syncAndSchedule(context)
-                                }
-                                message = "Otomatik bildirimler senkronlandı."
+        item {
+            Column(Modifier.padding(horizontal = 16.dp)) {
+                Text("Ayarlar", color = p.text, fontSize = 29.sp, fontWeight = FontWeight.Black)
+                Text("Tema, bildirim, hesap, ilerleme ve güvenlik.", color = p.muted, fontSize = 12.sp)
+            }
+        }
+
+        item {
+            AppCard(p, Modifier.padding(horizontal = 16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.DarkMode, null, tint = p.green, modifier = Modifier.size(23.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Karanlık tema", color = p.text, fontWeight = FontWeight.Black)
+                        Text("Koyu arayüzü kalıcı olarak kullan", color = p.muted, fontSize = 10.sp)
+                    }
+                    Switch(checked = dark, onCheckedChange = setDark)
+                }
+            }
+        }
+
+        item {
+            AppCard(p, Modifier.padding(horizontal = 16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(YBIcons.AvatarShield, null, tint = p.green, modifier = Modifier.size(23.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Bildirimler", color = p.text, fontWeight = FontWeight.Black)
+                        Text("İsteğe bağlı çalışma ve duyuru bildirimleri", color = p.muted, fontSize = 10.sp)
+                    }
+                    Switch(
+                        checked = notifications,
+                        onCheckedChange = { value ->
+                            if (value &&
+                                android.os.Build.VERSION.SDK_INT >= 33 &&
+                                activity?.checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED
+                            ) {
+                                activity.requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 9001)
+                                message = "Bildirim izni istendi. İzin verdikten sonra tekrar aç."
                             } else {
-                                MainScope().launch { NotificationHelper.deactivateCurrentToken() }
-                                NotificationHelper.cancelDaily(context)
-                                message = "Bildirimler kapatıldı."
-                            } } }, colors = SwitchDefaults.colors(checkedThumbColor = p.green, checkedTrackColor = p.green.copy(alpha = .28f))) }; Spacer(Modifier.height(9.dp)); OutlinedButton(onClick = { if (!notifications) message = "Bildirimler kapalı. Test bildirimi gönderilmedi." else if (NotificationHelper.canNotify(context)) { NotificationHelper.sendTest(context); message = "Test bildirimi gönderildi." } else if (android.os.Build.VERSION.SDK_INT >= 33) { activity?.requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 9001); message = "Önce bildirim iznini ver, sonra düğmeye tekrar bas." } }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(13.dp), colors = ButtonDefaults.outlinedButtonColors(contentColor = p.green)) { Icon(Icons.Default.NotificationsActive, null); Spacer(Modifier.width(7.dp)); Text("Test bildirimi gönder", fontWeight = FontWeight.Bold) }; if (message != null) { Spacer(Modifier.height(6.dp)); Text(message!!, color = p.muted, fontSize = 10.sp) } } }
-        item { AppCard(p, Modifier.padding(horizontal = 16.dp)) { Eyebrow("İLERLEME", p.green); Text("Çözülen soru: ${prefs.getInt("solved", 0)}", color = p.text, fontWeight = FontWeight.Bold); Text("XP: ${prefs.getInt("xp", 0)}", color = p.text, fontWeight = FontWeight.Bold); Text("Doğru: ${prefs.getInt("correct", 0)}  •  Yanlış: ${prefs.getInt("wrong", 0)}", color = p.muted, fontSize = 12.sp) } }
-        item { AppCard(p, Modifier.padding(horizontal = 16.dp)) { Eyebrow("KILAVUZ", p.gold); Text("Çalışma sırası", color = p.text, fontSize = 16.sp, fontWeight = FontWeight.Black); Text("1. Kütüphaneden konuyu aç", color = p.muted, fontSize = 11.sp); Text("2. Ders sayfasını tamamen oku", color = p.muted, fontSize = 11.sp); Text("3. Kendini yokla", color = p.muted, fontSize = 11.sp); Text("4. Aynı konunun testini çöz", color = p.muted, fontSize = 11.sp) } }
-        item { AppCard(p, Modifier.padding(horizontal = 16.dp), dark = true) { Eyebrow("UYGULAMA", p.gold); Text("Yurdunu Bil • 0.6.3", color = Color.White, fontWeight = FontWeight.Black); Text("Derin kütüphane • Arena merkezi • kalıcı tema • gerçek push bildirimleri • otomatik çalışma hatırlatmaları • güvenli geri dönüş • taşma kontrollü ekranlar", color = Color.White.copy(alpha = .72f), fontSize = 11.sp, lineHeight = 18.sp) } }
+                                notifications = value
+                                prefs.edit().putBoolean("notifications_enabled", value).apply()
+                                if (value) {
+                                    MainScope().launch {
+                                        NotificationHelper.registerCurrentToken(context)
+                                        NotificationAutomation.syncAndSchedule(context)
+                                    }
+                                    message = "Otomatik bildirimler senkronlandı."
+                                } else {
+                                    MainScope().launch { NotificationHelper.deactivateCurrentToken() }
+                                    NotificationHelper.cancelDaily(context)
+                                    message = "Bildirimler kapatıldı."
+                                }
+                            }
+                        }
+                    )
+                }
+
+                Spacer(Modifier.height(9.dp))
+                OutlinedButton(
+                    onClick = {
+                        if (!notifications) {
+                            message = "Bildirimler kapalı. Test bildirimi gönderilmedi."
+                        } else if (NotificationHelper.canNotify(context)) {
+                            NotificationHelper.sendTest(context)
+                            message = "Test bildirimi gönderildi."
+                        } else if (android.os.Build.VERSION.SDK_INT >= 33) {
+                            activity?.requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 9001)
+                            message = "Önce bildirim iznini ver, sonra düğmeye tekrar bas."
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(13.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = p.green)
+                ) {
+                    Icon(Icons.Default.NotificationsActive, null)
+                    Spacer(Modifier.width(7.dp))
+                    Text("Test bildirimi gönder", fontWeight = FontWeight.Bold)
+                }
+
+                if (message != null) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(message!!, color = p.muted, fontSize = 10.sp)
+                }
+            }
+        }
+
+        item {
+            AppCard(p, Modifier.padding(horizontal = 16.dp)) {
+                Eyebrow("HESAP", p.red)
+                Text("Hesabını sil", color = p.text, fontWeight = FontWeight.Black)
+                Text(
+                    "Hesabın ve ilişkili uygulama verilerin kalıcı olarak silinir. Bu işlem geri alınamaz.",
+                    color = p.muted,
+                    fontSize = 10.sp,
+                    lineHeight = 16.sp
+                )
+                Spacer(Modifier.height(10.dp))
+                OutlinedButton(
+                    enabled = !deletingAccount,
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(13.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = p.red)
+                ) {
+                    Text(
+                        if (deletingAccount) "Hesap siliniyor…" else "Hesabımı kalıcı olarak sil",
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
+        }
+
+        item {
+            AppCard(p, Modifier.padding(horizontal = 16.dp)) {
+                Eyebrow("İLERLEME", p.green)
+                Text("Çözülen soru: " + prefs.getInt("solved", 0), color = p.text, fontWeight = FontWeight.Bold)
+                Text("XP: " + prefs.getInt("xp", 0), color = p.text, fontWeight = FontWeight.Bold)
+                Text("Doğru: " + prefs.getInt("correct", 0) + "  •  Yanlış: " + prefs.getInt("wrong", 0), color = p.muted, fontSize = 12.sp)
+            }
+        }
+
+        item {
+            AppCard(p, Modifier.padding(horizontal = 16.dp)) {
+                Eyebrow("KILAVUZ", p.gold)
+                Text("Çalışma sırası", color = p.text, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                Text("1. Kütüphaneden konuyu aç", color = p.muted, fontSize = 11.sp)
+                Text("2. Ders sayfasını tamamen oku", color = p.muted, fontSize = 11.sp)
+                Text("3. Kendini yokla", color = p.muted, fontSize = 11.sp)
+                Text("4. Aynı konunun testini çöz", color = p.muted, fontSize = 11.sp)
+            }
+        }
+
+        item {
+            AppCard(p, Modifier.padding(horizontal = 16.dp), dark = true) {
+                Eyebrow("UYGULAMA", p.gold)
+                Text("Yurdunu Bil • 0.6.3", color = Color.White, fontWeight = FontWeight.Black)
+                Text(
+                    "Gerçek push bildirimleri • otomatik çalışma hatırlatmaları • hesap yönetimi • Arena • sosyal merkez",
+                    color = Color.White.copy(alpha = .72f),
+                    fontSize = 11.sp,
+                    lineHeight = 18.sp
+                )
+            }
+        }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!deletingAccount) showDeleteDialog = false },
+            title = { Text("Hesabı silmek istediğine emin misin?") },
+            text = {
+                Text("Profilin, bildirim cihaz kayıtların, ilerlemen, sosyal ve Arena ile ilişkili uygulama verilerin silinecek. Bu işlem geri alınamaz.")
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !deletingAccount,
+                    onClick = {
+                        deletingAccount = true
+                        MainScope().launch {
+                            runCatching {
+                                SupabaseClientProvider.client.functions.invoke(
+                                    function = "delete-account",
+                                    body = buildJsonObject {}
+                                )
+                            }.onSuccess {
+                                runCatching { SupabaseClientProvider.client.auth.signOut() }
+                                prefs.edit().clear().apply()
+                                showDeleteDialog = false
+                                deletingAccount = false
+                                context.startActivity(
+                                    Intent(context, ModernLaunchActivity::class.java).apply {
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    }
+                                )
+                            }.onFailure {
+                                deletingAccount = false
+                                message = "Hesap silinemedi. Lütfen tekrar dene."
+                            }
+                        }
+                    }
+                ) { Text("Evet, sil", color = p.red, fontWeight = FontWeight.Black) }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !deletingAccount,
+                    onClick = { showDeleteDialog = false }
+                ) { Text("Vazgeç", color = p.text) }
+            }
+        )
     }
 }
 
