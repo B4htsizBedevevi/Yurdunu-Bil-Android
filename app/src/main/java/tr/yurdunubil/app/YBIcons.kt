@@ -8,6 +8,9 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.DirectionsBoat
 import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -57,6 +60,9 @@ object YBIcons {
     val Bolt: ImageVector get() = Icons.Default.Bolt
     val Library: ImageVector get() = Icons.Default.AutoStories
     val Tip: ImageVector get() = Icons.Default.Lightbulb
+    val Factory: ImageVector get() = Icons.Default.Business
+    val Volcano: ImageVector get() = Icons.Default.Terrain
+    val Population: ImageVector get() = Icons.Default.People
     val Settings: ImageVector get() = Icons.Default.Settings
     val AvatarUser: ImageVector get() = Icons.Default.Person
     val Shield: ImageVector get() = Icons.Default.Shield
@@ -112,7 +118,7 @@ fun YBGameIcon(id: String, tint: Color, size: androidx.compose.ui.unit.Dp = 24.d
         id.contains("speed", true) -> YBIcons.Bolt
         id.contains("mountain", true) -> YBIcons.AvatarMountain
         id.contains("agriculture", true) -> YBIcons.AvatarPark
-        id.contains("factory", true) -> Icons.Default.Build
+        id.contains("factory", true) -> YBIcons.Factory
         id.contains("tourism", true) -> YBIcons.AvatarExplorer
         id.contains("danger", true) -> YBIcons.AvatarShield
         id.contains("match", true) -> YBIcons.Target
@@ -123,9 +129,25 @@ fun YBGameIcon(id: String, tint: Color, size: androidx.compose.ui.unit.Dp = 24.d
         id.contains("map", true) -> YBIcons.Map
         id.contains("climate", true) -> YBIcons.AvatarCloud
         id.contains("water", true) -> YBIcons.AvatarWater
-        id.contains("population", true) -> YBIcons.AvatarTurkey
+        id.contains("population", true) -> YBIcons.Population
         id.contains("library", true) || id.contains("study", true) -> YBIcons.Library
         else -> YBIcons.Library
     }
     androidx.compose.material3.Icon(icon, contentDescription = null, tint = tint, modifier = androidx.compose.ui.Modifier.size(size))
+}
+
+fun ybGameAccent(id: String, arena: Boolean = false): Color = when {
+    arena || id.contains("duel", true) || id.contains("arena", true) || id.contains("master", true) -> Color(0xFFFFC857)
+    id.contains("water", true) -> Color(0xFF3B9EFF)
+    id.contains("climate", true) -> Color(0xFF6B9AF7)
+    id.contains("agriculture", true) -> Color(0xFF35B86B)
+    id.contains("mine", true) -> Color(0xFFFFA63D)
+    id.contains("factory", true) -> Color(0xFF8B6FFF)
+    id.contains("tourism", true) -> Color(0xFFE45D9A)
+    id.contains("population", true) -> Color(0xFF5B7CFA)
+    id.contains("region", true) || id.contains("map", true) -> Color(0xFF18C98A)
+    id.contains("danger", true) -> Color(0xFFE65353)
+    id.contains("quick", true) || id.contains("speed", true) -> Color(0xFFFFB83D)
+    id.contains("chain", true) -> Color(0xFF14C8B1)
+    else -> Color(0xFF18C98A)
 }
