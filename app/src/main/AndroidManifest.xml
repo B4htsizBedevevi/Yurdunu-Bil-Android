@@ -18,10 +18,9 @@
         <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@android:color/white" />
         <activity android:name=".RetentionMainActivity" android:exported="false" />
         <activity android:name=".SmartStudyCenterActivity" android:exported="false" />
-        <activity android:name=".SocialCenterActivity" android:exported="false" />
-        <activity android:name=".AdminCenterActivity" android:exported="false" />
+        <activity android:name=".SocialModernActivity" android:exported="false" />
+        <activity android:name=".AdminModernActivity" android:exported="false" />
         <activity android:name=".ProfileOnboardingActivity" android:exported="false" />
-        <activity android:name=".AdminNotificationActivity" android:exported="false" />
         <activity android:name=".AuthExperienceActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
