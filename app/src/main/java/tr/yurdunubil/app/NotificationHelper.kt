@@ -18,6 +18,7 @@ object NotificationHelper {
     const val DAILY_NOTIFICATION_ID = 4814
     private const val PREFS = "yurdunu_bil_native"
     private const val NOTIFICATIONS_ENABLED = "notifications_enabled"
+    private const val SMALL_ICON = android.R.drawable.ic_dialog_info
 
     data class DailyTemplate(val title: String, val body: String)
 
@@ -79,7 +80,7 @@ object NotificationHelper {
             val requestCode = (System.currentTimeMillis() and 0x7fffffff).toInt()
             val pending = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
+                .setSmallIcon(SMALL_ICON)
                 .setContentTitle(title.take(80))
                 .setContentText(body.take(220))
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body.take(220)))
@@ -145,7 +146,7 @@ class DailyReminderReceiver : BroadcastReceiver() {
             val openIntent = Intent(context, SocialCenterActivity::class.java)
             val pending = PendingIntent.getActivity(context, 4815, openIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val notification = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
-                .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
+                .setSmallIcon(SMALL_ICON)
                 .setContentTitle(template.title)
                 .setContentText(template.body)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(template.body))
