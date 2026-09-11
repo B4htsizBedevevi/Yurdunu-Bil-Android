@@ -152,7 +152,7 @@ object NotificationHelper {
             val pending = PendingIntent.getActivity(context, 4820, Intent(context, SocialCenterActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             NotificationCompat.Builder(context, ANNOUNCEMENT_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_yurdunu_bil)
-                .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.yurdunu_bil_app_icon))
+                .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.ic_notification_bell))
                 .setContentTitle(title).setContentText(body)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body)).setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE).setAutoCancel(true).setContentIntent(pending).build().also {
