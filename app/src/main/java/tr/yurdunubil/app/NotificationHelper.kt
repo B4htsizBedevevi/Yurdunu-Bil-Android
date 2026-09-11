@@ -14,6 +14,7 @@ import java.util.Calendar
 
 object NotificationHelper {
     const val CHANNEL_ID = "study_reminders"
+    const val ANNOUNCEMENT_CHANNEL_ID = "announcements"
     private const val DAILY_REQUEST = 4811
     const val DAILY_NOTIFICATION_ID = 4814
     private const val PREFS = "yurdunu_bil_native"
@@ -60,6 +61,13 @@ object NotificationHelper {
                     description = "Yurdunu Bil günlük çalışma ve ilerleme hatırlatmaları"
                 })
             }
+            if (manager.getNotificationChannel(ANNOUNCEMENT_CHANNEL_ID) == null) {
+                manager.createNotificationChannel(NotificationChannel(ANNOUNCEMENT_CHANNEL_ID, "Duyurular", NotificationManager.IMPORTANCE_HIGH).apply {
+                    description = "Yurdunu Bil önemli duyuruları ve yeni içerikleri"
+                    enableVibration(true)
+                    setShowBadge(true)
+                })
+            }
         }
     }
 
@@ -70,40 +78,43 @@ object NotificationHelper {
     fun isEnabled(context: Context): Boolean =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(NOTIFICATIONS_ENABLED, false)
 
-    fun sendTest(context: Context) {
+    fun showAnnouncement(context: Context, title: String, body: String) {
         runCatching {
-            // The in-app toggle is authoritative. A test notification must never bypass it.
-            if (!isEnabled(context) || !canNotify(context)) return
+            if (!canNotify(context)) return
             ensureChannel(context)
             val intent = Intent(context, SocialCenterActivity::class.java)
-            val pending = PendingIntent.getActivity(context, 4812, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
-                .setContentTitle("Yurdunu Bil hazır!")
-                .setContentText("Bildirim sistemi çalışıyor. Bildirim merkezini aç ve arkadaşlarını bul.")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            val pending = PendingIntent.getActivity(context, 4820, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val notification = NotificationCompat.Builder(context, ANNOUNCEMENT_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_stat_yurdunu_bil)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setAutoCancel(true)
                 .setContentIntent(pending)
                 .build()
-            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(4813, notification)
+            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify((System.currentTimeMillis() and 0x7fffffff).toInt(), notification)
+        }
+    }
+
+    fun sendTest(context: Context) {
+        runCatching {
+            if (!isEnabled(context) || !canNotify(context)) return
+            ensureChannel(context)
+            showAnnouncement(context, "Yurdunu Bil hazır!", "Bildirim sistemi çalışıyor.")
         }
     }
 
     fun scheduleDaily(context: Context) {
         runCatching {
-            if (!isEnabled(context) || !canNotify(context)) {
-                cancelDaily(context)
-                return
-            }
+            if (!isEnabled(context) || !canNotify(context)) { cancelDaily(context); return }
             ensureChannel(context)
             val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val pending = PendingIntent.getBroadcast(context, DAILY_REQUEST, Intent(context, DailyReminderReceiver::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val now = Calendar.getInstance()
             val first = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, 20)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
+                set(Calendar.HOUR_OF_DAY, 20); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
                 if (!after(now)) add(Calendar.DAY_OF_YEAR, 1)
             }
             alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, first.timeInMillis, AlarmManager.INTERVAL_DAY, pending)
@@ -120,9 +131,7 @@ object NotificationHelper {
 
     fun todayTemplate(): DailyTemplate {
         val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val day = calendar.get(Calendar.DAY_OF_YEAR)
-        val index = Math.floorMod(year * 37 + day * 17, dailyTemplates.size)
+        val index = Math.floorMod(calendar.get(Calendar.YEAR) * 37 + calendar.get(Calendar.DAY_OF_YEAR) * 17, dailyTemplates.size)
         return dailyTemplates[index]
     }
 }
@@ -130,35 +139,16 @@ object NotificationHelper {
 class DailyReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         runCatching {
-            // Check both the OS permission and the user's in-app preference at delivery time.
-            // This prevents a previously scheduled alarm from firing after the user disabled notifications.
-            if (!NotificationHelper.isEnabled(context) || !NotificationHelper.canNotify(context)) {
-                NotificationHelper.cancelDaily(context)
-                return
-            }
+            if (!NotificationHelper.isEnabled(context) || !NotificationHelper.canNotify(context)) { NotificationHelper.cancelDaily(context); return }
             NotificationHelper.ensureChannel(context)
             val template = NotificationHelper.todayTemplate()
-            val openIntent = Intent(context, SocialCenterActivity::class.java)
-            val pending = PendingIntent.getActivity(context, 4815, openIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            val notification = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
-                .setSmallIcon(R.drawable.yurdunu_bil_app_icon)
-                .setContentTitle(template.title)
-                .setContentText(template.body)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true)
-                .setContentIntent(pending)
-                .build()
-            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(NotificationHelper.DAILY_NOTIFICATION_ID, notification)
+            NotificationHelper.showAnnouncement(context, template.title, template.body)
         }
     }
 }
 
 class NotificationBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
-        runCatching {
-            if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
-                if (NotificationHelper.isEnabled(context) && NotificationHelper.canNotify(context)) NotificationHelper.scheduleDaily(context)
-            }
-        }
+        runCatching { if (intent?.action == Intent.ACTION_BOOT_COMPLETED && NotificationHelper.isEnabled(context) && NotificationHelper.canNotify(context)) NotificationHelper.scheduleDaily(context) }
     }
 }
