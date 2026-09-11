@@ -107,8 +107,15 @@ private fun AdminNotificationScreen(onBack: () -> Unit) {
                         put("type", JsonPrimitive("announcement"))
                     }
                 )
-            }.onSuccess {
-                status = "✅ Bildirim gönderildi. FCM aktif cihazlara telefon bildirimi ulaşacak."
+            }.onSuccess { response ->
+                val raw = response.data?.toString() ?: ""
+                val sent = Regex("\"push_sent\"\\s*:\\s*(\\d+)").find(raw)?.groupValues?.get(1)
+                val configured = raw.contains("\"push_configured\":true")
+                status = when {
+                    configured && sent != null -> "✅ FCM gönderimi tamamlandı: $sent aktif cihaza ulaştırma denemesi yapıldı."
+                    configured -> "✅ FCM isteği işlendi. Kullanıcı cihazları teslimat raporunu sağlayacaktır."
+                    else -> "⚠️ Bildirim uygulama içine kaydedildi ancak Firebase/FCM yapılandırması hazır görünmüyor."
+                }
                 title = ""
                 body = ""
             }.onFailure {
