@@ -15,22 +15,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
-/** Always-visible shortcut to the notification + friendship center. */
 @Composable
 fun SocialFloatingEntry() {
     val context = LocalContext.current
-    Box(
-        modifier = Modifier.fillMaxSize().padding(end = 16.dp, bottom = 82.dp),
-        contentAlignment = Alignment.BottomEnd
-    ) {
+    Box(Modifier.fillMaxSize().padding(end = 16.dp, bottom = 82.dp), contentAlignment = Alignment.BottomEnd) {
         FloatingActionButton(
-            onClick = {
-                context.startActivity(Intent(context, SocialCenterActivity::class.java))
-            },
+            onClick = { context.startActivity(Intent(context, SocialModernActivity::class.java)) },
             containerColor = Color(0xFF28DE98),
             contentColor = Color(0xFF06221B)
-        ) {
-            Icon(Icons.Default.People, contentDescription = "Sosyal ve arkadaşlar")
-        }
+        ) { Icon(Icons.Default.People, contentDescription = "Sosyal ve arkadaşlar") }
     }
 }
