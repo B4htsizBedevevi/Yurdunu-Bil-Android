@@ -15,6 +15,11 @@ import kotlinx.serialization.json.buildJsonObject
 class YurdunuBilFirebaseMessagingService : FirebaseMessagingService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    override fun onCreate() {
+        super.onCreate()
+        NotificationHelper.ensureChannel(this)
+    }
+
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         scope.launch { registerToken(token) }
