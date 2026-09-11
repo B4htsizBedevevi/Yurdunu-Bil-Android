@@ -9,6 +9,9 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 object FcmPushManager {
     private const val TAG = "YBFcm"
@@ -33,17 +36,20 @@ object FcmPushManager {
             runCatching {
                 val client = SupabaseClientProvider.client
                 val user = client.auth.currentUserOrNull() ?: return@runCatching
+                val now = java.time.Instant.now().toString()
+                val device = buildJsonObject {
+                    put("user_id", user.id)
+                    put("token", token)
+                    put("platform", "android")
+                    put("active", true)
+                    put("last_seen_at", now)
+                    put("updated_at", now)
+                }
                 client.postgrest.from("notification_devices").upsert(
-                    mapOf(
-                        "user_id" to user.id,
-                        "token" to token,
-                        "platform" to "android",
-                        "active" to true,
-                        "last_seen_at" to java.time.Instant.now().toString(),
-                        "updated_at" to java.time.Instant.now().toString()
-                    ),
+                    buildJsonArray { add(device) }
+                ) {
                     onConflict = "user_id,token"
-                )
+                }
                 prefs.edit().remove(PENDING_TOKEN).apply()
                 Log.d(TAG, "FCM cihazı Supabase'e kaydedildi")
             }.onFailure { Log.w(TAG, "FCM cihaz kaydı başarısız", it) }
