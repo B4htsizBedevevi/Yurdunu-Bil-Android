@@ -141,17 +141,30 @@ object NotificationHelper {
     fun sendTest(context: Context) { if (isEnabled(context) && canNotify(context)) showAnnouncement(context, "Yurdunu Bil hazır!", "Bildirim sistemi çalışıyor.") }
     fun scheduleDaily(context: Context) {
         runCatching {
-            if (!isEnabled(context) || !canNotify(context)) { cancelDaily(context); return }
+            if (!isEnabled(context) || !canNotify(context)) {
+                cancelDaily(context)
+                return
+            }
             ensureChannel(context)
-            val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            val pending = PendingIntent.getBroadcast(context, DAILY_REQUEST, Intent(context, DailyReminderReceiver::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            val now = Calendar.getInstance(); val first = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY,20);set(Calendar.MINUTE,0);set(Calendar.SECOND,0);set(Calendar.MILLISECOND,0);if(!after(now))add(Calendar.DAY_OF_YEAR,1) }
-            alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, first.timeInMillis, AlarmManager.INTERVAL_DAY, pending)
+            NotificationAutomation.scheduleCached(context)
         }
     }
-    fun cancelDaily(context: Context) { runCatching { val alarm=context.getSystemService(Context.ALARM_SERVICE) as AlarmManager; val pending=PendingIntent.getBroadcast(context,DAILY_REQUEST,Intent(context,DailyReminderReceiver::class.java),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE);alarm.cancel(pending) } }
+
+    fun cancelDaily(context: Context) {
+        runCatching {
+            val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val pending = PendingIntent.getBroadcast(
+                context,
+                DAILY_REQUEST,
+                Intent(context, DailyReminderReceiver::class.java),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            alarm.cancel(pending)
+            NotificationAutomation.cancelCached(context)
+        }
+    }
     fun todayTemplate(): DailyTemplate { val c=Calendar.getInstance(); return dailyTemplates[Math.floorMod(c.get(Calendar.YEAR)*37+c.get(Calendar.DAY_OF_YEAR)*17,dailyTemplates.size)] }
 }
 
 class DailyReminderReceiver : BroadcastReceiver() { override fun onReceive(context: Context, intent: Intent?) { runCatching { if(!NotificationHelper.isEnabled(context)||!NotificationHelper.canNotify(context)){NotificationHelper.cancelDaily(context);return};NotificationHelper.showAnnouncement(context,NotificationHelper.todayTemplate().title,NotificationHelper.todayTemplate().body) } } }
-class NotificationBootReceiver : BroadcastReceiver() { override fun onReceive(context: Context, intent: Intent?) { runCatching { if(intent?.action==Intent.ACTION_BOOT_COMPLETED&&NotificationHelper.isEnabled(context)&&NotificationHelper.canNotify(context))NotificationHelper.scheduleDaily(context) } } }
+class NotificationBootReceiver : BroadcastReceiver() { override fun onReceive(context: Context, intent: Intent?) { runCatching { if(intent?.action==Intent.ACTION_BOOT_COMPLETED&&NotificationHelper.isEnabled(context)&&NotificationHelper.canNotify(context))NotificationAutomation.scheduleCached(context) } } }
