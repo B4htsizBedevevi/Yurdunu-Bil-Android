@@ -5,85 +5,43 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "tr.yurdunubil.app"
     compileSdk = 36
-
     defaultConfig {
         applicationId = "tr.yurdunubil.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 12
-        versionName = "0.6.1"
+        versionCode = 13
+        versionName = "0.6.2"
         buildConfigField("String", "SUPABASE_URL", "\"https://phcdfnvqhhwkhrxsmuar.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_vwk3J5ag16XmMOm3x734MQ_-mMsJVe2\"")
     }
-
-    // Release signing is supplied only by CI secrets. Local/debug builds remain unchanged.
     val releaseKeystore = System.getenv("YB_KEYSTORE_FILE")
     val releaseKeystorePassword = System.getenv("YB_KEYSTORE_PASSWORD")
     val releaseKeyAlias = System.getenv("YB_KEY_ALIAS")
     val releaseKeyPassword = System.getenv("YB_KEY_PASSWORD")
-    if (!releaseKeystore.isNullOrBlank() && !releaseKeystorePassword.isNullOrBlank() &&
-        !releaseKeyAlias.isNullOrBlank() && !releaseKeyPassword.isNullOrBlank()) {
-        signingConfigs {
-            create("release") {
-                storeFile = file(releaseKeystore)
-                storePassword = releaseKeystorePassword
-                keyAlias = releaseKeyAlias
-                keyPassword = releaseKeyPassword
-            }
-        }
-        buildTypes.getByName("release") {
-            signingConfig = signingConfigs.getByName("release")
-        }
+    if (!releaseKeystore.isNullOrBlank() && !releaseKeystorePassword.isNullOrBlank() && !releaseKeyAlias.isNullOrBlank() && !releaseKeyPassword.isNullOrBlank()) {
+        signingConfigs { create("release") { storeFile = file(releaseKeystore); storePassword = releaseKeystorePassword; keyAlias = releaseKeyAlias; keyPassword = releaseKeyPassword } }
+        buildTypes.getByName("release") { signingConfig = signingConfigs.getByName("release") }
     }
-
     buildTypes {
         getByName("debug") { isMinifyEnabled = false }
-        getByName("release") {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
+        getByName("release") { isMinifyEnabled = true; isShrinkResources = true; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro") }
     }
-
-    buildFeatures {
-        compose = true
-        buildConfig = true
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-            // Legacy Compose directional icons are intentionally retained for now;
-            // suppress only the compiler's deprecation diagnostic until migration.
-            freeCompilerArgs.add("-Xsuppress-warning=DEPRECATION")
-        }
-    }
+    buildFeatures { compose = true; buildConfig = true }
+    compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+    kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17); freeCompilerArgs.add("-Xsuppress-warning=DEPRECATION") } }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
 }
-
 val syncCanonicalAppIcon = tasks.register("syncCanonicalAppIcon") {
     outputs.file(file("src/main/res/drawable/yurdunu_bil_app_icon.png"))
-    doLast {
-        val source = rootProject.file("file_00000000915c81f4882e3e45e01e1320.png")
-        val target = file("src/main/res/drawable/yurdunu_bil_app_icon.png")
-        require(source.exists()) { "Canonical app icon missing: ${source.absolutePath}" }
-        target.parentFile.mkdirs()
-        source.copyTo(target, overwrite = true)
-    }
+    doLast { val source = rootProject.file("file_00000000915c81f4882e3e45e01e1320.png"); val target = file("src/main/res/drawable/yurdunu_bil_app_icon.png"); require(source.exists()) { "Canonical app icon missing: ${source.absolutePath}" }; target.parentFile.mkdirs(); source.copyTo(target, overwrite = true) }
 }
-
 tasks.named("preBuild") { dependsOn(syncCanonicalAppIcon) }
-
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2026.06.00")
     implementation(composeBom)
@@ -95,7 +53,6 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("io.github.ardasoyturk.compose.icons:tabler-icons:2.0.7")
     debugImplementation("androidx.compose.ui:ui-tooling")
-
     val supabaseVersion = "3.5.0"
     implementation(platform("io.github.jan-tennert.supabase:bom:$supabaseVersion"))
     implementation("io.github.jan-tennert.supabase:auth-kt")
@@ -103,4 +60,5 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:realtime-kt")
     implementation("io.github.jan-tennert.supabase:functions-kt")
     implementation("io.ktor:ktor-client-android:3.0.3")
+    implementation("com.google.firebase:firebase-messaging:25.0.1")
 }
