@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.messaging.FirebaseMessaging
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
@@ -73,7 +74,7 @@ object NotificationHelper {
     suspend fun registerCurrentToken() = withContext(Dispatchers.IO) {
         runCatching {
             val user = SupabaseClientProvider.client.auth.currentUserOrNull() ?: return@runCatching
-            val token = FirebaseMessaging.getInstance().token.await()
+            val token = Tasks.await(FirebaseMessaging.getInstance().token)
             SupabaseClientProvider.client.postgrest.from("notification_devices").insert(buildJsonObject {
                 put("user_id", JsonPrimitive(user.id)); put("token", JsonPrimitive(token)); put("platform", JsonPrimitive("android")); put("active", JsonPrimitive(true))
             })
@@ -85,11 +86,12 @@ object NotificationHelper {
             if (!canNotify(context)) return
             ensureChannel(context)
             val pending = PendingIntent.getActivity(context, 4820, Intent(context, SocialCenterActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            val notification = NotificationCompat.Builder(context, ANNOUNCEMENT_CHANNEL_ID)
+            NotificationCompat.Builder(context, ANNOUNCEMENT_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_yurdunu_bil).setContentTitle(title).setContentText(body)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body)).setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_MESSAGE).setAutoCancel(true).setContentIntent(pending).build()
-            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify((System.currentTimeMillis() and 0x7fffffff).toInt(), notification)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE).setAutoCancel(true).setContentIntent(pending).build().also {
+                    (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify((System.currentTimeMillis() and 0x7fffffff).toInt(), it)
+                }
         }
     }
 
