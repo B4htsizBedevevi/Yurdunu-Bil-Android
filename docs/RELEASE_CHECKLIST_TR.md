@@ -6,6 +6,7 @@
 - [ ] Release AAB imzalı
 - [ ] versionCode 14 / versionName 0.6.3
 - [ ] Uygulama açılışında crash yok
+- [ ] Hesap silme akışı gerçek bir test hesabıyla doğrulandı
 - [ ] Kayıt / giriş / şifre yenileme test edildi
 - [ ] Aynı e-posta ile tekrar kayıt UX'i test edildi
 - [ ] Kullanıcı adı uygunluk kontrolü test edildi
@@ -23,6 +24,7 @@
 - [ ] Uygulama ikonu 512x512 PNG
 - [ ] Telefon ekran görüntüleri hazır
 - [ ] Gizlilik politikası herkese açık HTTPS URL'de
+- [ ] Hesap silme talep sayfası herkese açık HTTPS URL'de
 - [ ] Veri Güvenliği (Data Safety) formu dolduruldu
 - [ ] İçerik derecelendirme anketi tamamlandı
 - [ ] Hedef kitle ve yaş beyanları tamamlandı
