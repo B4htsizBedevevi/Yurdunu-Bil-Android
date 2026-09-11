@@ -1,5 +1,6 @@
 package tr.yurdunubil.app
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -35,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,6 +55,7 @@ class AdminNotificationActivity : ComponentActivity() {
 
 @Composable
 private fun AdminNotificationScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
     val client = remember { SupabaseClientProvider.client }
     var title by remember { mutableStateOf("") }
     var body by remember { mutableStateOf("") }
@@ -127,8 +130,8 @@ private fun AdminNotificationScreen(onBack: () -> Unit) {
                 OutlinedButton(
                     enabled = title.isNotBlank() && body.isNotBlank(),
                     onClick = {
-                        if (NotificationHelper.canNotify(thisContext())) {
-                            NotificationHelper.sendNow(thisContext(), title.trim(), body.trim(), openSocial = false)
+                        if (NotificationHelper.canNotify(context)) {
+                            NotificationHelper.sendNow(context, title.trim(), body.trim(), openSocial = false)
                             status = "Anlık bildirim bu cihazda gösterildi."
                         } else {
                             status = "Bu cihazda bildirim izni kapalı. Ayarlar → Bildirimler bölümünden izin ver."
@@ -185,6 +188,3 @@ private fun AdminNotificationScreen(onBack: () -> Unit) {
         }
     }
 }
-
-@Composable
-private fun thisContext(): android.content.Context = androidx.compose.ui.platform.LocalContext.current
