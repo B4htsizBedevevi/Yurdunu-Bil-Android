@@ -2,8 +2,7 @@ name: Android Native CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -18,6 +17,7 @@ env:
   YB_KEYSTORE_PASSWORD: ${{ secrets.YB_KEYSTORE_PASSWORD }}
   YB_KEY_ALIAS: ${{ secrets.YB_KEY_ALIAS }}
   YB_KEY_PASSWORD: ${{ secrets.YB_KEY_PASSWORD }}
+  YB_FIREBASE_CONFIG_JSON: ${{ secrets.YB_FIREBASE_CONFIG_JSON }}
 
 jobs:
   build:
@@ -42,6 +42,16 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
 
+      - name: Configure Firebase Android app
+        shell: bash
+        run: |
+          if [[ -n "$YB_FIREBASE_CONFIG_JSON" ]]; then
+            printf '%s' "$YB_FIREBASE_CONFIG_JSON" > app/google-services.json
+            echo "Firebase Android configuration injected."
+          else
+            echo "Firebase Android configuration is not configured; building without FCM runtime registration."
+          fi
+
       - name: Compile Kotlin
         run: gradle --no-daemon :app:compileDebugKotlin
 
@@ -51,7 +61,7 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
         with:
-          name: yurdunu-bil-v0.6.0-test
+          name: yurdunu-bil-v0.7.0-test
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
@@ -72,8 +82,6 @@ jobs:
       - name: Upload release AAB
         uses: actions/upload-artifact@v7
         with:
-          name: yurdunu-bil-v0.6.0-aab
+          name: yurdunu-bil-v0.7.0-aab
           path: app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
-
-      # Triggered by a repository commit so the APK artifact is produced for testing.
