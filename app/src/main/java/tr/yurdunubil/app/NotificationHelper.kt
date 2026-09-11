@@ -180,7 +180,6 @@ object NotificationHelper {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             alarm.cancel(pending)
-            NotificationAutomation.cancelCached(context)
         }
     }
     fun todayTemplate(): DailyTemplate { val c=Calendar.getInstance(); return dailyTemplates[Math.floorMod(c.get(Calendar.YEAR)*37+c.get(Calendar.DAY_OF_YEAR)*17,dailyTemplates.size)] }
