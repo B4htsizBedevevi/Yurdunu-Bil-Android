@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 /** Production entry point for the refreshed V4 experience. */
 class RetentionMainActivity : ComponentActivity() {
@@ -17,6 +19,7 @@ class RetentionMainActivity : ComponentActivity() {
                 .apply()
             NotificationHelper.cancelDaily(this)
         }
+        MainScope().launch { NotificationHelper.registerCurrentToken() }
         setContent {
             Box(modifier = Modifier.fillMaxSize()) {
                 YurdunuBilMainV4()
