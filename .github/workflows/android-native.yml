@@ -43,7 +43,18 @@ jobs:
         uses: android-actions/setup-android@v4
 
       - name: Compile Kotlin
-        run: gradle --no-daemon :app:compileDebugKotlin
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle --no-daemon :app:compileDebugKotlin --stacktrace 2>&1 | tee "$RUNNER_TEMP/compile-kotlin.log"
+
+      - name: Upload compiler diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: yurdunu-bil-compiler-diagnostics
+          path: ${{ runner.temp }}/compile-kotlin.log
+          if-no-files-found: warn
 
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug
