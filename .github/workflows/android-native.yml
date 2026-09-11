@@ -79,28 +79,36 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
         with:
-          name: yurdunu-bil-v0.6.3-test
+          name: yurdunu-bil-v0.6.4-test
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
-      - name: Prepare release signing when configured
+      - name: Prepare release signing
         shell: bash
         run: |
-          if [[ -n "$YB_KEYSTORE_BASE64" && -n "$YB_KEYSTORE_PASSWORD" && -n "$YB_KEY_ALIAS" && -n "$YB_KEY_PASSWORD" ]]; then
-            echo "$YB_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/yurdunu-bil-release.jks"
-            echo "YB_KEYSTORE_FILE=$RUNNER_TEMP/yurdunu-bil-release.jks" >> "$GITHUB_ENV"
-            echo "Release signing configured."
-          else
-            echo "Release signing secrets not configured; building unsigned release AAB."
+          if [[ -z "$YB_KEYSTORE_BASE64" || -z "$YB_KEYSTORE_PASSWORD" || -z "$YB_KEY_ALIAS" || -z "$YB_KEY_PASSWORD" ]]; then
+            echo "::error::Release signing secrets are required: YB_KEYSTORE_BASE64, YB_KEYSTORE_PASSWORD, YB_KEY_ALIAS, YB_KEY_PASSWORD"
+            exit 1
           fi
+          echo "$YB_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/yurdunu-bil-release.jks"
+          test -s "$RUNNER_TEMP/yurdunu-bil-release.jks"
+          echo "YB_KEYSTORE_FILE=$RUNNER_TEMP/yurdunu-bil-release.jks" >> "$GITHUB_ENV"
+          echo "Release signing configured."
 
       - name: Build release AAB
         run: gradle --no-daemon :app:bundleRelease
 
+      - name: Verify release AAB is signed
+        shell: bash
+        run: |
+          jarsigner -verify -verbose -certs app/build/outputs/bundle/release/app-release.aab > "$RUNNER_TEMP/aab-signature.txt"
+          grep -q "jar verified" "$RUNNER_TEMP/aab-signature.txt"
+          echo "Release AAB signature verified."
+
       - name: Upload release AAB
         uses: actions/upload-artifact@v7
         with:
-          name: yurdunu-bil-v0.6.3-aab
+          name: yurdunu-bil-v0.6.4-aab
           path: app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
 
