@@ -20,11 +20,10 @@ class RetentionMainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         themePrefs.registerOnSharedPreferenceChangeListener(themeListener)
         applySystemBars(themePrefs.getBoolean("dark_theme", false))
+        FcmPushManager.sync(this)
 
         if (!NotificationHelper.canNotify(this)) {
-            themePrefs.edit()
-                .putBoolean("notifications_enabled", false)
-                .apply()
+            themePrefs.edit().putBoolean("notifications_enabled", false).apply()
             NotificationHelper.cancelDaily(this)
         }
         setContent {
