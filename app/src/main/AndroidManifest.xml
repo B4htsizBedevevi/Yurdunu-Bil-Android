@@ -14,6 +14,8 @@
         android:usesCleartextTraffic="false"
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.YurdunuBil">
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_yurdunu_bil" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@android:color/white" />
         <activity android:name=".RetentionMainActivity" android:exported="false" />
         <activity android:name=".SmartStudyCenterActivity" android:exported="false" />
         <activity android:name=".SocialCenterActivity" android:exported="false" />
@@ -34,6 +36,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name=".YurdunuBilFirebaseMessagingService" android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
         <receiver android:name=".DailyReminderReceiver" android:exported="false" />
         <receiver android:name=".NotificationBootReceiver" android:enabled="true" android:exported="false">
             <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /></intent-filter>
