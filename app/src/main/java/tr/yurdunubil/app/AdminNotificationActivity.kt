@@ -21,8 +21,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.functions.functions
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Order
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
@@ -79,7 +81,7 @@ private fun AdminNotificationScreen(onBack: () -> Unit) {
         scope.launch {
             runCatching {
                 automations = client.postgrest.from("notification_automations").select {
-                    order("time_local")
+                    order(column = "time_local", order = Order.ASCENDING)
                 }.decodeList<AutomationRow>()
 
                 templateCount = client.postgrest.from("notification_templates").select {
@@ -108,7 +110,7 @@ private fun AdminNotificationScreen(onBack: () -> Unit) {
                     }
                 )
             }.onSuccess { response ->
-                val raw = response.data?.toString() ?: ""
+                val raw = response.bodyAsText()
                 val sent = Regex("\"push_sent\"\\s*:\\s*(\\d+)").find(raw)?.groupValues?.get(1)
                 val configured = raw.contains("\"push_configured\":true")
                 status = when {
