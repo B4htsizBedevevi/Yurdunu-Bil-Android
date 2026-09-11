@@ -2,6 +2,9 @@ package tr.yurdunubil.app
 
 import android.content.Intent
 import android.os.Bundle
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.MainScope
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -72,6 +75,12 @@ class ModernLaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val seen = YBPreferences.hasSeenIntro(this)
+        val session = SupabaseClientProvider.client.auth.currentSessionOrNull()
+
+        if (session != null) {
+            window.decorView.post { routeExistingSession() }
+            return
+        }
 
         setContent {
             SafeLaunchScreen(
@@ -91,6 +100,40 @@ class ModernLaunchActivity : ComponentActivity() {
 
     private fun openAuth(register: Boolean) {
         startActivity(Intent(this, AuthExperienceActivity::class.java).putExtra("register", register))
+    }
+
+    private fun routeExistingSession() {
+        MainScope().launch {
+            val user = SupabaseClientProvider.client.auth.currentUserOrNull() ?: run {
+                setContent {
+                    SafeLaunchScreen(
+                        onRegister = { markWelcomeSeen(); openAuth(true) },
+                        onLogin = { markWelcomeSeen(); openAuth(false) }
+                    )
+                }
+                return@launch
+            }
+
+            val profile = runCatching {
+                SupabaseClientProvider.client.postgrest.from("profiles").select {
+                    filter { eq("id", user.id) }
+                    limit(1)
+                }.decodeSingleOrNull<ProfileGate>()
+            }.getOrNull()
+
+            val target = if (profile?.onboarding_complete == true) {
+                RetentionMainActivity::class.java
+            } else {
+                ProfileOnboardingActivity::class.java
+            }
+
+            startActivity(
+                Intent(this@ModernLaunchActivity, target).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+            )
+            finish()
+        }
     }
 }
 
