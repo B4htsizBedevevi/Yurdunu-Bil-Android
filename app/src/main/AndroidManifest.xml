@@ -43,6 +43,7 @@
             </intent-filter>
         </service>
         <receiver android:name=".DailyReminderReceiver" android:exported="false" />
+        <receiver android:name=".NotificationAutomationReceiver" android:exported="false" />
         <receiver android:name=".NotificationBootReceiver" android:enabled="true" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
