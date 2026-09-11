@@ -106,6 +106,28 @@ val YBAvatars = listOf(
 private val legacyAvatarAliases = mapOf("atlas-user" to "face", "atlas-compass" to "compass", "atlas-mountain" to "mountain", "atlas-trees" to "forest", "atlas-cloud" to "cloud", "atlas-flag" to "flag", "atlas-crown" to "crown", "atlas-shield" to "shield", "atlas-rocket" to "rocket", "atlas-cat" to "cat", "atlas-dog" to "face", "atlas-bird" to "face", "atlas-fish" to "water", "atlas-plant" to "park", "atlas-sun" to "sun", "atlas-tent" to "explorer", "atlas-anchor" to "anchor", "atlas-heart" to "heart", "atlas-diamond" to "diamond", "atlas-waves" to "waves")
 fun ybAvatar(id: String?): YBAvatar = YBAvatars.firstOrNull { it.id == id } ?: YBAvatars.firstOrNull { it.id == legacyAvatarAliases[id] } ?: YBAvatars.first()
 
+/** Geography-aware icon palette. The explicit tint remains the fallback for unknown/custom modes. */
+fun ybGameIconColor(id: String, fallback: Color): Color = when {
+    id.contains("water", true) -> Color(0xFF258FC1)
+    id.contains("climate", true) -> Color(0xFF35A9B5)
+    id.contains("mountain", true) -> Color(0xFFB87943)
+    id.contains("agriculture", true) -> Color(0xFF42A66A)
+    id.contains("mine", true) -> Color(0xFFE1A83A)
+    id.contains("factory", true) -> Color(0xFF5F7487)
+    id.contains("tourism", true) -> Color(0xFF9A6DD7)
+    id.contains("danger", true) -> Color(0xFFD94F52)
+    id.contains("population", true) -> Color(0xFF8B6CCB)
+    id.contains("region", true) -> Color(0xFF2E9E8F)
+    id.contains("map", true) -> Color(0xFF3E8FA3)
+    id.contains("match", true) -> Color(0xFF6875D6)
+    id.contains("speed", true) -> Color(0xFFE7B23C)
+    id.contains("chain", true) -> Color(0xFF7D72D8)
+    id.contains("quick", true) -> Color(0xFF4D9FD0)
+    id.contains("hard", true) || id.contains("master", true) -> Color(0xFFD59A31)
+    id.contains("duel", true) || id.contains("arena", true) -> Color(0xFFE0A83A)
+    else -> fallback
+}
+
 @Composable
 fun YBGameIcon(id: String, tint: Color, size: androidx.compose.ui.unit.Dp = 24.dp) {
     val icon = when {
@@ -127,5 +149,5 @@ fun YBGameIcon(id: String, tint: Color, size: androidx.compose.ui.unit.Dp = 24.d
         id.contains("library", true) || id.contains("study", true) -> YBIcons.Library
         else -> YBIcons.Library
     }
-    androidx.compose.material3.Icon(icon, contentDescription = null, tint = tint, modifier = androidx.compose.ui.Modifier.size(size))
+    androidx.compose.material3.Icon(icon, contentDescription = null, tint = ybGameIconColor(id, tint), modifier = androidx.compose.ui.Modifier.size(size))
 }
