@@ -78,7 +78,7 @@ fun YurdunuBilMainV4() {
         }) { pad ->
             Box(Modifier.fillMaxSize().padding(pad)) {
                 AnimatedContent(targetState = tab, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "tab") { selectedTab ->
-                    when (selectedTab) { 0 -> HomeV4(p, prefs, { launchQuiz("Hızlı 10", SharedGameModes.quick) }) { arenaOpen = true }; 1 -> LibraryV4(p, { openTopic = it }, { openProvince = it }); 2 -> EventsV4(p) { launchQuiz(it.title, it) }; else -> SettingsV4(p, prefs, dark) { dark = it; prefs.edit().putBoolean("dark_theme", it).apply() } }
+                    when (selectedTab) { 0 -> HomeModernV5(p.bg, p.card, p.text, p.muted, p.green, p.gold, prefs, { launchQuiz("Hızlı 10", SharedGameModes.quick) }, { arenaOpen = true }) { context.startActivity(android.content.Intent(context, SocialModernActivity::class.java)) }; 1 -> LibraryV4(p, { openTopic = it }, { openProvince = it }); 2 -> EventsV4(p) { launchQuiz(it.title, it) }; else -> SettingsV4(p, prefs, dark) { dark = it; prefs.edit().putBoolean("dark_theme", it).apply() } }
                 }
             }
         }
