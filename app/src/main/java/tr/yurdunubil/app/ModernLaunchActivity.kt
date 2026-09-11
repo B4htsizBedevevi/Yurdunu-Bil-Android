@@ -5,6 +5,7 @@ import android.os.Bundle
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -74,23 +75,41 @@ private val LaunchMuted = Color(0xFFA5BCB4)
 class ModernLaunchActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         val seen = YBPreferences.hasSeenIntro(this)
-        val session = SupabaseClientProvider.client.auth.currentSessionOrNull()
 
-        if (session != null) {
-            window.decorView.post { routeExistingSession() }
-            return
-        }
-
+        // Supabase restores its persisted auth session asynchronously. Do not decide
+        // "logged out" synchronously, otherwise reopening the app can flash/route to Login.
         setContent {
-            SafeLaunchScreen(
-                onRegister = { markWelcomeSeen(); openAuth(true) },
-                onLogin = { markWelcomeSeen(); openAuth(false) }
-            )
+            LaunchLoadingScreen()
         }
 
-        if (seen) {
-            window.decorView.post { openAuth(false) }
+        MainScope().launch {
+            var session = SupabaseClientProvider.client.auth.currentSessionOrNull()
+
+            // Give the Auth plugin time to restore the persisted session after process start.
+            repeat(4) {
+                if (session != null) return@repeat
+                delay(250)
+                session = SupabaseClientProvider.client.auth.currentSessionOrNull()
+            }
+
+            if (session != null) {
+                routeExistingSession()
+                return@launch
+            }
+
+            setContent {
+                SafeLaunchScreen(
+                    onRegister = { markWelcomeSeen(); openAuth(true) },
+                    onLogin = { markWelcomeSeen(); openAuth(false) }
+                )
+            }
+
+            if (seen) {
+                delay(50)
+                openAuth(false)
+            }
         }
     }
 
@@ -133,6 +152,34 @@ class ModernLaunchActivity : ComponentActivity() {
                 }
             )
             finish()
+        }
+    }
+}
+
+@Composable
+private fun LaunchLoadingScreen() {
+    Box(
+        Modifier.fillMaxSize()
+            .background(Brush.verticalGradient(listOf(LaunchBgTop, LaunchBgMid, LaunchBgBottom))),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                Modifier.size(94.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(Color.White.copy(alpha = .06f))
+                    .border(1.dp, LaunchGreen.copy(alpha = .35f), RoundedCornerShape(28.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.yurdunu_bil_app_icon),
+                    contentDescription = "Yurdunu Bil",
+                    modifier = Modifier.size(74.dp).clip(RoundedCornerShape(22.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Spacer(Modifier.height(14.dp))
+            Text("Yurdunu Bil", color = LaunchText, fontSize = 20.sp, fontWeight = FontWeight.Black)
         }
     }
 }
