@@ -118,6 +118,7 @@ fun YBGameIcon(id: String, tint: Color, size: androidx.compose.ui.unit.Dp = 24.d
         id.contains("mountain", true) -> YBIcons.AvatarMountain
         id.contains("agriculture", true) -> YBIcons.AvatarPark
         id.contains("factory", true) -> YBIcons.Factory
+        id.contains("mine", true) -> YBIcons.AvatarDiamond
         id.contains("tourism", true) -> YBIcons.AvatarExplorer
         id.contains("danger", true) -> YBIcons.AvatarShield
         id.contains("match", true) -> YBIcons.Target
