@@ -83,6 +83,7 @@ object NotificationHelper {
 
     suspend fun registerTokenForUser(token: String, context: Context? = null) = withContext(Dispatchers.IO) {
         runCatching {
+            if (context != null && (!isEnabled(context) || !canNotify(context))) return@runCatching
             val user = SupabaseClientProvider.client.auth.currentUserOrNull()
             if (user == null) {
                 context?.let { savePendingToken(it, token) }
@@ -122,6 +123,25 @@ object NotificationHelper {
     fun savePendingToken(context: Context, token: String) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putString("pending_fcm_token", token).apply()
+    }
+
+    suspend fun deactivateCurrentToken() = withContext(Dispatchers.IO) {
+        runCatching {
+            val user = SupabaseClientProvider.client.auth.currentUserOrNull() ?: return@runCatching
+            val token = Tasks.await(FirebaseMessaging.getInstance().token)
+            SupabaseClientProvider.client.postgrest.from("notification_devices").update(
+                mapOf(
+                    "active" to false,
+                    "last_seen_at" to java.time.Instant.now().toString(),
+                    "updated_at" to java.time.Instant.now().toString()
+                )
+            ) {
+                filter {
+                    eq("user_id", user.id)
+                    eq("token", token)
+                }
+            }
+        }
     }
 
     fun showAnnouncement(context: Context, title: String, body: String) {
