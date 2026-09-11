@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.tasks.Tasks
@@ -150,7 +151,9 @@ object NotificationHelper {
             ensureChannel(context)
             val pending = PendingIntent.getActivity(context, 4820, Intent(context, SocialCenterActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             NotificationCompat.Builder(context, ANNOUNCEMENT_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_stat_yurdunu_bil).setContentTitle(title).setContentText(body)
+                .setSmallIcon(R.drawable.ic_stat_yurdunu_bil)
+                .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.yurdunu_bil_app_icon))
+                .setContentTitle(title).setContentText(body)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body)).setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE).setAutoCancel(true).setContentIntent(pending).build().also {
                     (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify((System.currentTimeMillis() and 0x7fffffff).toInt(), it)
