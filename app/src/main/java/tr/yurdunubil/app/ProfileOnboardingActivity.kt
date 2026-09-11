@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
@@ -67,6 +68,8 @@ private fun ProfileOnboardingScreen(onComplete: () -> Unit) {
     var loading by remember { mutableStateOf(true) }
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var usernameAvailable by remember { mutableStateOf<Boolean?>(null) }
+    var checkingUsername by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         runCatching {
@@ -85,7 +88,44 @@ private fun ProfileOnboardingScreen(onComplete: () -> Unit) {
         loading = false
     }
 
-    val ready = username.length in 3..20 && displayName.trim().length in 2..40
+    LaunchedEffect(username) {
+        usernameAvailable = null
+        if (username.length < 3) {
+            checkingUsername = false
+            return@LaunchedEffect
+        }
+        checkingUsername = true
+        delay(350)
+        runCatching {
+            client.postgrest.rpc(
+                "username_available",
+                buildJsonObject { put("p_username", username.trim()) }
+            ).decodeSingle<Boolean>()
+        }.onSuccess {
+            usernameAvailable = it
+        }
+        checkingUsername = false
+    }
+
+    val suggestions = remember(username, displayName) {
+        buildList {
+            val seed = (if (username.isNotBlank()) username else displayName)
+                .lowercase()
+                .filter { it in 'a'..'z' || it in '0'..'9' || it == '_' }
+                .take(14)
+            if (seed.length >= 3) {
+                add(seed)
+                add(seed + "_tr")
+                add(seed + "_07")
+                add(seed + "2026")
+                add(seed + "_kpss")
+            }
+        }.distinct().filter { it != username }.take(3)
+    }
+
+    val ready = username.length in 3..20 &&
+        displayName.trim().length in 2..40 &&
+        usernameAvailable == true && !checkingUsername
     val visibleAvatars = if (activeCategory == null) YBAvatars else YBAvatars.filter { it.category == activeCategory }
 
     MaterialTheme(
@@ -194,10 +234,40 @@ private fun ProfileOnboardingScreen(onComplete: () -> Unit) {
                                     Text("@", color = YurdunuBilColors.NaturalGreen, fontWeight = FontWeight.Black)
                                 },
                                 placeholder = { Text("yurdunubilci") },
-                                supportingText = { Text("3–20 karakter • a-z, 0-9, _") },
+                                supportingText = {
+                                    when {
+                                        checkingUsername -> Text("Kullanıcı adı kontrol ediliyor…")
+                                        usernameAvailable == true -> Text("✓ Bu kullanıcı adı müsait")
+                                        usernameAvailable == false -> Text("✕ Bu kullanıcı adı alınmış")
+                                        else -> Text("3–20 karakter • a-z, 0-9, _")
+                                    }
+                                },
                                 singleLine = true,
                                 shape = RoundedCornerShape(15.dp)
                             )
+
+                            if (usernameAvailable == false && suggestions.isNotEmpty()) {
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    "Şunlar boş olabilir:",
+                                    color = YurdunuBilColors.Forest,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.height(5.dp))
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+                                ) {
+                                    suggestions.forEach { suggestion ->
+                                        AssistChip(
+                                            onClick = { username = suggestion; error = null },
+                                            label = { Text("@" + suggestion, fontSize = 9.sp) },
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
+                                    }
+                                }
+                            }
 
                             Spacer(Modifier.height(8.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -260,7 +330,7 @@ private fun ProfileOnboardingScreen(onComplete: () -> Unit) {
                                                 throwable.message?.contains("username_taken", true) == true ||
                                                     throwable.message?.contains("duplicate", true) == true ||
                                                     throwable.message?.contains("unique", true) == true ->
-                                                    "Bu kullanıcı adı zaten alınmış."
+                                                    "Bu kullanıcı adı zaten alınmış. Aşağıdaki önerilerden birini deneyebilirsin."
                                                 else -> "Profil kaydedilemedi. Bilgilerini kontrol edip tekrar dene."
                                             }
                                         }
