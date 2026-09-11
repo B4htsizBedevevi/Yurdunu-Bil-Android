@@ -19,7 +19,12 @@ class RetentionMainActivity : ComponentActivity() {
                 .apply()
             NotificationHelper.cancelDaily(this)
         }
-        MainScope().launch { NotificationHelper.registerCurrentToken() }
+        MainScope().launch {
+            if (NotificationHelper.isEnabled(this@RetentionMainActivity) && NotificationHelper.canNotify(this@RetentionMainActivity)) {
+                NotificationHelper.registerCurrentToken(this@RetentionMainActivity)
+                NotificationAutomation.syncAndSchedule(this@RetentionMainActivity)
+            }
+        }
         setContent {
             Box(modifier = Modifier.fillMaxSize()) {
                 YurdunuBilMainV4()

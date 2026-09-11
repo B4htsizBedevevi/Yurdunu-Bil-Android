@@ -21,6 +21,9 @@ import kotlinx.serialization.json.buildJsonObject
 import java.util.Calendar
 
 object NotificationHelper {
+    @kotlinx.serialization.Serializable
+    private data class NotificationDeviceRow(val id: Long, val user_id: String, val token: String)
+
     const val CHANNEL_ID = "study_reminders"
     const val ANNOUNCEMENT_CHANNEL_ID = "announcements"
     private const val DAILY_REQUEST = 4811
@@ -71,19 +74,79 @@ object NotificationHelper {
     fun canNotify(context: Context): Boolean = runCatching { android.os.Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(context, "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED }.getOrDefault(false)
     fun isEnabled(context: Context): Boolean = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(NOTIFICATIONS_ENABLED, false)
 
-    suspend fun registerCurrentToken() = withContext(Dispatchers.IO) {
+    suspend fun registerCurrentToken(context: Context? = null) = withContext(Dispatchers.IO) {
+        runCatching {
+            val token = Tasks.await(FirebaseMessaging.getInstance().token)
+            registerTokenForUser(token, context)
+        }
+    }
+
+    suspend fun registerTokenForUser(token: String, context: Context? = null) = withContext(Dispatchers.IO) {
+        runCatching {
+            if (context != null && (!isEnabled(context) || !canNotify(context))) return@runCatching
+            val user = SupabaseClientProvider.client.auth.currentUserOrNull()
+            if (user == null) {
+                context?.let { savePendingToken(it, token) }
+                return@runCatching
+            }
+
+            val client = SupabaseClientProvider.client
+            val existing = client.postgrest.from("notification_devices").select {
+                filter {
+                    eq("user_id", user.id)
+                    eq("token", token)
+                }
+                limit(1)
+            }.decodeSingleOrNull<NotificationDeviceRow>()
+
+            val now = java.time.Instant.now().toString()
+            if (existing != null) {
+                client.postgrest.from("notification_devices").update(
+                    mapOf("active" to true, "last_seen_at" to now, "updated_at" to now)
+                ) {
+                    filter { eq("id", existing.id) }
+                }
+            } else {
+                client.postgrest.from("notification_devices").insert(buildJsonObject {
+                    put("user_id", JsonPrimitive(user.id))
+                    put("token", JsonPrimitive(token))
+                    put("platform", JsonPrimitive("android"))
+                    put("active", JsonPrimitive(true))
+                })
+            }
+
+            context?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()
+                ?.remove("pending_fcm_token")?.apply()
+        }
+    }
+
+    fun savePendingToken(context: Context, token: String) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putString("pending_fcm_token", token).apply()
+    }
+
+    suspend fun deactivateCurrentToken() = withContext(Dispatchers.IO) {
         runCatching {
             val user = SupabaseClientProvider.client.auth.currentUserOrNull() ?: return@runCatching
             val token = Tasks.await(FirebaseMessaging.getInstance().token)
-            SupabaseClientProvider.client.postgrest.from("notification_devices").insert(buildJsonObject {
-                put("user_id", JsonPrimitive(user.id)); put("token", JsonPrimitive(token)); put("platform", JsonPrimitive("android")); put("active", JsonPrimitive(true))
-            })
+            SupabaseClientProvider.client.postgrest.from("notification_devices").update(
+                mapOf(
+                    "active" to false,
+                    "last_seen_at" to java.time.Instant.now().toString(),
+                    "updated_at" to java.time.Instant.now().toString()
+                )
+            ) {
+                filter {
+                    eq("user_id", user.id)
+                    eq("token", token)
+                }
+            }
         }
     }
 
     fun showAnnouncement(context: Context, title: String, body: String) {
         runCatching {
-            if (!canNotify(context)) return
+            if (!canNotify(context) || !isEnabled(context)) return
             ensureChannel(context)
             val pending = PendingIntent.getActivity(context, 4820, Intent(context, SocialCenterActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             NotificationCompat.Builder(context, ANNOUNCEMENT_CHANNEL_ID)
@@ -98,17 +161,44 @@ object NotificationHelper {
     fun sendTest(context: Context) { if (isEnabled(context) && canNotify(context)) showAnnouncement(context, "Yurdunu Bil hazır!", "Bildirim sistemi çalışıyor.") }
     fun scheduleDaily(context: Context) {
         runCatching {
-            if (!isEnabled(context) || !canNotify(context)) { cancelDaily(context); return }
+            if (!isEnabled(context) || !canNotify(context)) {
+                cancelDaily(context)
+                return
+            }
             ensureChannel(context)
-            val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            val pending = PendingIntent.getBroadcast(context, DAILY_REQUEST, Intent(context, DailyReminderReceiver::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            val now = Calendar.getInstance(); val first = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY,20);set(Calendar.MINUTE,0);set(Calendar.SECOND,0);set(Calendar.MILLISECOND,0);if(!after(now))add(Calendar.DAY_OF_YEAR,1) }
-            alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, first.timeInMillis, AlarmManager.INTERVAL_DAY, pending)
+            NotificationAutomation.scheduleCached(context)
         }
     }
-    fun cancelDaily(context: Context) { runCatching { val alarm=context.getSystemService(Context.ALARM_SERVICE) as AlarmManager; val pending=PendingIntent.getBroadcast(context,DAILY_REQUEST,Intent(context,DailyReminderReceiver::class.java),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE);alarm.cancel(pending) } }
+
+    fun cancelDaily(context: Context) {
+        runCatching {
+            val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val pending = PendingIntent.getBroadcast(
+                context,
+                DAILY_REQUEST,
+                Intent(context, DailyReminderReceiver::class.java),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            alarm.cancel(pending)
+            NotificationAutomation.cancelCached(context)
+        }
+    }
     fun todayTemplate(): DailyTemplate { val c=Calendar.getInstance(); return dailyTemplates[Math.floorMod(c.get(Calendar.YEAR)*37+c.get(Calendar.DAY_OF_YEAR)*17,dailyTemplates.size)] }
 }
 
 class DailyReminderReceiver : BroadcastReceiver() { override fun onReceive(context: Context, intent: Intent?) { runCatching { if(!NotificationHelper.isEnabled(context)||!NotificationHelper.canNotify(context)){NotificationHelper.cancelDaily(context);return};NotificationHelper.showAnnouncement(context,NotificationHelper.todayTemplate().title,NotificationHelper.todayTemplate().body) } } }
-class NotificationBootReceiver : BroadcastReceiver() { override fun onReceive(context: Context, intent: Intent?) { runCatching { if(intent?.action==Intent.ACTION_BOOT_COMPLETED&&NotificationHelper.isEnabled(context)&&NotificationHelper.canNotify(context))NotificationHelper.scheduleDaily(context) } } }
+class NotificationBootReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent?) {
+        runCatching {
+            val action = intent?.action
+            if (action == Intent.ACTION_BOOT_COMPLETED ||
+                action == Intent.ACTION_TIME_CHANGED ||
+                action == Intent.ACTION_TIMEZONE_CHANGED) {
+                if (NotificationHelper.isEnabled(context) && NotificationHelper.canNotify(context)) {
+                    NotificationHelper.ensureChannel(context)
+                    NotificationAutomation.scheduleCached(context)
+                }
+            }
+        }
+    }
+}
