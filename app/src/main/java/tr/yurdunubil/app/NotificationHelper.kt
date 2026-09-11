@@ -167,4 +167,18 @@ object NotificationHelper {
 }
 
 class DailyReminderReceiver : BroadcastReceiver() { override fun onReceive(context: Context, intent: Intent?) { runCatching { if(!NotificationHelper.isEnabled(context)||!NotificationHelper.canNotify(context)){NotificationHelper.cancelDaily(context);return};NotificationHelper.showAnnouncement(context,NotificationHelper.todayTemplate().title,NotificationHelper.todayTemplate().body) } } }
-class NotificationBootReceiver : BroadcastReceiver() { override fun onReceive(context: Context, intent: Intent?) { runCatching { if(intent?.action==Intent.ACTION_BOOT_COMPLETED&&NotificationHelper.isEnabled(context)&&NotificationHelper.canNotify(context))NotificationAutomation.scheduleCached(context) } } }
+class NotificationBootReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent?) {
+        runCatching {
+            val action = intent?.action
+            if (action == Intent.ACTION_BOOT_COMPLETED ||
+                action == Intent.ACTION_TIME_CHANGED ||
+                action == Intent.ACTION_TIMEZONE_CHANGED) {
+                if (NotificationHelper.isEnabled(context) && NotificationHelper.canNotify(context)) {
+                    NotificationHelper.ensureChannel(context)
+                    NotificationAutomation.scheduleCached(context)
+                }
+            }
+        }
+    }
+}
