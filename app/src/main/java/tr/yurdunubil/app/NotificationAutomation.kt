@@ -51,7 +51,7 @@ object NotificationAutomation {
             }.decodeList<TemplateRow>()
 
             val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            cancelCached(context)
+            NotificationHelper.cancelDaily(context)
 
             prefs.edit()
                 .putString(
