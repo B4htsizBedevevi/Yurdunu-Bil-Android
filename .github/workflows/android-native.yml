@@ -18,6 +18,7 @@ env:
   YB_KEYSTORE_PASSWORD: ${{ secrets.YB_KEYSTORE_PASSWORD }}
   YB_KEY_ALIAS: ${{ secrets.YB_KEY_ALIAS }}
   YB_KEY_PASSWORD: ${{ secrets.YB_KEY_PASSWORD }}
+  YB_GOOGLE_SERVICES_JSON: ${{ secrets.YB_GOOGLE_SERVICES_JSON }}
 
 jobs:
   build:
@@ -41,6 +42,17 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
+
+      - name: Prepare Firebase Android config
+        shell: bash
+        run: |
+          if [[ -z "$YB_GOOGLE_SERVICES_JSON" ]]; then
+            echo "::error::YB_GOOGLE_SERVICES_JSON secret is required for Firebase/FCM builds."
+            exit 1
+          fi
+          printf '%s' "$YB_GOOGLE_SERVICES_JSON" > app/google-services.json
+          test -s app/google-services.json
+          echo "Firebase Android config prepared."
 
       - name: Compile Kotlin
         shell: bash
