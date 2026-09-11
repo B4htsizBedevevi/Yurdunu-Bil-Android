@@ -7,6 +7,11 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
+// google-services.json is intentionally injected by CI/local setup rather than committed.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "tr.yurdunubil.app"
     compileSdk = 36
@@ -15,19 +20,17 @@ android {
         applicationId = "tr.yurdunubil.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 12
-        versionName = "0.6.1"
+        versionCode = 13
+        versionName = "0.7.0"
         buildConfigField("String", "SUPABASE_URL", "\"https://phcdfnvqhhwkhrxsmuar.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_vwk3J5ag16XmMOm3x734MQ_-mMsJVe2\"")
     }
 
-    // Release signing is supplied only by CI secrets. Local/debug builds remain unchanged.
     val releaseKeystore = System.getenv("YB_KEYSTORE_FILE")
     val releaseKeystorePassword = System.getenv("YB_KEYSTORE_PASSWORD")
     val releaseKeyAlias = System.getenv("YB_KEY_ALIAS")
     val releaseKeyPassword = System.getenv("YB_KEY_PASSWORD")
-    if (!releaseKeystore.isNullOrBlank() && !releaseKeystorePassword.isNullOrBlank() &&
-        !releaseKeyAlias.isNullOrBlank() && !releaseKeyPassword.isNullOrBlank()) {
+    if (!releaseKeystore.isNullOrBlank() && !releaseKeystorePassword.isNullOrBlank() && !releaseKeyAlias.isNullOrBlank() && !releaseKeyPassword.isNullOrBlank()) {
         signingConfigs {
             create("release") {
                 storeFile = file(releaseKeystore)
@@ -36,9 +39,7 @@ android {
                 keyPassword = releaseKeyPassword
             }
         }
-        buildTypes.getByName("release") {
-            signingConfig = signingConfigs.getByName("release")
-        }
+        buildTypes.getByName("release") { signingConfig = signingConfigs.getByName("release") }
     }
 
     buildTypes {
@@ -50,21 +51,11 @@ android {
         }
     }
 
-    buildFeatures {
-        compose = true
-        buildConfig = true
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
+    buildFeatures { compose = true; buildConfig = true }
+    compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
-            // Legacy Compose directional icons are intentionally retained for now;
-            // suppress only the compiler's deprecation diagnostic until migration.
             freeCompilerArgs.add("-Xsuppress-warning=DEPRECATION")
         }
     }
@@ -77,11 +68,9 @@ val syncCanonicalAppIcon = tasks.register("syncCanonicalAppIcon") {
         val source = rootProject.file("file_00000000915c81f4882e3e45e01e1320.png")
         val target = file("src/main/res/drawable/yurdunu_bil_app_icon.png")
         require(source.exists()) { "Canonical app icon missing: ${source.absolutePath}" }
-        target.parentFile.mkdirs()
-        source.copyTo(target, overwrite = true)
+        target.parentFile.mkdirs(); source.copyTo(target, overwrite = true)
     }
 }
-
 tasks.named("preBuild") { dependsOn(syncCanonicalAppIcon) }
 
 dependencies {
@@ -95,6 +84,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("io.github.ardasoyturk.compose.icons:tabler-icons:2.0.7")
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+    implementation(platform("com.google.firebase:firebase-bom:34.18.0"))
+    implementation("com.google.firebase:firebase-messaging")
 
     val supabaseVersion = "3.5.0"
     implementation(platform("io.github.jan-tennert.supabase:bom:$supabaseVersion"))
