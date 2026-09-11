@@ -43,6 +43,11 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
 
+      - name: Show Android signing fingerprints
+        shell: bash
+        run: |
+          gradle --no-daemon :app:signingReport
+
       - name: Prepare Firebase Android config
         shell: bash
         run: |
