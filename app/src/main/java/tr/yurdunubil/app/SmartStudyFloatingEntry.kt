@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -28,7 +28,7 @@ fun SmartStudyFloatingEntry() {
             containerColor = Color(0xFFFFC857),
             contentColor = Color(0xFF162118)
         ) {
-            Icon(Icons.Default.AutoAwesome, contentDescription = "Akıllı çalışma merkezi")
+            Icon(Icons.Default.Psychology, contentDescription = "Akıllı çalışma merkezi")
         }
     }
 }
