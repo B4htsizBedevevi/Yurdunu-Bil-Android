@@ -52,21 +52,6 @@ jobs:
             echo "Firebase Android configuration is not configured; building without FCM runtime registration."
           fi
 
-      - name: Activate modern home UI
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path("app/src/main/java/tr/yurdunubil/app/ModernMainV4.kt")
-          text = path.read_text(encoding="utf-8")
-          old = '0 -> HomeV4(p, prefs, { launchQuiz("Hızlı 10", SharedGameModes.quick) }) { arenaOpen = true };'
-          new = '0 -> HomeModernV5(p.bg, p.card, p.text, p.muted, p.green, p.gold, prefs, { launchQuiz("Hızlı 10", SharedGameModes.quick) }, { arenaOpen = true }, { context.startActivity(android.content.Intent(context, SocialModernActivity::class.java)) });'
-          if old not in text:
-              raise SystemExit("Modern home call pattern not found; refusing to build a mismatched UI")
-          path.write_text(text.replace(old, new, 1), encoding="utf-8")
-          print("Modern home UI activated.")
-          PY
-
       - name: Compile Kotlin
         run: gradle --no-daemon :app:compileDebugKotlin
 
@@ -76,7 +61,7 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
         with:
-          name: yurdunu-bil-v0.7.3-test
+          name: yurdunu-bil-v0.7.4-test
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
@@ -97,6 +82,6 @@ jobs:
       - name: Upload release AAB
         uses: actions/upload-artifact@v7
         with:
-          name: yurdunu-bil-v0.7.3-aab
+          name: yurdunu-bil-v0.7.4-aab
           path: app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
