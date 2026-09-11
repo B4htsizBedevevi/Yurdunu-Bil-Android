@@ -1,11 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="512dp" android:height="512dp" android:viewportWidth="512" android:viewportHeight="512">
-    <path android:fillColor="#06231A" android:pathData="M32,0 L480,0 Q512,0 512,32 L512,480 Q512,512 480,512 L32,512 Q0,512 0,480 L0,32 Q0,0 32,0Z"/>
-    <path android:strokeColor="#72F4C8" android:strokeWidth="10" android:fillColor="@android:color/transparent" android:pathData="M256,58 A198,198 0,1 0,256 454 A198,198 0,1 0,256 58"/>
-    <path android:strokeColor="#F4FFFA" android:strokeWidth="4" android:fillColor="@android:color/transparent" android:pathData="M256,92 A164,164 0,1 0,256 420 A164,164 0,1 0,256 92"/>
-    <path android:fillColor="#F4FFFA" android:pathData="M256,72 L270,124 L256,112 L242,124 Z M440,256 L388,270 L400,256 L388,242 Z M256,440 L242,388 L256,400 L270,388 Z M72,256 L124,242 L112,256 L124,270 Z"/>
-    <path android:fillColor="#E74B4B" android:pathData="M256,126 L278,246 L256,232 L234,246 Z"/>
-    <path android:fillColor="#F4FFFA" android:pathData="M256,386 L234,266 L256,280 L278,266 Z"/>
-    <path android:fillColor="#1FAE7A" android:pathData="M154,218 L176,192 L202,184 L218,164 L244,174 L262,158 L286,176 L316,170 L334,190 L360,202 L350,222 L366,244 L344,260 L350,286 L326,298 L314,326 L286,318 L266,344 L240,330 L216,340 L202,316 L174,310 L178,284 L152,268 L166,244 Z"/>
-    <path android:strokeColor="#B7FFE5" android:strokeWidth="3" android:fillColor="@android:color/transparent" android:pathData="M176,246 L204,226 L232,230 L250,210 L276,218 L300,202 L328,224 M188,276 L214,262 L240,270 L266,252 L292,264 L320,246 M220,296 L242,286 L266,294 L288,278"/>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Yurdunu Bil canonical compass + Turkey mark -->
+    <path
+        android:fillColor="#06231A"
+        android:pathData="M32,0 L480,0 Q512,0 512,32 L512,480 Q512,512 480,512 L32,512 Q0,512 0,480 L0,32 Q0,0 32,0 Z" />
+
+    <!-- Topographic contour -->
+    <path
+        android:strokeColor="#1B6D55"
+        android:strokeWidth="3"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M58,104 C120,74 164,96 220,74 C278,52 334,78 390,58 C430,44 458,58 470,74 M42,144 C106,112 156,136 220,112 C280,88 340,116 410,92 C444,82 466,92 478,108 M38,390 C98,366 148,388 208,364 C274,338 334,366 396,342 C434,328 462,338 478,354 M44,432 C106,404 164,428 220,404 C286,378 346,408 410,382 C442,370 466,380 478,394" />
+
+    <!-- Outer compass -->
+    <path
+        android:strokeColor="#72F4C8"
+        android:strokeWidth="10"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M256,58 A198,198 0,1 0,256,454 A198,198 0,1 0,256,58 Z" />
+    <path
+        android:strokeColor="#F4FFFA"
+        android:strokeWidth="5"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M256,82 A174,174 0,1 0,256,430 A174,174 0,1 0,256,82 Z" />
+
+    <!-- Cardinal points -->
+    <path
+        android:fillColor="#F4FFFA"
+        android:pathData="M256,64 L270,116 L256,104 L242,116 Z M448,256 L396,270 L408,256 L396,242 Z M256,448 L242,396 L256,408 L270,396 Z M64,256 L116,242 L104,256 L116,270 Z" />
+
+    <!-- Turkey silhouette -->
+    <path
+        android:fillColor="#2BB985"
+        android:strokeColor="#F4FFFA"
+        android:strokeWidth="9"
+        android:pathData="M100,232
+            C116,218 132,204 150,201
+            C166,198 175,184 191,182
+            C208,180 216,169 232,172
+            C246,174 255,164 269,166
+            C284,168 294,177 309,174
+            C325,170 336,180 349,184
+            C365,189 379,190 392,201
+            C406,213 414,215 424,229
+            C432,240 441,247 454,253
+            C447,263 438,268 431,277
+            C420,290 409,295 395,299
+            C385,304 375,314 362,316
+            C348,318 337,326 325,333
+            C311,341 298,339 286,346
+            C274,353 262,346 250,352
+            C237,358 226,352 214,347
+            C200,341 189,344 176,337
+            C162,330 150,332 139,324
+            C126,315 116,308 108,296
+            C99,285 91,275 78,267
+            C87,256 92,244 100,232 Z" />
+
+    <!-- Relief bands -->
+    <path
+        android:fillColor="#E6C57C"
+        android:pathData="M142,246 C175,225 211,220 244,232 C261,238 275,248 290,255 C267,268 240,275 212,273 C185,272 160,263 142,246 Z" />
+    <path
+        android:fillColor="#0E7E5D"
+        android:pathData="M292,213 C322,204 348,211 370,226 C382,236 389,249 397,260 C374,265 349,264 327,256 C310,249 300,233 292,213 Z" />
+    <path
+        android:fillColor="#8A5B3B"
+        android:pathData="M352,237 L373,204 L390,236 L405,220 L419,252 L395,274 Z" />
+
+    <!-- Lakes / water hints -->
+    <path
+        android:fillColor="#39BFE8"
+        android:pathData="M118,250 C129,244 141,246 148,252 C141,259 129,262 119,258 Z" />
+    <path
+        android:fillColor="#39BFE8"
+        android:pathData="M244,309 C254,301 265,301 273,309 C267,317 255,320 246,316 Z" />
+    <path
+        android:strokeColor="#7DE3FF"
+        android:strokeWidth="4"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M276,238 C268,252 268,267 276,282 C284,297 284,311 276,324" />
+
+    <!-- Compass needles over the map -->
+    <path
+        android:fillColor="#F14836"
+        android:pathData="M256,116 L280,239 L256,225 L232,239 Z" />
+    <path
+        android:fillColor="#F4FFFA"
+        android:pathData="M256,396 L232,273 L256,287 L280,273 Z" />
+
+    <!-- Center pivot -->
+    <path
+        android:fillColor="#EAF0EC"
+        android:strokeColor="#74867E"
+        android:strokeWidth="5"
+        android:pathData="M256,222 A34,34 0,1 0,256,290 A34,34 0,1 0,256,222 Z" />
+    <path
+        android:fillColor="#6D7974"
+        android:pathData="M256,239 A17,17 0,1 0,256,273 A17,17 0,1 0,256,239 Z" />
 </vector>
