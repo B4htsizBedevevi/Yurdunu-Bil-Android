@@ -272,7 +272,10 @@ private fun AuthScreen(
                                 if (SupabaseClientProvider.client.auth.currentSessionOrNull() != null) {
                                     onDone()
                                 } else if (register) {
-                                    message = "Hesabın hazır. E-postanı doğruladıktan sonra giriş yap; profilini birlikte tamamlayacağız."
+                                    // Supabase intentionally hides existing-account status when
+                                    // email confirmation is enabled. Duplicate signup cannot create
+                                    // a second Auth user; guide the user to the existing account.
+                                    message = "Kayıt isteği alındı. Bu e-posta daha önce kullanıldıysa yeni hesap açılmaz; Giriş Yap veya Şifremi Unuttum seçeneklerini kullan."
                                 } else {
                                     error = "Giriş tamamlanamadı. Bir kez daha deneyelim."
                                 }
