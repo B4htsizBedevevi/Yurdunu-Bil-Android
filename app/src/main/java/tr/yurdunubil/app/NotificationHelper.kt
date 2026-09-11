@@ -18,7 +18,7 @@ object NotificationHelper {
     const val DAILY_NOTIFICATION_ID = 4814
     private const val PREFS = "yurdunu_bil_native"
     private const val NOTIFICATIONS_ENABLED = "notifications_enabled"
-    private const val SMALL_ICON = android.R.drawable.ic_dialog_info
+    const val SMALL_ICON = android.R.drawable.ic_dialog_info
 
     data class DailyTemplate(val title: String, val body: String)
 
@@ -71,7 +71,7 @@ object NotificationHelper {
     fun isEnabled(context: Context): Boolean =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(NOTIFICATIONS_ENABLED, false)
 
-    /** Sends an immediate notification. This is deliberately independent from the daily reminder toggle so the test/preview button really tests the OS notification path. */
+    /** Sends an immediate notification independently from the daily reminder toggle, so test/preview really tests the OS notification path. */
     fun sendNow(context: Context, title: String, body: String, openSocial: Boolean = true) {
         runCatching {
             if (!canNotify(context)) return
@@ -146,7 +146,7 @@ class DailyReminderReceiver : BroadcastReceiver() {
             val openIntent = Intent(context, SocialCenterActivity::class.java)
             val pending = PendingIntent.getActivity(context, 4815, openIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             val notification = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
-                .setSmallIcon(SMALL_ICON)
+                .setSmallIcon(NotificationHelper.SMALL_ICON)
                 .setContentTitle(template.title)
                 .setContentText(template.body)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(template.body))
