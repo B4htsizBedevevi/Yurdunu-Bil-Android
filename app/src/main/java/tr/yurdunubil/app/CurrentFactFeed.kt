@@ -22,6 +22,16 @@ object CurrentFactFeed {
         CurrentFact("En yoğun nüfuslu bölge", "Marmara", "Sanayi, hizmet, ticaret ve ulaşımın yoğunluğu Marmara'da nüfus yoğunluğunu artırır.", "KPSS temel bilgi", "2026", "population"),
         CurrentFact("En büyük coğrafi bölge", "Doğu Anadolu", "Yüz ölçümü bakımından Türkiye'nin en büyük coğrafi bölgesidir.", "KPSS temel bilgi", "2026", "map"),
         CurrentFact("İç göç", "2,475 milyon kişi", "2025'te iller arası göç eden kişi sayısı 2 milyon 475 bin 19 oldu.", "TÜİK", "2025", "population"),
-        CurrentFact("En fazla iç göç alan il", "İstanbul • 329.912 kişi", "2025'te iller arası göçte en fazla göç alan il İstanbul oldu.", "TÜİK", "2025", "map")
+        CurrentFact("En fazla iç göç alan il", "İstanbul • 329.912 kişi", "2025'te iller arası göçte en fazla göç alan il İstanbul oldu.", "TÜİK", "2025", "map"),
+        CurrentFact("2025 nüfus", "86.092.168", "31 Aralık 2025 itibarıyla Türkiye nüfusu 86 milyon 92 bin 168 kişidir.", "TÜİK", "2025", "population"),
+        CurrentFact("2025 nüfus artış hızı", "Binde 5", "Yıllık nüfus artış hızı 2025 yılında binde 5 olarak açıklandı.", "TÜİK", "2025", "population"),
+        CurrentFact("İl ve ilçe merkezleri", "%93,6", "2025'te il ve ilçe merkezlerinde yaşayanların oranı %93,6 oldu.", "TÜİK", "2025", "population"),
+        CurrentFact("2026 tahmini tahıl", "41,6 milyon ton", "2026 ilk tahmininde tahıl üretiminin yaklaşık 41,6 milyon ton olması bekleniyor.", "TÜİK / Tarım ve Orman Bakanlığı", "2026", "agriculture"),
+        CurrentFact("2026 tahmini fındık", "+%62,2", "2026 ilk tahmininde fındık üretiminin bir önceki yıla göre %62,2 artması bekleniyor.", "TÜİK / Tarım ve Orman Bakanlığı", "2026", "agriculture"),
+        CurrentFact("Ağustos 2026 sıcaklığı", "25,7 °C", "Türkiye'nin 2026 Ağustos ayı ortalama sıcaklığı 25,7 °C oldu.", "MGM", "2026", "climate"),
+        CurrentFact("Ağustos 2026 en yüksek", "46,7 °C • Cizre", "2026 Ağustos ayında ölçülen en yüksek sıcaklık Cizre'de 46,7 °C oldu.", "MGM", "2026", "climate"),
+        CurrentFact("Ağustos 2026 yağışı", "16,2 mm", "Türkiye genelinde 2026 Ağustos ayı ortalama yağışı 16,2 mm olarak gerçekleşti.", "MGM", "2026", "water"),
+        CurrentFact("Elektrik kurulu gücü", "126.476 MW", "2026 Temmuz sonu itibarıyla Türkiye'nin elektrik kurulu gücü 126.476 MW'a ulaştı.", "Enerji ve Tabii Kaynaklar Bakanlığı", "2026", "speed"),
+        CurrentFact("Yenilenebilir kurulu güç payı", "%62,8", "2026 Temmuz sonu itibarıyla kurulu gücün %62,8'i yenilenebilir kaynaklardan oluştu.", "Enerji ve Tabii Kaynaklar Bakanlığı", "2026", "speed")
     )
 }
