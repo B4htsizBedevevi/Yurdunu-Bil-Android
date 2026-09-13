@@ -86,7 +86,7 @@ fun YurdunuBilMainV4() {
         }) { pad ->
             Box(Modifier.fillMaxSize().padding(pad)) {
                 AnimatedContent(targetState = tab, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "tab") { selectedTab ->
-                    when (selectedTab) { 0 -> HomeV5(p, prefs, { launchQuiz("Bugünün Testi", SharedGameModes.quick) }) { arenaOpen = true }; 1 -> LibraryV5(p, prefs, { openTopic = it }, { openProvince = it }); 2 -> EventsV4(p) { mode -> if (mode.arena) onlineArenaMode = mode else launchQuiz(mode.title, mode) }; else -> SettingsV4(p, prefs, dark) { dark = it; prefs.edit().putBoolean("dark_theme", it).apply() } }
+                    when (selectedTab) { 0 -> HomeV5(p, prefs, { launchQuiz("Bugünün Testi", SharedGameModes.quick) }) { arenaOpen = true }; 1 -> LibraryV5(p, prefs, { openTopic = it }, { openProvince = it }); 2 -> EventsV5(p) { mode -> if (mode.arena) onlineArenaMode = mode else launchQuiz(mode.title, mode) }; else -> SettingsV4(p, prefs, dark) { dark = it; prefs.edit().putBoolean("dark_theme", it).apply() } }
                 }
             }
         }
