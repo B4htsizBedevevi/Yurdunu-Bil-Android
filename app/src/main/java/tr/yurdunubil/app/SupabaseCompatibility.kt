@@ -22,4 +22,4 @@ fun NotificationHelper.showAnnouncement(
     body: String,
     notificationId: Int,
     action: String
-) = showAnnouncement(context, title, body)
+) = showAnnouncement(context, title, body, notificationId = notificationId, action = action)
