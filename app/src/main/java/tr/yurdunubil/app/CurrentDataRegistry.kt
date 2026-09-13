@@ -11,7 +11,7 @@ data class CurrentSource(
 /** Official sources used when refreshing the current-information library. */
 object CurrentDataRegistry {
     val sources = listOf(
-        CurrentSource("TÜİK • ADNKS Sonuçları", "2025", "2026-02-09", "https://data.tuik.gov.tr/Bulten/Index?p=Adrese-Dayali-Nufus-Kayit-Sonuclari-2025-53899", "Türkiye nüfusu, kent-kır, yoğunluk ve il karşılaştırmaları."),
+        CurrentSource("TÜİK • ADNKS Sonuçları", "2025", "2026-02-09", "https://data.tuik.gov.tr/Bulten/Index?p=Adrese-Dayali-Nufus-Kayit-Sistemi-Sonuclari-2025-53899", "Türkiye nüfusu, kent-kır, yoğunluk ve il karşılaştırmaları."),
         CurrentSource("TÜİK • İç Göç İstatistikleri", "2025", "2026-07-14", "https://veriportali.tuik.gov.tr/Bulten/Index?dil=1&p=İç-Göç-İstatistikleri-2025-58139", "İç göç sayısı, illerin aldığı/verdiği göç ve yaş/neden dağılımları."),
         CurrentSource("TÜİK • Uluslararası Göç İstatistikleri", "2025", "2026-06-24", "https://veriportali.tuik.gov.tr/tr/press/58140/metadata", "Türkiye'ye gelen ve Türkiye'den giden uluslararası göç."),
         CurrentSource("TÜİK • Bitkisel Üretim 1. Tahmini", "2026", "2026-05-21", "https://veriportali.tuik.gov.tr/tr/press/58012/metadata", "2026 tarla, tahıl, meyve ve belirli ürünler için ilk tahminler."),
