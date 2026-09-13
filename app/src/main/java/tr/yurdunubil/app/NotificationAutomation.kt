@@ -63,6 +63,7 @@ object NotificationAutomation {
                             put("title", it.title)
                             put("category", it.category)
                             put("time_local", it.time_local)
+                            put("days_mask", it.days_mask)
                             put("active", it.active)
                         }) }
                     }.toString()
@@ -96,34 +97,49 @@ object NotificationAutomation {
         if (!NotificationHelper.isEnabled(context) || !NotificationHelper.canNotify(context)) return
         NotificationHelper.ensureChannel(context)
 
-        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getString(AUTOMATIONS_CACHE, "[]") ?: "[]"
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val raw = prefs.getString(AUTOMATIONS_CACHE, "[]") ?: "[]"
         val array = runCatching { JSONArray(raw) }.getOrElse { JSONArray() }
         val alarm = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
+        // One-shot alarms are intentionally used instead of repeating alarms:
+        // they honor days_mask, survive timezone changes, and can be rescheduled
+        // immediately after delivery for a more deterministic local-time cadence.
         for (i in 0 until array.length()) {
             val item = array.getJSONObject(i)
             if (!item.optBoolean("active", true)) continue
 
-            val parts = item.optString("time_local").split(":")
-            val hour = parts.getOrNull(0)?.toIntOrNull() ?: continue
-            val minute = parts.getOrNull(1)?.toIntOrNull() ?: 0
             val id = item.optLong("id")
-            val first = Calendar.getInstance().apply {
+            val next = nextOccurrence(item) ?: continue
+            alarm.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                next.timeInMillis,
+                pendingIntent(context, requestCode(id), id)
+            )
+        }
+    }
+
+    private fun nextOccurrence(item: JSONObject): Calendar? {
+        val parts = item.optString("time_local").split(":")
+        val hour = parts.getOrNull(0)?.toIntOrNull() ?: return null
+        val minute = parts.getOrNull(1)?.toIntOrNull() ?: 0
+        val daysMask = item.optInt("days_mask", 127).coerceIn(0, 127)
+        if (daysMask == 0) return null
+
+        val now = Calendar.getInstance()
+        for (offset in 0..7) {
+            val candidate = (now.clone() as Calendar).apply {
+                add(Calendar.DAY_OF_YEAR, offset)
                 set(Calendar.HOUR_OF_DAY, hour)
                 set(Calendar.MINUTE, minute)
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
-                if (!after(Calendar.getInstance())) add(Calendar.DAY_OF_YEAR, 1)
             }
-
-            alarm.setInexactRepeating(
-                AlarmManager.RTC_WAKEUP,
-                first.timeInMillis,
-                AlarmManager.INTERVAL_DAY,
-                pendingIntent(context, requestCode(id), id)
-            )
+            val dayBit = 1 shl (candidate.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY)
+            if ((daysMask and dayBit) == 0) continue
+            if (candidate.timeInMillis > now.timeInMillis + 5_000L) return candidate
         }
+        return null
     }
 
     fun cancelCached(context: Context) {
@@ -151,6 +167,7 @@ object NotificationAutomation {
         }.getOrNull() ?: return
 
         val category = automation.optString("category", "motivation")
+        if (!shouldFire(context, category)) return
         val template = pickTemplate(context, category) ?: NotificationHelperFallback.forCategory(category)
 
         NotificationHelper.showAnnouncement(
@@ -160,6 +177,19 @@ object NotificationAutomation {
             notificationId = 70000 + requestCode(automationId) % 10000,
             action = "automation:$category"
         )
+    }
+
+    private fun shouldFire(context: Context, category: String): Boolean {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val todaySolved = prefs.getInt("today_solved", 0)
+        return when (category.lowercase()) {
+            "study" -> todaySolved < 5
+            "quiz" -> todaySolved < 10
+            "streak", "motivation" -> todaySolved < 20
+            "arena" -> true
+            "geography", "content" -> true
+            else -> true
+        }
     }
 
     private fun pickTemplate(context: Context, category: String): NotificationHelperFallback.Template? {
@@ -197,7 +227,11 @@ object NotificationAutomation {
 class NotificationAutomationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         val id = intent?.getLongExtra("automation_id", -1L) ?: -1L
-        if (id > 0L) NotificationAutomation.fire(context, id)
+        if (id > 0L) {
+            NotificationAutomation.fire(context, id)
+            // Schedule this automation's next valid local occurrence immediately.
+            NotificationAutomation.scheduleCached(context)
+        }
     }
 }
 
