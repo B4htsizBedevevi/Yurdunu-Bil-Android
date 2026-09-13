@@ -56,6 +56,7 @@ fun YurdunuBilMainV4() {
     var openTopic by remember { mutableStateOf<Topic?>(null) }
     var openProvince by remember { mutableStateOf<Province?>(null) }
     var openQuiz by remember { mutableStateOf<List<Question>?>(null) }
+    var openQuizMode by remember { mutableStateOf<SharedGameMode?>(null) }
     var quizTitle by rememberSaveable { mutableStateOf("") }
     var arenaOpen by rememberSaveable { mutableStateOf(false) }
     var onlineArenaMode by remember { mutableStateOf<SharedGameMode?>(null) }
