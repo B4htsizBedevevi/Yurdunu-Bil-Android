@@ -80,7 +80,7 @@ object QuestionTaxonomy {
 
 object SharedQuestionPool {
     /** One source for tests, normal games, events and Arena. */
-    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + RetentionQuestionExpansion.all)
+    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + RetentionQuestionExpansion.all + QuestionMegaExpansion2.all)
         .distinctBy { it.id }
         .also { QuestionBankValidator.requireValid(it) }
 
