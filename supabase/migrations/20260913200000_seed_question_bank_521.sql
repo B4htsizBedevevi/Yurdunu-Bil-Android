@@ -520,7 +520,7 @@ insert into public.question_bank (id,topic,subtopic,question_payload,active) val
 ('11147','Güncel Türkiye',NULL,'{"text":"2025 sonunda erkek nüfusun toplam nüfustaki payı yaklaşık kaçtır?","options":["%48,02","%49,02","%50,02","%51,02","%52,02"],"correctIndex":2,"explanation":"Erkeklerin payı %50,02''dir."}'::jsonb,true),
 ('11148','Güncel Türkiye',NULL,'{"text":"2025''te Türkiye nüfusunun yüzde kaçı İstanbul''da yaşamıştır?","options":["%13,3","%15,3","%18,3","%21,3","%23,3"],"correctIndex":2,"explanation":"İstanbul toplam nüfusun %18,3''ünü barındırır."}'::jsonb,true),
 ('11149','Güncel Tarım ve Üretim',NULL,'{"text":"2026 ilk tahmininde meyve, içecek ve baharat bitkileri üretiminin değişimi hangisidir?","options":["%17,8","%37,8","%57,8","%77,8","%97,8"],"correctIndex":2,"explanation":"Bu grubun üretiminde %57,8 artış tahmin edilmiştir."}'::jsonb,true),
-('11150','Güncel Tarım ve Üretim',NULL,'{"text":"2026 ilk tahmininde şeker pancarı üretimindeki artış yaklaşık kaçtır?","options":["%1,8","%3,8","%5,8","%7,8","%9,8"],"correctIndex":2,"explanation":"Şeker pancarı üretiminde %5,8 artış öngörülmüştür."}'::jsonb,true);
+('11150','Güncel Tarım ve Üretim',NULL,'{"text":"2026 ilk tahmininde şeker pancarı üretimindeki artış yaklaşık kaçtır?","options":["%1,8","%3,8","%5,8","%7,8","%9,8"],"correctIndex":2,"explanation":"Şeker pancarı üretiminde %5,8 artış öngörülmüştür."}'::jsonb,true)
 on conflict (id) do update set topic=excluded.topic, subtopic=excluded.subtopic, question_payload=excluded.question_payload, active=excluded.active;
 
 update public.question_bank set active=true where id ~ '^[0-9]+;
