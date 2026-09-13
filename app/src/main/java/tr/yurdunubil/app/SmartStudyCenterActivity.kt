@@ -66,7 +66,14 @@ private fun SmartStudyCenterScreen(onBack: () -> Unit) {
     val level = 1 + xp / 500
     val levelXp = xp % 500
 
-    val priorities = GeographyData.topics.sortedBy { it.progress }.take(4)
+    fun topicScore(topic: Topic): Float {
+        val topicQuestions = SharedQuestionPool.all.filter { it.topic in SharedQuestionPool.topicForLibrary(topic.title) }
+        if (topicQuestions.isEmpty()) return topic.progress / 100f
+        return topicQuestions.map { SmartQuestionSelector.accuracy(prefs, it.topic) }.average().toFloat()
+    }
+    val priorities = GeographyData.topics.sortedWith(
+        compareBy<Topic> { topicScore(it) }.thenBy { it.progress }
+    ).take(4)
     val challengeIndex = LocalDate.now().dayOfYear % GeographyData.provinces.size
     val challenge = GeographyData.provinces[challengeIndex]
     val optionIndexes = listOf(
