@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageVector
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -55,7 +55,7 @@ private fun FirstRunTutorial(onFinish: () -> Unit) {
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val accent = if (dark) Color(0xFF2BDEA0) else Color(0xFF0B8F69)
     val finishTutorial = {
-        context.getSharedPreferences("yurdunu_bil_native", MODE_PRIVATE)
+        context.getSharedPreferences("yurdunu_bil_native", android.content.Context.MODE_PRIVATE)
             .edit()
             .putBoolean("first_run_tutorial_seen", true)
             .apply()
