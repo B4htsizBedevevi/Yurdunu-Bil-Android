@@ -146,8 +146,8 @@ object SharedGameModes {
     val regionArena = SharedGameMode("region-arena", "Bölge Savaşı", "Seçilen bölge uzmanlığını puana çevir", "map", 10, 150, 220, setOf("Bölgeler", "Tarım", "İklim ve Bitki Örtüsü"), arena = true)
     val hardArena = SharedGameMode("master-arena", "Türkiye Ustası Arena", "Zor karışık sorularla lig puanı kovala", "master", 15, 180, 300, arena = true)
 
-    fun daily(date: LocalDate): SharedGameMode = when (date.dayOfYear % 7) {
-        0 -> quick; 1 -> regions; 2 -> agriculture; 3 -> climate; 4 -> water; 5 -> population; else -> chain
+    fun daily(date: LocalDate): SharedGameMode = when (date.dayOfYear % 8) {
+        0 -> current; 1 -> quick; 2 -> regions; 3 -> agriculture; 4 -> climate; 5 -> water; 6 -> population; else -> chain
     }
 
     val games = listOf(map, quick, regions, mines, agriculture, climate, water, population, current, chain, master)
