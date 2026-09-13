@@ -43,22 +43,52 @@ data class ArenaMatchRow(
     val total_rounds: Int = 10
 )
 
+@Serializable
+private data class ArenaMatchRpcRow(
+    val id: String? = null,
+    val mode: String? = null,
+    val status: String? = null,
+    val host_id: String? = null,
+    val guest_id: String? = null,
+    val room_code: String? = null,
+    val current_round: Int? = null,
+    val total_rounds: Int? = null
+)
+
 object OnlineArenaRepository {
     private val client get() = SupabaseClientProvider.client
 
     fun signedIn(): Boolean = client.auth.currentSessionOrNull() != null
 
-    /** The RPC returns the composite row as a JSON object, not an array. */
     suspend fun queue(mode: String): ArenaQueueRow = client.postgrest
         .rpc("enqueue_arena", buildJsonObject {
             put("p_mode", JsonPrimitive(mode))
         }).decodeAs()
 
-    /** Returns a match when found; null means the queue is still waiting. */
-    suspend fun tryMatch(mode: String): ArenaMatchRow? = client.postgrest
-        .rpc("try_match_arena", buildJsonObject {
-            put("p_mode", JsonPrimitive(mode))
-        }).decodeAs<ArenaMatchRow?>()
+    /**
+     * try_match_arena returns a composite PostgreSQL row. When no opponent is
+     * available PostgreSQL/PostgREST can serialize that composite as an object
+     * whose fields are all null, rather than JSON literal null. Decode through
+     * a nullable-field DTO so the waiting state is handled safely.
+     */
+    suspend fun tryMatch(mode: String): ArenaMatchRow? {
+        val row = client.postgrest
+            .rpc("try_match_arena", buildJsonObject {
+                put("p_mode", JsonPrimitive(mode))
+            }).decodeAs<ArenaMatchRpcRow>()
+
+        val id = row.id ?: return null
+        return ArenaMatchRow(
+            id = id,
+            mode = row.mode ?: mode,
+            status = row.status ?: "waiting",
+            host_id = row.host_id ?: "",
+            guest_id = row.guest_id,
+            room_code = row.room_code,
+            current_round = row.current_round ?: 0,
+            total_rounds = row.total_rounds ?: 10
+        )
+    }
 
     suspend fun leaveQueue() {
         client.postgrest.rpc("leave_arena_queue")
