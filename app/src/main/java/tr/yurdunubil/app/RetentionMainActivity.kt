@@ -1,5 +1,6 @@
 package tr.yurdunubil.app
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,10 +14,11 @@ import kotlinx.coroutines.launch
 class RetentionMainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val prefs = getSharedPreferences("yurdunu_bil_native", MODE_PRIVATE)
+        val firstRunTutorialSeen = prefs.getBoolean("first_run_tutorial_seen", false)
+
         if (!NotificationHelper.canNotify(this)) {
-            getSharedPreferences("yurdunu_bil_native", MODE_PRIVATE).edit()
-                .putBoolean("notifications_enabled", false)
-                .apply()
+            prefs.edit().putBoolean("notifications_enabled", false).apply()
             NotificationHelper.cancelDaily(this)
         }
         MainScope().launch {
@@ -30,6 +32,10 @@ class RetentionMainActivity : ComponentActivity() {
                 YurdunuBilMainV4()
                 QuickActionsFloatingEntry()
             }
+        }
+
+        if (!firstRunTutorialSeen) {
+            startActivity(Intent(this, FirstRunTutorialActivity::class.java))
         }
     }
 }
