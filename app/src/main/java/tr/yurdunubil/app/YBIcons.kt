@@ -135,6 +135,7 @@ fun YBGameIcon(id: String, tint: Color, size: androidx.compose.ui.unit.Dp = 24.d
         id.contains("climate", true) -> YBIcons.AvatarCloud
         id.contains("water", true) -> YBIcons.AvatarWater
         id.contains("population", true) -> YBIcons.Population
+        id.contains("pulse", true) || id.contains("bolt", true) -> YBIcons.Bolt
         id.contains("library", true) || id.contains("study", true) -> YBIcons.Library
         else -> YBIcons.Library
     }
