@@ -32,7 +32,12 @@ object GeographyData {
         Topic("Turizm", "Türkiye'nin doğal ve kültürel turizmi", "tourism", 0, listOf("Kıyı turizmi", "Kış turizmi", "Kültür turizmi", "Doğal güzellikler")),
         Topic("Bölgeler", "7 bölgeyi karşılaştırarak öğren", "region", 0, listOf("Marmara", "Ege", "Akdeniz", "İç Anadolu", "Karadeniz", "Doğu Anadolu", "Güneydoğu Anadolu")),
         Topic("Doğal Afetler", "Deprem, heyelan, sel ve erozyon", "danger", 0, listOf("Deprem", "Heyelan", "Sel", "Erozyon", "Çığ")),
-        Topic("Harita Bilgisi", "Haritayı okuyabil, bilgiyi bul", "map", 0, listOf("Ölçek", "Yön", "İzohips", "Profil", "Harita yorumlama"))
+        Topic("Harita Bilgisi", "Haritayı okuyabil, bilgiyi bul", "map", 0, listOf("Ölçek", "Yön", "İzohips", "Profil", "Harita yorumlama")),
+        Topic("Güncel Türkiye", "2025-2026 resmi veriler ve sınavlık güncel bilgiler", "pulse", 0, listOf("Güncel nüfus", "Kentleşme", "Büyükşehirler", "Güncel göstergeler")),
+        Topic("Güncel Göç ve Demografi", "İç göç, dış göç ve nüfus yapısındaki son veriler", "population", 0, listOf("İç göç 2025", "Uluslararası göç", "Genç nüfus", "Kent-kır")),
+        Topic("Güncel Tarım ve Üretim", "2026 tarım tahminleri ve güncel üretim değişimleri", "agriculture", 0, listOf("2026 tahminleri", "Tahıllar", "Meyveler", "Endüstri bitkileri")),
+        Topic("Güncel İklim ve Çevre", "2026 hava, sıcaklık ve yağış değerlendirmeleri", "climate", 0, listOf("2026 sıcaklık", "2026 yağış", "Ekstrem değerler", "İklim eğilimleri")),
+        Topic("Güncel Enerji ve Ulaşım", "2026 enerji kurulu gücü ve ulaştırma göstergeleri", "bolt", 0, listOf("Kurulu güç", "Yenilenebilir enerji", "Elektrik üretimi", "Ulaşım yatırımları"))
     )
 
     val provinces = listOf(
