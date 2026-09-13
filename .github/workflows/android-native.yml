@@ -42,8 +42,18 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+          accept-android-sdk-licenses: true
+
+      - name: Accept Android SDK licenses
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Show Android signing fingerprints
+        if: env.YB_KEYSTORE_BASE64 != '' && env.YB_KEYSTORE_PASSWORD != '' && env.YB_KEY_ALIAS != '' && env.YB_KEY_PASSWORD != ''
         shell: bash
         run: |
           gradle --no-daemon :app:signingReport
@@ -69,7 +79,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: yurdunu-bil-compiler-diagnostics-v0.6.6
+          name: yurdunu-bil-compiler-diagnostics-v0.7.0
           path: ${{ runner.temp }}/compile-kotlin.log
           if-no-files-found: warn
 
@@ -79,7 +89,7 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v7
         with:
-          name: yurdunu-bil-v0.6.6-test
+          name: yurdunu-bil-v0.7.0-test
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
@@ -119,7 +129,7 @@ jobs:
         if: steps.release_signing.outputs.available == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: yurdunu-bil-v0.6.6-aab
+          name: yurdunu-bil-v0.7.0-aab
           path: app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
 
