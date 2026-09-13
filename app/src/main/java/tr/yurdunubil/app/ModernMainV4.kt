@@ -304,7 +304,7 @@ fun YurdunuBilMainV4() {
         item {
             AppCard(p, Modifier.padding(horizontal = 16.dp), dark = true) {
                 Eyebrow("UYGULAMA", p.gold)
-                Text("Yurdunu Bil • 0.6.3", color = Color.White, fontWeight = FontWeight.Black)
+                Text("Yurdunu Bil • 0.6.5", color = Color.White, fontWeight = FontWeight.Black)
                 Text(
                     "Gerçek push bildirimleri • otomatik çalışma hatırlatmaları • hesap yönetimi • Arena • sosyal merkez",
                     color = Color.White.copy(alpha = .72f),
