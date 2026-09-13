@@ -82,6 +82,7 @@ object SharedQuestionPool {
     /** One source for tests, normal games, events and Arena. */
     val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + RetentionQuestionExpansion.all)
         .distinctBy { it.id }
+        .also { QuestionBankValidator.requireValid(it) }
 
     private fun shuffleOptions(question: Question, seed: Long): Question {
         val pairs = question.options.mapIndexed { index, option -> index to option }
