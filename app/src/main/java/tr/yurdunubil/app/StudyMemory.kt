@@ -16,7 +16,7 @@ object StudyMemory {
         val wrongs = prefs.getInt(key(id, "wrongs"), 0) + if (correct) 0 else 1
         val oldLevel = prefs.getInt(key(id, "level"), 0)
         val level = if (correct) (oldLevel + 1).coerceAtMost(5) else 0
-        val days = if (!correct) 0 else listOf(1L, 3L, 7L, 14L, 30L)[level.coerceIn(1, 5) - 1]
+        val days = if (!correct) 0L else listOf(1L, 3L, 7L, 14L, 30L)[level.coerceIn(1, 5) - 1]
         val next = if (days == 0L) now.toEpochMilli() else now.plus(days, ChronoUnit.DAYS).toEpochMilli()
         prefs.edit()
             .putInt(key(id, "attempts"), attempts)
@@ -28,12 +28,8 @@ object StudyMemory {
     }
 
     fun isWrong(prefs: SharedPreferences, id: Int): Boolean = prefs.getInt(key(id, "wrongs"), 0) > 0
-    fun wrongCount(prefs: SharedPreferences): Int = 0 // computed by selector; kept cheap for callers
     fun due(prefs: SharedPreferences, id: Int, now: Long = System.currentTimeMillis()): Boolean = prefs.getLong(key(id, "next"), 0L) <= now
     fun level(prefs: SharedPreferences, id: Int): Int = prefs.getInt(key(id, "level"), 0)
     fun nextReview(prefs: SharedPreferences, id: Int): Long = prefs.getLong(key(id, "next"), 0L)
-
-    fun clearWrong(prefs: SharedPreferences, id: Int) {
-        prefs.edit().putInt(key(id, "wrongs"), 0).apply()
-    }
+    fun wrongIds(prefs: SharedPreferences, questions: Collection<Question>): Set<Int> = questions.map { it.id }.filter { isWrong(prefs, it) }.toSet()
 }
