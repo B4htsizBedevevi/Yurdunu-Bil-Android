@@ -428,3 +428,95 @@ fun YurdunuBilMainV4() {
         } }
     }
 }
+
+@Composable private fun LibraryV5(p: AppPalette, prefs: SharedPreferences, onTopic: (Topic) -> Unit, onProvince: (Province) -> Unit) {
+    var search by rememberSaveable { mutableStateOf("") }
+    val topics = GeographyData.topics.filter { it.title.contains(search, true) || it.subtitle.contains(search, true) }
+    val measured = topics.filter { prefs.getInt("topic_attempts_" + it.title, 0) > 0 }
+    val average = if (measured.isEmpty()) 0 else measured.map { (SmartQuestionSelector.accuracy(prefs, it.title) * 100f).roundToInt() }.average().roundToInt()
+    LazyColumn(contentPadding = PaddingValues(top = 12.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item {
+            Column(Modifier.padding(horizontal = 16.dp)) {
+                Text("Kütüphane", color = p.text, fontSize = 29.sp, fontWeight = FontWeight.Black)
+                Text("Öğren → yokla → tekrar et → ustalaş.", color = p.green, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(value = search, onValueChange = { search = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, placeholder = { Text("Konu ara") }, leadingIcon = { Icon(Icons.Default.Search, null) }, shape = RoundedCornerShape(15.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = p.green, unfocusedBorderColor = p.border, cursorColor = p.green, focusedTextColor = p.text, unfocusedTextColor = p.text))
+            }
+        }
+        item {
+            AppCard(p, Modifier.padding(horizontal = 16.dp), dark = true) {
+                Eyebrow("ÇALIŞMA KÜTÜPHANESİ", p.green)
+                Text(if (average == 0) "Kendi çalışma haritanı oluştur." else "%" + average + " ortalama konu performansı", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                Text("Konular performansına göre önceliklendirilir; güçlü olduğun alanlar aralıklı olarak tekrar edilir.", color = Color.White.copy(alpha = .72f), fontSize = 12.sp, lineHeight = 18.sp, modifier = Modifier.padding(top = 5.dp))
+            }
+        }
+        item { SectionTitle("Konu Bankası", p) }
+        items(topics, key = { it.title }) { topic ->
+            val score = (SmartQuestionSelector.accuracy(prefs, topic.title) * 100f).roundToInt()
+            AppCard(p, Modifier.padding(horizontal = 16.dp).clickable { onTopic(topic) }) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(p.cardAlt), contentAlignment = Alignment.Center) { YBGameIcon(topic.icon, ybGameAccent(topic.icon), 25.dp) }
+                    Spacer(Modifier.width(11.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(topic.title, color = p.text, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                        Text(topic.subtitle, color = p.muted, fontSize = 10.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Spacer(Modifier.height(6.dp))
+                        LinearProgressIndicator(progress = { score.coerceIn(0, 100) / 100f }, modifier = Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(8.dp)), color = p.green, trackColor = p.cardAlt)
+                        Text(score.toString() + "% öğrenme", color = p.muted, fontSize = 9.sp, modifier = Modifier.padding(top = 3.dp))
+                    }
+                    Spacer(Modifier.width(8.dp)); Icon(Icons.Default.ChevronRight, null, tint = p.green)
+                }
+            }
+        }
+        item { SectionTitle("İl Keşfi", p) }
+        items(GeographyData.provinces.chunked(2), key = { it.first().name }) { row ->
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                row.forEach { city ->
+                    AppCard(p, Modifier.weight(1f).height(116.dp).clickable { onProvince(city) }) {
+                        Text(city.name, color = p.text, fontWeight = FontWeight.Black)
+                        Text(city.region, color = p.green, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text(city.clue, color = p.muted, fontSize = 10.sp, maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 5.dp))
+                    }
+                }
+                if (row.size == 1) Spacer(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable private fun EventsV5(p: AppPalette, launch: (SharedGameMode) -> Unit) {
+    val games = SharedGameModes.games
+    val quick = games.filter { it.id == "quick" || it.id == "chain" || it.id == "current" }
+    val topic = games.filter { it.id != "quick" && it.id != "chain" && it.id != "current" }
+    LazyColumn(contentPadding = PaddingValues(top = 12.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item { Column(Modifier.padding(horizontal = 16.dp)) { Text("Etkinlikler", color = p.text, fontSize = 29.sp, fontWeight = FontWeight.Black); Text("Kısa çalış, tekrar et, sonra yarış.", color = p.green, fontSize = 12.sp, fontWeight = FontWeight.Bold) } }
+        item { AppCard(p, Modifier.padding(horizontal = 16.dp), dark = true) { Eyebrow("BUGÜN", p.green); Text("Vaktine göre ilerle.", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black); Text("Hızlı tur → konu oyunu → Arena.", color = Color.White.copy(alpha = .72f), fontSize = 12.sp) } }
+        item { SectionTitle("Hızlı Çalış", p) }
+        items(quick, key = { it.id }) { mode ->
+            AppCard(p, Modifier.padding(horizontal = 16.dp).clickable { launch(mode) }) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(46.dp).clip(RoundedCornerShape(13.dp)).background(p.cardAlt), contentAlignment = Alignment.Center) { YBGameIcon(mode.icon, if (mode.id == "current") p.gold else p.green, 24.dp) }
+                    Spacer(Modifier.width(11.dp)); Column(Modifier.weight(1f)) { Text(mode.title, color = p.text, fontSize = 16.sp, fontWeight = FontWeight.Black); Text(mode.subtitle, color = p.muted, fontSize = 11.sp, maxLines = 2, overflow = TextOverflow.Ellipsis); Text(mode.questions.toString() + " soru • +" + mode.rewardXp + " XP", color = if (mode.id == "current") p.gold else p.green, fontSize = 10.sp, fontWeight = FontWeight.Bold) }
+                    Icon(Icons.Default.PlayArrow, null, tint = p.green)
+                }
+            }
+        }
+        item { SectionTitle("Konu Oyunları", p) }
+        items(topic, key = { it.id }) { mode ->
+            AppCard(p, Modifier.padding(horizontal = 16.dp).clickable { launch(mode) }) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(46.dp).clip(RoundedCornerShape(13.dp)).background(p.green.copy(alpha = .1f)), contentAlignment = Alignment.Center) { YBGameIcon(mode.icon, p.green, 24.dp) }
+                    Spacer(Modifier.width(11.dp)); Column(Modifier.weight(1f)) { Text(mode.title, color = p.text, fontSize = 16.sp, fontWeight = FontWeight.Black); Text(mode.subtitle, color = p.muted, fontSize = 11.sp, maxLines = 2, overflow = TextOverflow.Ellipsis); Text(mode.questions.toString() + " soru • +" + mode.rewardXp + " XP", color = p.green, fontSize = 10.sp, fontWeight = FontWeight.Bold) }
+                    Icon(Icons.Default.PlayArrow, null, tint = p.green)
+                }
+            }
+        }
+        item {
+            val arenaMode = SharedGameModes.arena.firstOrNull()
+            AppCard(p, Modifier.padding(horizontal = 16.dp), dark = true) {
+                Eyebrow("REKABET", p.gold); Text("Bilgini sahaya çıkar.", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Black); Text("1v1 • hız • bölge • Türkiye Ustası", color = Color.White.copy(alpha = .7f), fontSize = 11.sp)
+                Spacer(Modifier.height(8.dp)); Button(onClick = { if (arenaMode != null) launch(arenaMode) }, modifier = Modifier.fillMaxWidth().height(46.dp), shape = RoundedCornerShape(13.dp), colors = ButtonDefaults.buttonColors(containerColor = p.gold, contentColor = Color(0xFF162118))) { Text("Arena'ya Git", fontWeight = FontWeight.Black) }
+            }
+        }
+    }
+}
