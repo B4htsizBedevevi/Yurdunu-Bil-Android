@@ -160,7 +160,7 @@ object DeepLibrary {
         )
     )
 
-    private val byTitle = lessons.associateBy { it.title }
+    private val byTitle = (lessons + CurrentDeepLibrary.lessons).associateBy { it.title }
     fun forTopic(topic: Topic): DeepLesson = byTitle[topic.title] ?: DeepLesson(
         topic.title, topic.subtitle, topic.icon, topic.subtitle,
         listOf(DeepSection("Temel kavramlar", topic.subtitle, topic.lessons)),
