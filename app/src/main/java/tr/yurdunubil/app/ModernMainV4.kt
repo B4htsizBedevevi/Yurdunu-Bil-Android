@@ -86,7 +86,7 @@ fun YurdunuBilMainV4() {
         }) { pad ->
             Box(Modifier.fillMaxSize().padding(pad)) {
                 AnimatedContent(targetState = tab, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "tab") { selectedTab ->
-                    when (selectedTab) { 0 -> HomeV4(p, prefs, { launchQuiz("Hızlı 10", SharedGameModes.quick) }) { arenaOpen = true }; 1 -> LibraryV4(p, { openTopic = it }, { openProvince = it }); 2 -> EventsV4(p) { mode -> if (mode.arena) onlineArenaMode = mode else launchQuiz(mode.title, mode) }; else -> SettingsV4(p, prefs, dark) { dark = it; prefs.edit().putBoolean("dark_theme", it).apply() } }
+                    when (selectedTab) { 0 -> HomeV5(p, prefs, { launchQuiz("Bugünün Testi", SharedGameModes.quick) }) { arenaOpen = true }; 1 -> LibraryV5(p, prefs, { openTopic = it }, { openProvince = it }); 2 -> EventsV4(p) { mode -> if (mode.arena) onlineArenaMode = mode else launchQuiz(mode.title, mode) }; else -> SettingsV4(p, prefs, dark) { dark = it; prefs.edit().putBoolean("dark_theme", it).apply() } }
                 }
             }
         }
@@ -366,5 +366,65 @@ fun YurdunuBilMainV4() {
     var index by rememberSaveable(title) { mutableIntStateOf(0) }; var selected by rememberSaveable(title) { mutableIntStateOf(-1) }; var correct by rememberSaveable(title) { mutableIntStateOf(0) }; var wrong by rememberSaveable(title) { mutableIntStateOf(0) }; var finished by rememberSaveable(title) { mutableStateOf(false) }; val q = qs.getOrNull(index)
     Column(Modifier.fillMaxSize().background(p.bg).statusBarsPadding().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp)) {
         if (finished || q == null) { LazyColumn(contentPadding = PaddingValues(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) { item { AppCard(p, dark = true) { Row(verticalAlignment = Alignment.CenterVertically) { Icon(YBIcons.Trophy, null, tint = p.green, modifier = Modifier.size(17.dp)); Spacer(Modifier.width(5.dp)); Eyebrow("TEST TAMAMLANDI", p.green) }; Text(title, color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(8.dp)); Text("$correct doğru • $wrong yanlış", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black); Text("%${if (qs.isEmpty()) 0 else (correct * 100f / qs.size).roundToInt()} başarı", color = Color.White.copy(alpha = .72f)); Spacer(Modifier.height(14.dp)); GreenButton("Devam Et", p, done) } }; item { AppCard(p) { Eyebrow("TEKRAR TAKTİĞİ", p.gold); Text("Yanlış yaptığın soruların açıklamasını tekrar oku. Ardından aynı konunun ders sayfasına dön.", color = p.text, fontSize = 12.sp, lineHeight = 18.sp) } } } } else { Row(verticalAlignment = Alignment.CenterVertically) { IconButton(onClick = done) { Icon(Icons.Default.ArrowBack, "Çık", tint = p.text) }; Column(Modifier.weight(1f)) { Eyebrow(title, p.green); Text("Soru ${index + 1} / ${qs.size}", color = p.text, fontWeight = FontWeight.Black) } }; LinearProgressIndicator(progress = { (index + 1f) / qs.size }, modifier = Modifier.fillMaxWidth().height(7.dp), color = p.green, trackColor = p.cardAlt); Spacer(Modifier.height(10.dp)); LazyColumn(contentPadding = PaddingValues(bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) { item { AppCard(p) { Text(q.topic, color = p.green, fontSize = 10.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(5.dp)); Text(q.text, color = p.text, fontSize = 17.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold) } }; items(q.options.indices.toList()) { i -> val right = i == q.correctIndex; val bg = when { selected == -1 -> p.card; selected == i && right -> p.green.copy(alpha = .18f); selected == i && !right -> p.red.copy(alpha = .16f); selected != -1 && right -> p.green.copy(alpha = .11f); else -> p.card }; Card(Modifier.fillMaxWidth().clickable(enabled = selected == -1) { selected = i; SmartQuestionSelector.record(prefs, q.topic, right); if (right) correct++ else wrong++ }, shape = RoundedCornerShape(15.dp), border = BorderStroke(1.dp, if (selected == i) p.green.copy(alpha = .45f) else p.border), colors = CardDefaults.cardColors(containerColor = bg)) { Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) { Text("${('A'.code + i).toChar()}", color = p.green, fontWeight = FontWeight.Black); Spacer(Modifier.width(10.dp)); Text(q.options[i], color = p.text, fontSize = 13.sp, lineHeight = 19.sp, modifier = Modifier.weight(1f)); if (selected != -1 && right) Icon(Icons.Default.CheckCircle, null, tint = p.green) else if (selected == i) Icon(Icons.Default.Cancel, null, tint = p.red) } } }; if (selected != -1) { item { AppCard(p, dark = selected == q.correctIndex) { Eyebrow(if (selected == q.correctIndex) "DOĞRU" else "YANLIŞ", if (selected == q.correctIndex) p.green else p.red); Text(q.explanation, color = if (selected == q.correctIndex) Color.White else p.text, fontSize = 12.sp, lineHeight = 18.sp) } }; item { GreenButton(if (index + 1 == qs.size) "Sonucu Gör" else "Sonraki Soru", p) { if (index + 1 == qs.size) { ProgressTracker.recordQuiz(prefs, mode, qs.size, correct, wrong); finished = true } else { index++; selected = -1 } } } } } }
+    }
+}
+
+@Composable private fun ProgressBarRow(label: String, value: Int, p: AppPalette) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Text(label, color = p.text, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(122.dp))
+        LinearProgressIndicator(progress = { value.coerceIn(0, 100) / 100f }, modifier = Modifier.weight(1f).height(7.dp).clip(RoundedCornerShape(8.dp)), color = p.green, trackColor = p.cardAlt)
+        Spacer(Modifier.width(8.dp))
+        Text("%$value", color = p.muted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+    }
+}
+@Composable private fun HomeV5(p: AppPalette, prefs: SharedPreferences, quick: () -> Unit, arena: () -> Unit) {
+    val solved = prefs.getInt("solved", 0); val correct = prefs.getInt("correct", 0); val wrong = prefs.getInt("wrong", 0)
+    val xp = prefs.getInt("xp", 0); val streak = prefs.getInt("streak", 0)
+    val todaySolved = prefs.getInt("today_solved", 0); val todayCorrect = prefs.getInt("today_correct", 0); val todayXp = prefs.getInt("today_xp", 0)
+    val accuracy = if (solved == 0) 0 else (correct * 100f / solved).roundToInt()
+    val todayGoal = 20; val todayPct = (todaySolved * 100 / todayGoal).coerceIn(0, 100)
+    val weak = GeographyData.topics.map { it to (SmartQuestionSelector.accuracy(prefs, it.title) * 100f).roundToInt() }.sortedBy { it.second }.take(2)
+    LazyColumn(contentPadding = PaddingValues(bottom = 26.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        item { Box(Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(Color(0xFF042117), Color(0xFF087451))), RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)).statusBarsPadding().padding(20.dp)) {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(52.dp).clip(RoundedCornerShape(15.dp)).background(Color.White.copy(alpha = .08f)).padding(5.dp)) { Image(painterResource(R.drawable.yurdunu_bil_app_icon), "Yurdunu Bil", Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp))) }
+                    Spacer(Modifier.width(11.dp)); Column(Modifier.weight(1f)) { Text("Yurdunu Bil", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Black); Text("KPSS Önlisans • Türkiye Coğrafyası", color = Color(0xFFC9F8E1), fontSize = 11.sp) }
+                    Text("Lv.${1 + xp / 500}", color = Color.White, fontWeight = FontWeight.Black)
+                }
+                Spacer(Modifier.height(14.dp)); Text("Bugün senin çalışma günün.", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(6.dp)); Text(if (todaySolved == 0) "12 dakikalık bir rota hazır. Başlamak yeterli." else "${todaySolved} soru çözdün • ${todayCorrect} doğru • +${todayXp} XP", color = Color.White.copy(alpha = .76f), fontSize = 12.sp)
+                Spacer(Modifier.height(12.dp)); Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { StatChip("${todaySolved}/${todayGoal}", "BUGÜN"); StatChip("\u0024streak", "SERİ"); StatChip("%\u0024accuracy", "GENEL") }
+            }
+        } }
+        item { AppCard(p, Modifier.padding(horizontal = 16.dp), dark = true) {
+            Eyebrow("BUGÜNÜN ROTASI", p.green); Text(if (todaySolved == 0) "İlk turunu başlat." else "Ritmi koru.", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black)
+            Text("Önce zayıf konular → sonra kısa tekrar → en son güncel bilgi.", color = Color.White.copy(alpha = .74f), fontSize = 12.sp, lineHeight = 18.sp, modifier = Modifier.padding(top = 5.dp))
+            Spacer(Modifier.height(10.dp)); LinearProgressIndicator(progress = { todayPct / 100f }, modifier = Modifier.fillMaxWidth().height(9.dp).clip(RoundedCornerShape(9.dp)), color = p.green, trackColor = Color.White.copy(alpha = .1f))
+            Spacer(Modifier.height(10.dp)); GreenButton(if (todaySolved == 0) "Başla • 10 Soru" else "Devam Et • 10 Soru", p, quick)
+        } }
+        item { AppCard(p, Modifier.padding(horizontal = 16.dp)) {
+            Eyebrow("SANA ÖZEL", p.gold); Text("Bugün önce bunlara bak.", color = p.text, fontSize = 19.sp, fontWeight = FontWeight.Black); Spacer(Modifier.height(8.dp))
+            weak.forEachIndexed { index, pair ->
+                Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(28.dp).clip(RoundedCornerShape(9.dp)).background(p.red.copy(alpha = .12f)), contentAlignment = Alignment.Center) { Text("${index + 1}", color = p.red, fontWeight = FontWeight.Black, fontSize = 11.sp) }
+                    Spacer(Modifier.width(9.dp)); Column(Modifier.weight(1f)) { Text(pair.first.title, color = p.text, fontSize = 13.sp, fontWeight = FontWeight.Bold); Text("Performansına göre tekrar öneriliyor", color = p.muted, fontSize = 10.sp) }
+                    Text("%${pair.second}", color = p.red, fontWeight = FontWeight.Black, fontSize = 12.sp)
+                }
+            }
+        } }
+        item { Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            AppCard(p, Modifier.weight(1f)) { Eyebrow("İLERLEME", p.green); Text("\u0024solved", color = p.text, fontSize = 25.sp, fontWeight = FontWeight.Black); Text("çözülen soru", color = p.muted, fontSize = 10.sp) }
+            AppCard(p, Modifier.weight(1f)) { Eyebrow("DOĞRULUK", p.green); Text("%\u0024accuracy", color = p.text, fontSize = 25.sp, fontWeight = FontWeight.Black); Text("\u0024correct doğru • \u0024wrong yanlış", color = p.muted, fontSize = 10.sp) }
+        } }
+        item { AppCard(p, Modifier.padding(horizontal = 16.dp)) {
+            Eyebrow("GÜNCEL BİLGİ", p.gold); Text("Türkiye'nin son verilerini kaçırma.", color = p.text, fontSize = 18.sp, fontWeight = FontWeight.Black)
+            Text("Nüfus • göç • tarım • iklim • enerji", color = p.muted, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+            Spacer(Modifier.height(7.dp)); Text("Güncel Bilgi Turu günlük rotaya dahil.", color = p.green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        } }
+        item { AppCard(p, Modifier.padding(horizontal = 16.dp), dark = true) {
+            Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Eyebrow("ARENA", p.gold); Text("Bilgini sahaya çıkar.", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black); Text("1v1 • hız • bölge • Türkiye Ustası", color = Color.White.copy(alpha = .68f), fontSize = 11.sp) }; Icon(YBIcons.Swords, null, tint = p.gold, modifier = Modifier.size(30.dp)) }
+            Spacer(Modifier.height(9.dp)); Button(onClick = arena, modifier = Modifier.fillMaxWidth().height(46.dp), shape = RoundedCornerShape(13.dp), colors = ButtonDefaults.buttonColors(containerColor = p.gold, contentColor = Color(0xFF162118))) { Text("Arena'ya Git", fontWeight = FontWeight.Black) }
+        } }
     }
 }
