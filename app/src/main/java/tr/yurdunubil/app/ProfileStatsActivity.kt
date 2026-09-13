@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package tr.yurdunubil.app
 
 import android.os.Bundle
