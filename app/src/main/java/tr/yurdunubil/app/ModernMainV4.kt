@@ -2,6 +2,7 @@ package tr.yurdunubil.app
 
 import android.app.Activity
 import android.content.SharedPreferences
+import android.content.Intent
 import android.os.SystemClock
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -379,6 +380,7 @@ fun YurdunuBilMainV4() {
     }
 }
 @Composable private fun HomeV5(p: AppPalette, prefs: SharedPreferences, quick: () -> Unit, arena: () -> Unit) {
+    val context = LocalContext.current
     var factIndex by rememberSaveable { mutableIntStateOf(0) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -427,7 +429,7 @@ fun YurdunuBilMainV4() {
         } }
         item {
             AppCard(p, Modifier.padding(horizontal = 16.dp).clickable {
-                LocalContext.current.startActivity(Intent(LocalContext.current, SmartStudyCenterActivity::class.java))
+                context.startActivity(Intent(context, SmartStudyCenterActivity::class.java))
             }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)).background(p.red.copy(alpha = .10f)), contentAlignment = Alignment.Center) {
