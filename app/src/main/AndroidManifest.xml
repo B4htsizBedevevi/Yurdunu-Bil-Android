@@ -14,11 +14,12 @@
         android:usesCleartextTraffic="false"
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.YurdunuBil">
-        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="announcements" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="yb_announcements" />
         <activity android:name=".RetentionMainActivity" android:exported="false" />
         <activity android:name=".FirstRunTutorialActivity" android:exported="false" />
         <activity android:name=".SmartStudyCenterActivity" android:exported="false" />
         <activity android:name=".SocialCenterActivity" android:exported="false" />
+        <activity android:name=".ProfileStatsActivity" android:exported="false" />
         <activity android:name=".AdminCenterActivity" android:exported="false" />
         <activity android:name=".ProfileOnboardingActivity" android:exported="false" />
         <activity android:name=".AdminNotificationActivity" android:exported="false" />
