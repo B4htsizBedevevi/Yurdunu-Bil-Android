@@ -402,7 +402,7 @@ fun YurdunuBilMainV4() {
                 }
                 Spacer(Modifier.height(14.dp)); Text("Bugün senin çalışma günün.", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.height(6.dp)); Text(if (todaySolved == 0) "12 dakikalık bir rota hazır. Başlamak yeterli." else "${todaySolved} soru çözdün • ${todayCorrect} doğru • +${todayXp} XP", color = Color.White.copy(alpha = .76f), fontSize = 12.sp)
-                Spacer(Modifier.height(12.dp)); Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { StatChip("${todaySolved}/${todayGoal}", "BUGÜN"); StatChip("\u0024streak", "SERİ"); StatChip("%\u0024accuracy", "GENEL") }
+                Spacer(Modifier.height(12.dp)); Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { StatChip("${todaySolved}/${todayGoal}", "BUGÜN"); StatChip($streak, "SERİ"); StatChip("%$accuracy", "GENEL") }
             }
         } }
         item { AppCard(p, Modifier.padding(horizontal = 16.dp), dark = true) {
@@ -422,8 +422,8 @@ fun YurdunuBilMainV4() {
             }
         } }
         item { Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            AppCard(p, Modifier.weight(1f)) { Eyebrow("İLERLEME", p.green); Text("\u0024solved", color = p.text, fontSize = 25.sp, fontWeight = FontWeight.Black); Text("çözülen soru", color = p.muted, fontSize = 10.sp) }
-            AppCard(p, Modifier.weight(1f)) { Eyebrow("DOĞRULUK", p.green); Text("%\u0024accuracy", color = p.text, fontSize = 25.sp, fontWeight = FontWeight.Black); Text("\u0024correct doğru • \u0024wrong yanlış", color = p.muted, fontSize = 10.sp) }
+            AppCard(p, Modifier.weight(1f)) { Eyebrow("İLERLEME", p.green); Text("$solved", color = p.text, fontSize = 25.sp, fontWeight = FontWeight.Black); Text("çözülen soru", color = p.muted, fontSize = 10.sp) }
+            AppCard(p, Modifier.weight(1f)) { Eyebrow("DOĞRULUK", p.green); Text("%$accuracy", color = p.text, fontSize = 25.sp, fontWeight = FontWeight.Black); Text("$correct doğru • $wrong yanlış", color = p.muted, fontSize = 10.sp) }
         } }
         item {
             val fact = CurrentFactFeed.all[factIndex.coerceIn(0, CurrentFactFeed.all.lastIndex)]
