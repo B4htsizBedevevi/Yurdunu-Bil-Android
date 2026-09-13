@@ -83,22 +83,32 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
-      - name: Prepare release signing
+      - name: Check release signing
+        id: release_signing
         shell: bash
         run: |
-          if [[ -z "$YB_KEYSTORE_BASE64" || -z "$YB_KEYSTORE_PASSWORD" || -z "$YB_KEY_ALIAS" || -z "$YB_KEY_PASSWORD" ]]; then
-            echo "::error::Release signing secrets are required: YB_KEYSTORE_BASE64, YB_KEYSTORE_PASSWORD, YB_KEY_ALIAS, YB_KEY_PASSWORD"
-            exit 1
+          if [[ -n "$YB_KEYSTORE_BASE64" && -n "$YB_KEYSTORE_PASSWORD" && -n "$YB_KEY_ALIAS" && -n "$YB_KEY_PASSWORD" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Release signing secrets are not configured; skipping AAB build. Debug APK remains available."
           fi
+
+      - name: Prepare release signing
+        if: steps.release_signing.outputs.available == 'true'
+        shell: bash
+        run: |
           echo "$YB_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/yurdunu-bil-release.jks"
           test -s "$RUNNER_TEMP/yurdunu-bil-release.jks"
           echo "YB_KEYSTORE_FILE=$RUNNER_TEMP/yurdunu-bil-release.jks" >> "$GITHUB_ENV"
           echo "Release signing configured."
 
       - name: Build release AAB
+        if: steps.release_signing.outputs.available == 'true'
         run: gradle --no-daemon :app:bundleRelease
 
       - name: Verify release AAB is signed
+        if: steps.release_signing.outputs.available == 'true'
         shell: bash
         run: |
           jarsigner -verify -verbose -certs app/build/outputs/bundle/release/app-release.aab > "$RUNNER_TEMP/aab-signature.txt"
@@ -106,6 +116,7 @@ jobs:
           echo "Release AAB signature verified."
 
       - name: Upload release AAB
+        if: steps.release_signing.outputs.available == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: yurdunu-bil-v0.6.4-aab
