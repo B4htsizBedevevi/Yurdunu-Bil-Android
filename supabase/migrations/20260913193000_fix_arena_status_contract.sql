@@ -132,14 +132,21 @@ security definer
 set search_path to 'public','pg_temp'
 set statement_timeout to '5s'
 as $function$
-declare v_question public.arena_match_questions; v_match public.arena_matches;
-v_correct boolean; v_score_delta int; v_answer_count int;
+declare
+  v_question public.arena_match_questions;
+  v_match public.arena_matches;
+  v_bank jsonb;
+  v_correct boolean;
+  v_score_delta int;
+  v_answer_count int;
 begin
   if auth.uid() is null then raise exception 'not_authenticated'; end if;
-  if p_match_id is null or p_round_no<=0 or p_selected_index is null or p_selected_index<0 or p_selected_index>4
-    then raise exception 'invalid_answer'; end if;
-  if p_response_ms is not null and(p_response_ms<0 or p_response_ms>600000)
-    then raise exception 'invalid_response_time'; end if;
+  if p_match_id is null or p_round_no<=0 or p_selected_index is null or p_selected_index<0 or p_selected_index>4 then
+    raise exception 'invalid_answer';
+  end if;
+  if p_response_ms is not null and(p_response_ms<0 or p_response_ms>600000) then
+    raise exception 'invalid_response_time';
+  end if;
 
   select * into v_match from public.arena_matches
   where id=p_match_id and(host_id=auth.uid() or guest_id=auth.uid());
@@ -148,14 +155,22 @@ begin
   if p_round_no<>v_match.current_round then raise exception 'invalid_round'; end if;
   if p_round_no>v_match.total_rounds then raise exception 'round_out_of_range'; end if;
 
-  select * into v_question from public.arena_match_questions where match_id=p_match_id and round_no=p_round_no;
+  select * into v_question from public.arena_match_questions
+  where match_id=p_match_id and round_no=p_round_no;
   if not found then raise exception 'question_not_found'; end if;
-  if v_question.answer_deadline_at is not null and now()>v_question.answer_deadline_at
-    then raise exception 'answer_window_expired'; end if;
-  if exists(select 1 from public.arena_answers where match_id=p_match_id and round_no=p_round_no and user_id=auth.uid())
-    then raise exception 'duplicate_answer'; end if;
+  if v_question.answer_deadline_at is not null and now()>v_question.answer_deadline_at then
+    raise exception 'answer_window_expired';
+  end if;
+  if exists(select 1 from public.arena_answers where match_id=p_match_id and round_no=p_round_no and user_id=auth.uid()) then
+    raise exception 'duplicate_answer';
+  end if;
 
-  v_correct:=coalesce((v_question.question_payload->>'correctIndex')::integer=p_selected_index,false);
+  select question_payload into v_bank
+  from public.question_bank
+  where id=v_question.question_id and active=true;
+  if v_bank is null or not(v_bank ? 'correctIndex') then raise exception 'question_answer_unavailable'; end if;
+
+  v_correct:=coalesce((v_bank->>'correctIndex')::integer=p_selected_index,false);
   v_score_delta:=case when v_correct then greatest(1,1000-coalesce(p_response_ms,1000)/20) else 0 end;
 
   insert into public.arena_answers(match_id,round_no,user_id,selected_index,is_correct,response_ms)
@@ -168,6 +183,7 @@ begin
   where match_id=p_match_id and user_id=auth.uid();
 
   select count(*) into v_answer_count from public.arena_answers where match_id=p_match_id and round_no=p_round_no;
+
   if v_answer_count=2 then
     if p_round_no=v_match.total_rounds then
       perform public.finish_arena_match(p_match_id);
@@ -183,6 +199,7 @@ begin
   return jsonb_build_object('correct',v_correct,'score_delta',v_score_delta,'round',p_round_no);
 end;
 $function$;
+
 
 revoke execute on function public.mark_arena_ready(uuid) from public;
 revoke execute on function public.try_match_arena(text) from public;
