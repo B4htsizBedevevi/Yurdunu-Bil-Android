@@ -4,6 +4,12 @@ import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -215,8 +221,44 @@ fun OnlineArenaScreen(
         ) {
             Column(Modifier.padding(18.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(if (searching) "Rakip aranıyor…" else "Maça hazır mısın?", color = text, fontSize = 19.sp, fontWeight = FontWeight.Black)
-                    Spacer(Modifier.weight(1f))
+                    val pulse = rememberInfiniteTransition(label = "arena-search-pulse").animateFloat(
+                        initialValue = 0.72f,
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(900, easing = FastOutSlowInEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "arena-search-alpha"
+                    )
+                    Box(
+                        Modifier.size(42.dp)
+                            .background(
+                                if (searching) green.copy(alpha = .12f * pulse.value) else green.copy(alpha = .09f),
+                                RoundedCornerShape(13.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            if (searching) YBIcons.AvatarCompass else YBIcons.Swords,
+                            contentDescription = null,
+                            tint = green,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Spacer(Modifier.width(11.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            if (searching) "Rakip aranıyor…" else "Maça hazır mısın?",
+                            color = text,
+                            fontSize = 19.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                        Text(
+                            if (searching) "Pusula rakibini bulmak için tarıyor." else "Hazırsan rakibini bul ve mücadeleye başla.",
+                            color = muted,
+                            fontSize = 10.sp
+                        )
+                    }
                     if (searching) {
                         Text("CANLI", color = green, fontSize = 9.sp, fontWeight = FontWeight.Black)
                     }
@@ -248,6 +290,12 @@ fun OnlineArenaScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = green),
                     shape = RoundedCornerShape(17.dp)
                 ) {
+                    Icon(
+                        if (searching) YBIcons.AvatarCompass else YBIcons.AvatarCompass,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
                     Text(if (searching) "Rakip Bekleniyor…" else "Rakip Bul", color = Color(0xFF06221B), fontWeight = FontWeight.Black)
                 }
                 if (searching) {
