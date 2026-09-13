@@ -52,7 +52,7 @@ fun QuickActionsFloatingEntry() {
         contentColor = Color(0xFF06221A),
         modifier = Modifier.padding(end = 16.dp, bottom = 84.dp)
     ) {
-        Icon(if (expanded) Icons.Default.Close else Icons.Default.Speed, contentDescription = "Hızlı erişim")
+        Icon(if (expanded) Icons.Default.Close else Icons.Default.AutoAwesome, contentDescription = "Hızlı erişim")
     }
 
     if (expanded) {
