@@ -5,64 +5,22 @@ import java.util.Locale
 import java.util.Random
 
 data class SharedGameMode(
-    val id: String,
-    val title: String,
-    val subtitle: String,
-    val icon: String,
-    val questions: Int,
-    val seconds: Int,
-    val rewardXp: Int,
-    val topics: Set<String> = emptySet(),
-    val arena: Boolean = false,
+    val id: String, val title: String, val subtitle: String, val icon: String,
+    val questions: Int, val seconds: Int, val rewardXp: Int,
+    val topics: Set<String> = emptySet(), val arena: Boolean = false,
     val subtopics: Set<String> = emptySet()
 )
 
-/** Fine-grained tags are derived from the same Question objects used by every game mode. */
 object QuestionTaxonomy {
-    private fun haystack(q: Question): String =
-        (q.topic + " " + q.text + " " + q.options.joinToString(" ")).lowercase(Locale("tr", "TR"))
-
+    private fun haystack(q: Question): String = (q.topic + " " + q.text + " " + q.options.joinToString(" ")).lowercase(Locale("tr", "TR"))
     fun tags(q: Question): Set<String> {
-        val h = haystack(q)
-        val result = mutableSetOf<String>()
+        val h = haystack(q); val result = mutableSetOf<String>()
         when (q.topic) {
-            "Yer Şekilleri", "Jeolojik Yapı", "Kıyı Tipleri" -> {
-                result += "Yer Şekilleri"
-                if (listOf("ova", "ovası", "oval", "delta").any(h::contains)) result += "Ovalar"
-                if (listOf("plato", "platolar").any(h::contains)) result += "Platolar"
-                if (listOf("dağ", "dağlar", "dağlık", "zirve").any(h::contains)) result += "Dağlar"
-                if (listOf("vadi", "kanyon", "şelale").any(h::contains)) result += "Vadiler"
-                if (listOf("karst", "kalker", "mağara", "obruk", "traverten", "jips").any(h::contains)) result += "Karstik Şekiller"
-                if (listOf("kıyı", "ria", "lagün", "falez", "tombolo").any(h::contains)) result += "Kıyı Şekilleri"
-                if (listOf("volkan", "lav", "tüf", "krater").any(h::contains)) result += "Volkanik Şekiller"
-                if (listOf("buzul", "sirk", "moren", "buzullaş").any(h::contains)) result += "Buzul Şekilleri"
-            }
-            "Su Varlığı" -> {
-                result += "Su Varlığı"
-                if (listOf("akarsu", "nehir", "ırmak", "çay", "dere", "havza", "rejim").any(h::contains)) result += "Akarsular"
-                if (listOf("göl", "göller", "gölü").any(h::contains)) result += "Göller"
-                if (listOf("baraj", "hidroelektrik", "hes").any(h::contains)) result += "Su Enerjisi"
-                if (listOf("kaynak", "yeraltı su", "karstik su").any(h::contains)) result += "Yeraltı Suları"
-            }
-            "Tarım", "Ekonomik Coğrafya" -> {
-                result += "Tarım"
-                if (listOf("buğday", "arpa", "mısır", "pirinç", "tahıl").any(h::contains)) result += "Tahıllar"
-                if (listOf("pamuk", "tütün", "şeker pancarı", "ayçiçeği").any(h::contains)) result += "Endüstri Bitkileri"
-                if (listOf("zeytin", "çay", "fındık", "turunçgil", "üzüm", "incir").any(h::contains)) result += "Bahçe Bitkileri"
-                if (listOf("hayvancılık", "mera", "büyükbaş", "küçükbaş").any(h::contains)) result += "Hayvancılık"
-            }
-            "İklim ve Bitki Örtüsü" -> {
-                result += "İklim ve Bitki Örtüsü"
-                if (listOf("akdeniz", "maki").any(h::contains)) result += "Akdeniz İklimi"
-                if (listOf("karadeniz", "nemli", "yağışlı", "orman").any(h::contains)) result += "Karadeniz İklimi"
-                if (listOf("karasal", "bozkır", "kuraklık").any(h::contains)) result += "Karasal İklim"
-                if (listOf("sıcaklık", "izoterm", "yükselti").any(h::contains)) result += "Sıcaklık"
-            }
-            "Nüfus ve Yerleşme" -> {
-                result += "Nüfus ve Yerleşme"
-                if (listOf("nüfus", "yoğunluk", "nüfus yoğunluğu").any(h::contains)) result += "Nüfus"
-                if (listOf("göç", "göçmen", "kırsal", "kent").any(h::contains)) result += "Göç ve Yerleşme"
-            }
+            "Yer Şekilleri", "Jeolojik Yapı", "Kıyı Tipleri" -> { result += "Yer Şekilleri"; if (listOf("ova", "ovası", "oval", "delta").any(h::contains)) result += "Ovalar"; if (listOf("plato", "platolar").any(h::contains)) result += "Platolar"; if (listOf("dağ", "dağlar", "dağlık", "zirve").any(h::contains)) result += "Dağlar"; if (listOf("vadi", "kanyon", "şelale").any(h::contains)) result += "Vadiler"; if (listOf("karst", "kalker", "mağara", "obruk", "traverten", "jips").any(h::contains)) result += "Karstik Şekiller"; if (listOf("kıyı", "ria", "lagün", "falez", "tombolo").any(h::contains)) result += "Kıyı Şekilleri"; if (listOf("volkan", "lav", "tüf", "krater").any(h::contains)) result += "Volkanik Şekiller"; if (listOf("buzul", "sirk", "moren", "buzullaş").any(h::contains)) result += "Buzul Şekilleri" }
+            "Su Varlığı" -> { result += "Su Varlığı"; if (listOf("akarsu", "nehir", "ırmak", "çay", "dere", "havza", "rejim").any(h::contains)) result += "Akarsular"; if (listOf("göl", "göller", "gölü").any(h::contains)) result += "Göller"; if (listOf("baraj", "hidroelektrik", "hes").any(h::contains)) result += "Su Enerjisi"; if (listOf("kaynak", "yeraltı su", "karstik su").any(h::contains)) result += "Yeraltı Suları" }
+            "Tarım", "Ekonomik Coğrafya" -> { result += "Tarım"; if (listOf("buğday", "arpa", "mısır", "pirinç", "tahıl").any(h::contains)) result += "Tahıllar"; if (listOf("pamuk", "tütün", "şeker pancarı", "ayçiçeği").any(h::contains)) result += "Endüstri Bitkileri"; if (listOf("zeytin", "çay", "fındık", "turunçgil", "üzüm", "incir").any(h::contains)) result += "Bahçe Bitkileri"; if (listOf("hayvancılık", "mera", "büyükbaş", "küçükbaş").any(h::contains)) result += "Hayvancılık" }
+            "İklim ve Bitki Örtüsü" -> { result += "İklim ve Bitki Örtüsü"; if (listOf("akdeniz", "maki").any(h::contains)) result += "Akdeniz İklimi"; if (listOf("karadeniz", "nemli", "yağışlı", "orman").any(h::contains)) result += "Karadeniz İklimi"; if (listOf("karasal", "bozkır", "kuraklık").any(h::contains)) result += "Karasal İklim"; if (listOf("sıcaklık", "izoterm", "yükselti").any(h::contains)) result += "Sıcaklık" }
+            "Nüfus ve Yerleşme" -> { result += "Nüfus ve Yerleşme"; if (listOf("nüfus", "yoğunluk", "nüfus yoğunluğu").any(h::contains)) result += "Nüfus"; if (listOf("göç", "göçmen", "kırsal", "kent").any(h::contains)) result += "Göç ve Yerleşme" }
             "Maden ve Enerji" -> result += "Maden ve Enerji"
             "Sanayi ve Ulaşım" -> result += "Sanayi ve Ulaşım"
             "Turizm" -> result += "Turizm"
@@ -78,54 +36,26 @@ object QuestionTaxonomy {
         }
         return result
     }
-
-    fun matches(q: Question, requested: Set<String>): Boolean =
-        requested.isEmpty() || tags(q).any(requested::contains)
+    fun matches(q: Question, requested: Set<String>): Boolean = requested.isEmpty() || tags(q).any(requested::contains)
 }
 
 object SharedQuestionPool {
-    /** One source for tests, normal games, events and Arena. */
-    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + CurrentKnowledge2026.all + RetentionQuestionExpansion.all + QuestionMegaExpansion2.all)
-        .distinctBy { it.id }
-        .also { QuestionBankValidator.requireValid(it) }
-
+    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + CurrentKnowledge2026.all + RetentionQuestionExpansion.all + QuestionMegaExpansion2.all + AdvancedQuestionBank.all).distinctBy { it.id }.also { QuestionBankValidator.requireValid(it) }
     private fun shuffleOptions(question: Question, seed: Long): Question {
-        val pairs = question.options.mapIndexed { index, option -> index to option }
-            .shuffled(Random(seed xor question.id.toLong()))
+        val pairs = question.options.mapIndexed { index, option -> index to option }.shuffled(Random(seed xor question.id.toLong()))
         val correctIndex = pairs.indexOfFirst { it.first == question.correctIndex }
         return question.copy(options = pairs.map { it.second }, correctIndex = correctIndex)
     }
-
     fun pick(mode: SharedGameMode, seed: Long = System.currentTimeMillis()): List<Question> {
         val topicSource = if (mode.topics.isEmpty()) all else all.filter { it.topic in mode.topics }
-        val source = if (mode.subtopics.isEmpty()) topicSource
-        else topicSource.filter { QuestionTaxonomy.matches(it, mode.subtopics) }
+        val source = if (mode.subtopics.isEmpty()) topicSource else topicSource.filter { QuestionTaxonomy.matches(it, mode.subtopics) }
         val fallback = if (source.isEmpty()) topicSource else source
         val count = mode.questions.coerceAtMost(fallback.size)
         return fallback.distinctBy { it.id }.shuffled(Random(seed)).take(count).map { shuffleOptions(it, seed) }
     }
-
     fun topicForLibrary(title: String): Set<String> = when (title) {
-        "Coğrafi Konum" -> setOf("Coğrafi Konum")
-        "Yer Şekilleri" -> setOf("Yer Şekilleri", "Jeolojik Yapı", "Kıyı Tipleri")
-        "Su Varlığı" -> setOf("Su Varlığı")
-        "İklim ve Bitki" -> setOf("İklim ve Bitki Örtüsü")
-        "Nüfus ve Yerleşme" -> setOf("Nüfus ve Yerleşme")
-        "Tarım ve Hayvancılık" -> setOf("Tarım", "Ekonomik Coğrafya")
-        "Maden ve Enerji" -> setOf("Maden ve Enerji")
-        "Sanayi ve Ulaşım" -> setOf("Sanayi ve Ulaşım")
-        "Turizm" -> setOf("Turizm")
-        "Bölgeler" -> setOf("Bölgeler")
-        "Doğal Afetler" -> setOf("Doğal Afetler")
-        "Harita Bilgisi" -> setOf("Harita Bilgisi")
-        "Güncel Türkiye" -> setOf("Güncel Türkiye")
-        "Güncel Göç ve Demografi" -> setOf("Güncel Göç ve Demografi")
-        "Güncel Tarım ve Üretim" -> setOf("Güncel Tarım ve Üretim")
-        "Güncel İklim ve Çevre" -> setOf("Güncel İklim ve Çevre")
-        "Güncel Enerji ve Ulaşım" -> setOf("Güncel Enerji ve Ulaşım")
-        else -> emptySet()
+        "Coğrafi Konum" -> setOf("Coğrafi Konum"); "Yer Şekilleri" -> setOf("Yer Şekilleri", "Jeolojik Yapı", "Kıyı Tipleri"); "Su Varlığı" -> setOf("Su Varlığı"); "İklim ve Bitki" -> setOf("İklim ve Bitki Örtüsü"); "Nüfus ve Yerleşme" -> setOf("Nüfus ve Yerleşme"); "Tarım ve Hayvancılık" -> setOf("Tarım", "Ekonomik Coğrafya"); "Maden ve Enerji" -> setOf("Maden ve Enerji"); "Sanayi ve Ulaşım" -> setOf("Sanayi ve Ulaşım"); "Turizm" -> setOf("Turizm"); "Bölgeler" -> setOf("Bölgeler"); "Doğal Afetler" -> setOf("Doğal Afetler"); "Harita Bilgisi" -> setOf("Harita Bilgisi"); "Güncel Türkiye" -> setOf("Güncel Türkiye"); "Güncel Göç ve Demografi" -> setOf("Güncel Göç ve Demografi"); "Güncel Tarım ve Üretim" -> setOf("Güncel Tarım ve Üretim"); "Güncel İklim ve Çevre" -> setOf("Güncel İklim ve Çevre"); "Güncel Enerji ve Ulaşım" -> setOf("Güncel Enerji ve Ulaşım"); else -> emptySet()
     }
-
     fun dailyMode(): SharedGameMode = SharedGameModes.daily(LocalDate.now())
 }
 
@@ -145,15 +75,9 @@ object SharedGameModes {
     val speedArena = SharedGameMode("speed", "Hız Arenası", "Süre bitmeden en yüksek skoru yap", "speed", 12, 90, 220, arena = true)
     val regionArena = SharedGameMode("region-arena", "Bölge Savaşı", "Seçilen bölge uzmanlığını puana çevir", "map", 10, 150, 220, setOf("Bölgeler", "Tarım", "İklim ve Bitki Örtüsü"), arena = true)
     val hardArena = SharedGameMode("master-arena", "Türkiye Ustası Arena", "Zor karışık sorularla lig puanı kovala", "master", 15, 180, 300, arena = true)
-
-    fun daily(date: LocalDate): SharedGameMode = when (date.dayOfYear % 8) {
-        0 -> current; 1 -> quick; 2 -> regions; 3 -> agriculture; 4 -> climate; 5 -> water; 6 -> population; else -> chain
-    }
-
+    fun daily(date: LocalDate): SharedGameMode = when (date.dayOfYear % 8) { 0 -> current; 1 -> quick; 2 -> regions; 3 -> agriculture; 4 -> climate; 5 -> water; 6 -> population; else -> chain }
     val games = listOf(map, quick, regions, mines, agriculture, climate, water, population, current, chain, master)
     val arenaModes = listOf(duel, regionArena, speedArena, hardArena)
-
-    fun eventForToday(): SharedGameMode = when (LocalDate.now().dayOfYear % 4) {
-        0 -> map; 1 -> mines; 2 -> regions; else -> agriculture
-    }
+    val arena: List<SharedGameMode> get() = arenaModes
+    fun eventForToday(): SharedGameMode = when (LocalDate.now().dayOfYear % 4) { 0 -> map; 1 -> mines; 2 -> regions; else -> agriculture }
 }
