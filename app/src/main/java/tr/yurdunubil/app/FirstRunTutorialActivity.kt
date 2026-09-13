@@ -17,7 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageVector
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -40,6 +42,7 @@ private data class TutorialStep(
 
 @Composable
 private fun FirstRunTutorial(onFinish: () -> Unit) {
+    val context = LocalContext.current
     var step by rememberSaveable { mutableIntStateOf(0) }
     val steps = listOf(
         TutorialStep("Hoş geldin! 👋", "Yurdunu Bil, KPSS Türkiye Coğrafyası çalışmanı kısa turlar ve akıllı tekrarlarla düzenler.", "Önce uygulamanın temelini 1 dakikada gösterelim.", Icons.Default.Explore),
@@ -51,6 +54,13 @@ private fun FirstRunTutorial(onFinish: () -> Unit) {
     val current = steps[step]
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val accent = if (dark) Color(0xFF2BDEA0) else Color(0xFF0B8F69)
+    val finishTutorial = {
+        context.getSharedPreferences("yurdunu_bil_native", MODE_PRIVATE)
+            .edit()
+            .putBoolean("first_run_tutorial_seen", true)
+            .apply()
+        onFinish()
+    }
 
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
@@ -83,19 +93,13 @@ private fun FirstRunTutorial(onFinish: () -> Unit) {
             Spacer(Modifier.height(18.dp))
             Button(
                 onClick = {
-                    if (step == steps.lastIndex) {
-                        getSharedPreferences("yurdunu_bil_native", MODE_PRIVATE).edit().putBoolean("first_run_tutorial_seen", true).apply()
-                        onFinish()
-                    } else step++
+                    if (step == steps.lastIndex) finishTutorial() else step++
                 },
                 Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = accent, contentColor = Color.White)
             ) { Text(if (step == steps.lastIndex) "Yurdunu Bil'e Başla" else "Devam et", fontWeight = FontWeight.Black) }
-            TextButton(onClick = {
-                getSharedPreferences("yurdunu_bil_native", MODE_PRIVATE).edit().putBoolean("first_run_tutorial_seen", true).apply()
-                onFinish()
-            }) { Text("Şimdilik geç", color = MaterialTheme.colorScheme.onBackground.copy(alpha = .6f)) }
+            TextButton(onClick = finishTutorial) { Text("Şimdilik geç", color = MaterialTheme.colorScheme.onBackground.copy(alpha = .6f)) }
         }
     }
 }
