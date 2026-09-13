@@ -17,7 +17,7 @@ object QuestionBankValidator {
 
         questions.forEach { q ->
             if (!seen.add(q.id)) duplicateIds += q.id
-            if (q.text.isBlank() || q.options.size != 5 || q.options.any(String::isBlank) ||
+            if (q.text.isBlank() || q.options.size !in 4..5 || q.options.any(String::isBlank) ||
                 q.correctIndex !in q.options.indices || q.explanation.isBlank()) {
                 malformed += q.id
             }
