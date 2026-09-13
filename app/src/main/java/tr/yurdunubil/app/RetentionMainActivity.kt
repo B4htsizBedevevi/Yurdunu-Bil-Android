@@ -28,8 +28,7 @@ class RetentionMainActivity : ComponentActivity() {
         setContent {
             Box(modifier = Modifier.fillMaxSize()) {
                 YurdunuBilMainV4()
-                SocialFloatingEntry()
-                AdminFloatingEntry()
+                QuickActionsFloatingEntry()
             }
         }
     }
