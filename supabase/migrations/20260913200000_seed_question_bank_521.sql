@@ -523,4 +523,4 @@ insert into public.question_bank (id,topic,subtopic,question_payload,active) val
 ('11150','Güncel Tarım ve Üretim',NULL,'{"text":"2026 ilk tahmininde şeker pancarı üretimindeki artış yaklaşık kaçtır?","options":["%1,8","%3,8","%5,8","%7,8","%9,8"],"correctIndex":2,"explanation":"Şeker pancarı üretiminde %5,8 artış öngörülmüştür."}'::jsonb,true)
 on conflict (id) do update set topic=excluded.topic, subtopic=excluded.subtopic, question_payload=excluded.question_payload, active=excluded.active;
 
-update public.question_bank set active=true where id ~ '^[0-9]+;
+update public.question_bank set active=true;
