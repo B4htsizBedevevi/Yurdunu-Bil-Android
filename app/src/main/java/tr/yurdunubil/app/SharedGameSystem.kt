@@ -80,7 +80,7 @@ object QuestionTaxonomy {
 
 object SharedQuestionPool {
     /** One source for tests, normal games, events and Arena. */
-    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + RetentionQuestionExpansion.all + QuestionMegaExpansion2.all)
+    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + CurrentKnowledge2026.all + RetentionQuestionExpansion.all + QuestionMegaExpansion2.all)
         .distinctBy { it.id }
         .also { QuestionBankValidator.requireValid(it) }
 
@@ -113,6 +113,11 @@ object SharedQuestionPool {
         "Bölgeler" -> setOf("Bölgeler")
         "Doğal Afetler" -> setOf("Doğal Afetler")
         "Harita Bilgisi" -> setOf("Harita Bilgisi")
+        "Güncel Türkiye" -> setOf("Güncel Türkiye")
+        "Güncel Göç ve Demografi" -> setOf("Güncel Göç ve Demografi")
+        "Güncel Tarım ve Üretim" -> setOf("Güncel Tarım ve Üretim")
+        "Güncel İklim ve Çevre" -> setOf("Güncel İklim ve Çevre")
+        "Güncel Enerji ve Ulaşım" -> setOf("Güncel Enerji ve Ulaşım")
         else -> emptySet()
     }
 
