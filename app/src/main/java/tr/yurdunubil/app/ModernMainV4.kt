@@ -77,7 +77,7 @@ fun YurdunuBilMainV4() {
     if (openQuiz != null && openQuizMode != null) { QuizV4(quizTitle, openQuiz!!, openQuizMode!!, p, prefs) { openQuiz = null; openQuizMode = null }; return }
     if (onlineMatchId != null && onlineArenaMode != null) { ArenaMatchScreen(dark, onlineArenaMode!!, onlineMatchId!!) { onlineMatchId = null; onlineArenaMode = null }; return }
     if (onlineArenaMode != null) { OnlineArenaScreen(dark, onlineArenaMode!!, onBack = { onlineArenaMode = null }) { matchId -> onlineMatchId = matchId }; return }
-    if (arenaOpen) { ArenaV4(p, prefs, { arenaOpen = false }) { mode -> if (mode.arena) onlineArenaMode = mode else launchQuiz(mode.title, mode) }; return }
+    if (arenaOpen) { ArenaRootScreen(darkMode = dark, onExit = { arenaOpen = false }); return }
     MaterialTheme(colorScheme = if (dark) darkColorScheme(primary = p.green, background = p.bg, surface = p.card, onBackground = p.text, onSurface = p.text, onPrimary = Color(0xFF052118)) else lightColorScheme(primary = p.green, background = p.bg, surface = p.card, onBackground = p.text, onSurface = p.text, onPrimary = Color(0xFF052118))) {
         Scaffold(containerColor = p.bg, bottomBar = {
             NavigationBar(containerColor = p.card, tonalElevation = 3.dp) {
