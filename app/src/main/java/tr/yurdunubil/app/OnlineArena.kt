@@ -102,7 +102,8 @@ fun OnlineArenaScreen(
                     break
                 }
                 delay(1800L)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                error = e.message ?: "Arena eşleşmesi kontrol edilemedi."
                 delay(1800L)
             }
         }
