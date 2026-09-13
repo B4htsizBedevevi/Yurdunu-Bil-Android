@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.jan.supabase.functions.functions
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.buildJsonObject
 import kotlin.math.roundToInt
 
@@ -378,6 +379,13 @@ fun YurdunuBilMainV4() {
     }
 }
 @Composable private fun HomeV5(p: AppPalette, prefs: SharedPreferences, quick: () -> Unit, arena: () -> Unit) {
+    var factIndex by rememberSaveable { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(180_000L)
+            factIndex = (factIndex + 1) % CurrentFactFeed.all.size
+        }
+    }
     val solved = prefs.getInt("solved", 0); val correct = prefs.getInt("correct", 0); val wrong = prefs.getInt("wrong", 0)
     val xp = prefs.getInt("xp", 0); val streak = prefs.getInt("streak", 0)
     val todaySolved = prefs.getInt("today_solved", 0); val todayCorrect = prefs.getInt("today_correct", 0); val todayXp = prefs.getInt("today_xp", 0)
@@ -417,11 +425,32 @@ fun YurdunuBilMainV4() {
             AppCard(p, Modifier.weight(1f)) { Eyebrow("İLERLEME", p.green); Text("\u0024solved", color = p.text, fontSize = 25.sp, fontWeight = FontWeight.Black); Text("çözülen soru", color = p.muted, fontSize = 10.sp) }
             AppCard(p, Modifier.weight(1f)) { Eyebrow("DOĞRULUK", p.green); Text("%\u0024accuracy", color = p.text, fontSize = 25.sp, fontWeight = FontWeight.Black); Text("\u0024correct doğru • \u0024wrong yanlış", color = p.muted, fontSize = 10.sp) }
         } }
-        item { AppCard(p, Modifier.padding(horizontal = 16.dp)) {
-            Eyebrow("GÜNCEL BİLGİ", p.gold); Text("Türkiye'nin son verilerini kaçırma.", color = p.text, fontSize = 18.sp, fontWeight = FontWeight.Black)
-            Text("Nüfus • göç • tarım • iklim • enerji", color = p.muted, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
-            Spacer(Modifier.height(7.dp)); Text("Güncel Bilgi Turu günlük rotaya dahil.", color = p.green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-        } }
+        item {
+            val fact = CurrentFactFeed.all[factIndex.coerceIn(0, CurrentFactFeed.all.lastIndex)]
+            AppCard(p, Modifier.padding(horizontal = 16.dp).clickable {
+                factIndex = (factIndex + 1) % CurrentFactFeed.all.size
+            }, dark = true) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(44.dp).clip(RoundedCornerShape(13.dp)).background(p.green.copy(alpha = .14f)), contentAlignment = Alignment.Center) {
+                        YBGameIcon(fact.icon, p.green, 23.dp)
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Eyebrow("COĞRAFYA NOTU • " + (factIndex + 1) + "/" + CurrentFactFeed.all.size, p.gold)
+                        Text(fact.title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Icon(Icons.Default.SwapHoriz, null, tint = Color.White.copy(alpha = .7f))
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(fact.value, color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Black)
+                Text(fact.detail, color = Color.White.copy(alpha = .76f), fontSize = 11.sp, lineHeight = 17.sp, modifier = Modifier.padding(top = 4.dp))
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(fact.source + " • " + fact.year, color = p.green, fontSize = 9.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    Text("3 dk'da yenilenir", color = Color.White.copy(alpha = .52f), fontSize = 9.sp)
+                }
+            }
+        }
         item { AppCard(p, Modifier.padding(horizontal = 16.dp), dark = true) {
             Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Eyebrow("ARENA", p.gold); Text("Bilgini sahaya çıkar.", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black); Text("1v1 • hız • bölge • Türkiye Ustası", color = Color.White.copy(alpha = .68f), fontSize = 11.sp) }; Icon(YBIcons.Swords, null, tint = p.gold, modifier = Modifier.size(30.dp)) }
             Spacer(Modifier.height(9.dp)); Button(onClick = arena, modifier = Modifier.fillMaxWidth().height(46.dp), shape = RoundedCornerShape(13.dp), colors = ButtonDefaults.buttonColors(containerColor = p.gold, contentColor = Color(0xFF162118))) { Text("Arena'ya Git", fontWeight = FontWeight.Black) }
