@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
@@ -70,6 +71,16 @@ fun QuickActionsFloatingEntry() {
                     ) {
                         Icon(Icons.Default.AutoAwesome, null)
                         Text("Akıllı Çalışma Merkezi", modifier = Modifier.padding(start = 8.dp))
+                    }
+                    TextButton(
+                        onClick = {
+                            expanded = false
+                            context.startActivity(Intent(context, ProfileStatsActivity::class.java))
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.EmojiEvents, null)
+                        Text("Profil & Liderlik", modifier = Modifier.padding(start = 8.dp))
                     }
                     TextButton(
                         onClick = {
