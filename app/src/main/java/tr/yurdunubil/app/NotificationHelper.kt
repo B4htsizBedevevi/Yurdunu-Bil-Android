@@ -165,7 +165,7 @@ object NotificationHelper {
             NotificationCompat.Builder(context, channelId)
                 // Android requires status-bar icons to be monochrome. This is the branded Yurdunu Bil mark,
                 // not a generic bell/drawable.
-                .setSmallIcon(R.drawable.ic_stat_yurdunu_bil)
+                .setSmallIcon(R.drawable.ic_stat_notification_bell)
                 .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.yurdunu_bil_app_icon))
                 .setContentTitle(title)
                 .setContentText(body)
