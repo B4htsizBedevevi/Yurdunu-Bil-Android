@@ -65,7 +65,7 @@ fun YurdunuBilMainV4() {
     fun launchQuiz(title: String, mode: SharedGameMode) {
         val picked = SmartQuestionSelector.pick(mode, prefs)
         if (picked.isEmpty()) { Toast.makeText(context, "Bu mod için henüz yeterli soru yok.", Toast.LENGTH_SHORT).show(); return }
-        quizTitle = title; openQuizMode = mode; openQuiz = picked; prefs.edit().putString("last_activity", title).apply()
+        quizTitle = title; openQuizMode = mode; openQuiz = picked; SmartQuestionSelector.remember(prefs, picked); prefs.edit().putString("last_activity", title).apply()
     }
     BackHandler {
         when { onlineMatchId != null -> onlineMatchId = null; onlineArenaMode != null -> onlineArenaMode = null; openQuiz != null -> openQuiz = null; openTopic != null -> openTopic = null; openProvince != null -> openProvince = null; arenaOpen -> arenaOpen = false; tab != 0 -> tab = 0; else -> { val now = SystemClock.elapsedRealtime(); if (now - lastBackAt < 1600L) (context as? Activity)?.finish() else { lastBackAt = now; Toast.makeText(context, "Çıkmak için geri tuşuna bir kez daha bas.", Toast.LENGTH_SHORT).show() } } }
