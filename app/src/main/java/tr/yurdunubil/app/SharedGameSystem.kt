@@ -138,6 +138,7 @@ object SharedGameModes {
     val climate = SharedGameMode("climate", "İklim Avı", "İklim • bitki • sıcaklık ilişkilerini yakala", "climate", 10, 150, 120, setOf("İklim ve Bitki Örtüsü"))
     val water = SharedGameMode("water", "Su Varlığı Avı", "Akarsu • göl • baraj sorularında hızlan", "water", 10, 150, 120, setOf("Su Varlığı"))
     val population = SharedGameMode("population", "Nüfus Avı", "Nüfus ve yerleşme ilişkilerini çöz", "population", 10, 150, 120, setOf("Nüfus ve Yerleşme"))
+    val current = SharedGameMode("current", "Güncel Bilgi Turu", "2025-2026 resmi verilerle güncel Türkiye soruları", "speed", 10, 180, 150, setOf("Güncel Türkiye", "Güncel Göç ve Demografi", "Güncel Tarım ve Üretim", "Güncel İklim ve Çevre", "Güncel Enerji ve Ulaşım"))
     val chain = SharedGameMode("chain", "Bilgi Zinciri", "Arka arkaya doğru cevaplarla çarpanı artır", "chain", 12, 180, 160)
     val master = SharedGameMode("master", "Türkiye Ustası", "Karışık, zorlayıcı KPSS coğrafya turu", "master", 18, 240, 250)
     val duel = SharedGameMode("duel", "1v1 Bilgi Düellosu", "Aynı soru havuzunda rakibinden hızlı ol", "duel", 10, 150, 200, arena = true)
@@ -149,7 +150,7 @@ object SharedGameModes {
         0 -> quick; 1 -> regions; 2 -> agriculture; 3 -> climate; 4 -> water; 5 -> population; else -> chain
     }
 
-    val games = listOf(map, quick, regions, mines, agriculture, climate, water, population, chain, master)
+    val games = listOf(map, quick, regions, mines, agriculture, climate, water, population, current, chain, master)
     val arenaModes = listOf(duel, regionArena, speedArena, hardArena)
 
     fun eventForToday(): SharedGameMode = when (LocalDate.now().dayOfYear % 4) {
