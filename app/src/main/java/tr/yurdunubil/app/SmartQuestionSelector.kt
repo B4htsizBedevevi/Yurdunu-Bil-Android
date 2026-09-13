@@ -6,12 +6,22 @@ import kotlin.math.max
 /** Adaptive selector: due reviews first, then weak topics, then fresh questions. */
 object SmartQuestionSelector {
     private fun key(topic: String, suffix: String) = "topic_" + suffix + "_" + topic.lowercase().replace(Regex("[^a-z0-9çğıöşü]+"), "_").trim('_')
+    private const val PENDING_KEY = "pending_answer_queue"
 
     fun record(prefs: SharedPreferences, topic: String, correct: Boolean) {
         val attemptsKey = key(topic, "attempts"); val correctKey = key(topic, "correct")
         val attempts = prefs.getInt(attemptsKey, 0) + 1
         val correctCount = prefs.getInt(correctKey, 0) + if (correct) 1 else 0
-        prefs.edit().putInt(attemptsKey, attempts).putInt(correctKey, correctCount).apply()
+        val raw = prefs.getString(PENDING_KEY, "").orEmpty()
+        val entries = raw.split(";").filter { it.isNotBlank() }
+        val match = entries.indexOfFirst { it.substringAfter("::", "") == topic }
+        val editor = prefs.edit().putInt(attemptsKey, attempts).putInt(correctKey, correctCount)
+        if (match >= 0) {
+            val id = entries[match].substringBefore("::").toIntOrNull()
+            if (id != null) StudyMemory.recordId(prefs, id, correct)
+            editor.putString(PENDING_KEY, entries.filterIndexed { index, _ -> index != match }.joinToString(";"))
+        }
+        editor.apply()
     }
 
     fun accuracy(prefs: SharedPreferences, topic: String): Float {
@@ -44,7 +54,9 @@ object SmartQuestionSelector {
         val weakCount = max(1, ranked.size * 2 / 3)
         val weakFirst = ranked.take(weakCount)
         val rest = ranked.drop(weakCount).shuffled(java.util.Random(seed xor 0x5EEDL))
-        return (dueWrong + dueRest + weakFirst + rest).distinctBy { it.id }.take(base.size).shuffled(java.util.Random(seed + 17))
+        val result = (dueWrong + dueRest + weakFirst + rest).distinctBy { it.id }.take(base.size).shuffled(java.util.Random(seed + 17))
+        prefs.edit().putString(PENDING_KEY, result.joinToString(";") { it.id.toString() + "::" + it.topic }).apply()
+        return result
     }
 
     fun weakestTopic(prefs: SharedPreferences, questions: Collection<Question>): String? = questions.map { it.topic }.distinct().minByOrNull { accuracy(prefs, it) }
