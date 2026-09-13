@@ -19,8 +19,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.realtime.FilterOperator
+import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.postgresChangeFlow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -113,6 +119,40 @@ fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: S
     }
 
     LaunchedEffect(matchId) { refresh() }
+
+    // Realtime is the primary sync path. The 1s refresh remains as a safety net
+    // so a temporary socket interruption cannot leave the match visually stale.
+    LaunchedEffect(matchId) {
+        val channel = client.realtime.createChannel("arena:$matchId")
+        val matchChanges = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+            table = "arena_matches"
+            filter = "id=eq.$matchId"
+        }
+        val playerChanges = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+            table = "arena_players"
+            filter = "match_id=eq.$matchId"
+        }
+        val questionChanges = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+            table = "arena_match_questions"
+            filter = "match_id=eq.$matchId"
+        }
+
+        val matchJob = matchChanges.onEach { refresh() }.launchIn(this)
+        val playerJob = playerChanges.onEach { refresh() }.launchIn(this)
+        val questionJob = questionChanges.onEach { refresh() }.launchIn(this)
+
+        runCatching { channel.subscribe(blockUntilSubscribed = true) }
+            .onFailure { error = it.message ?: "Canlı bağlantı kurulamadı." }
+
+        try {
+            awaitCancellation()
+        } finally {
+            matchJob.cancel()
+            playerJob.cancel()
+            questionJob.cancel()
+            runCatching { client.realtime.removeChannel(channel) }
+        }
+    }
 
     LaunchedEffect(Unit) {
         while (true) {
