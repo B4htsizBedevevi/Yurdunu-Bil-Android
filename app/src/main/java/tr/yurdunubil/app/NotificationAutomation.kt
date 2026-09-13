@@ -26,7 +26,8 @@ object NotificationAutomation {
         val title: String,
         val category: String,
         val time_local: String,
-        val active: Boolean = true
+        val active: Boolean = true,
+        val days_mask: Int = 127
     )
 
     @Serializable
