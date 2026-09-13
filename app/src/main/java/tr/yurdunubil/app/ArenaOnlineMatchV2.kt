@@ -181,7 +181,7 @@ fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: S
                         Button(onClick = onBack, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF18C986)), shape = RoundedCornerShape(16.dp)) { Text("Arena'ya Dön", color = Color(0xFF06221B), fontWeight = FontWeight.Black) }
                     }
                 }
-            } else if (match?.status != "playing" || current == null) {
+            } else if (match?.status != "active" || current == null) {
                 Card(Modifier.fillMaxWidth(), RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = surface)) {
                     Column(Modifier.padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Default.Shield, null, tint = Color(0xFF18C986), modifier = Modifier.size(36.dp))
