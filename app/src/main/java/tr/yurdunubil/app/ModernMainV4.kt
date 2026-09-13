@@ -306,7 +306,7 @@ fun YurdunuBilMainV4() {
         item {
             AppCard(p, Modifier.padding(horizontal = 16.dp), dark = true) {
                 Eyebrow("UYGULAMA", p.gold)
-                Text("Yurdunu Bil • 0.6.5", color = Color.White, fontWeight = FontWeight.Black)
+                Text("Yurdunu Bil • 0.6.6", color = Color.White, fontWeight = FontWeight.Black)
                 Text(
                     "Gerçek push bildirimleri • otomatik çalışma hatırlatmaları • hesap yönetimi • Arena • sosyal merkez",
                     color = Color.White.copy(alpha = .72f),
@@ -425,6 +425,24 @@ fun YurdunuBilMainV4() {
             AppCard(p, Modifier.weight(1f)) { Eyebrow("İLERLEME", p.green); Text("$solved", color = p.text, fontSize = 25.sp, fontWeight = FontWeight.Black); Text("çözülen soru", color = p.muted, fontSize = 10.sp) }
             AppCard(p, Modifier.weight(1f)) { Eyebrow("DOĞRULUK", p.green); Text("%$accuracy", color = p.text, fontSize = 25.sp, fontWeight = FontWeight.Black); Text("$correct doğru • $wrong yanlış", color = p.muted, fontSize = 10.sp) }
         } }
+        item {
+            AppCard(p, Modifier.padding(horizontal = 16.dp).clickable {
+                LocalContext.current.startActivity(Intent(LocalContext.current, SmartStudyCenterActivity::class.java))
+            }) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)).background(p.red.copy(alpha = .10f)), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Replay, null, tint = p.red, modifier = Modifier.size(22.dp))
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Eyebrow("TEKRAR MERKEZİ", p.red)
+                        Text("Yanlışlarını ve tekrarlarını şimdi çöz.", color = p.text, fontSize = 15.sp, fontWeight = FontWeight.Black)
+                        Text("Soru hafızası • zayıf konular • tekrar zamanı", color = p.muted, fontSize = 10.sp)
+                    }
+                    Icon(Icons.Default.ChevronRight, null, tint = p.green)
+                }
+            }
+        }
         item {
             val fact = CurrentFactFeed.all[factIndex.coerceIn(0, CurrentFactFeed.all.lastIndex)]
             AppCard(p, Modifier.padding(horizontal = 16.dp).clickable {
