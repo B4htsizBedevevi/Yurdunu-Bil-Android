@@ -145,23 +145,54 @@ object NotificationHelper {
         }
     }
 
-    fun showAnnouncement(context: Context, title: String, body: String) {
+    fun showAnnouncement(
+        context: Context,
+        title: String,
+        body: String,
+        notificationId: Int = (System.currentTimeMillis() and 0x7fffffff).toInt(),
+        action: String = "social",
+        channelId: String = ANNOUNCEMENT_CHANNEL_ID
+    ) {
         runCatching {
             if (!canNotify(context) || !isEnabled(context)) return
             ensureChannel(context)
-            val pending = PendingIntent.getActivity(context, 4820, Intent(context, SocialCenterActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            NotificationCompat.Builder(context, ANNOUNCEMENT_CHANNEL_ID)
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                4820 + Math.floorMod(action.hashCode(), 1000),
+                Intent(context, SocialCenterActivity::class.java).apply { putExtra("notification_action", action) },
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            NotificationCompat.Builder(context, channelId)
+                // Android requires status-bar icons to be monochrome. This is the branded Yurdunu Bil mark,
+                // not a generic bell/drawable.
                 .setSmallIcon(R.drawable.ic_stat_yurdunu_bil)
-                .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.ic_notification_bell))
-                .setContentTitle(title).setContentText(body)
-                .setStyle(NotificationCompat.BigTextStyle().bigText(body)).setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_MESSAGE).setAutoCancel(true).setContentIntent(pending).build().also {
-                    (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify((System.currentTimeMillis() and 0x7fffffff).toInt(), it)
+                .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.yurdunu_bil_app_icon))
+                .setContentTitle(title)
+                .setContentText(body)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+                .setPriority(if (channelId == ANNOUNCEMENT_CHANNEL_ID) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT)
+                .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .build()
+                .also {
+                    (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(notificationId, it)
                 }
         }
     }
 
-    fun sendTest(context: Context) { if (isEnabled(context) && canNotify(context)) showAnnouncement(context, "Yurdunu Bil hazır!", "Bildirim sistemi çalışıyor.") }
+    fun sendTest(context: Context) {
+        if (isEnabled(context) && canNotify(context)) {
+            showAnnouncement(
+                context,
+                "Yurdunu Bil hazır!",
+                "Bildirim sistemi çalışıyor.",
+                notificationId = 4999,
+                action = "test",
+                channelId = ANNOUNCEMENT_CHANNEL_ID
+            )
+        }
+    }
     fun scheduleDaily(context: Context) {
         runCatching {
             if (!isEnabled(context) || !canNotify(context)) {
