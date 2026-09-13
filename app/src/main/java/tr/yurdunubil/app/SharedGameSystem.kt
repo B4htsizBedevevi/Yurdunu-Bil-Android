@@ -70,6 +70,11 @@ object QuestionTaxonomy {
             "Harita Bilgisi" -> result += "Harita Bilgisi"
             "Doğal Afetler" -> result += "Doğal Afetler"
             "Coğrafi Konum" -> result += "Coğrafi Konum"
+            "Güncel Türkiye" -> result += "Güncel Türkiye"
+            "Güncel Göç ve Demografi" -> result += "Güncel Göç ve Demografi"
+            "Güncel Tarım ve Üretim" -> result += "Güncel Tarım ve Üretim"
+            "Güncel İklim ve Çevre" -> result += "Güncel İklim ve Çevre"
+            "Güncel Enerji ve Ulaşım" -> result += "Güncel Enerji ve Ulaşım"
         }
         return result
     }
