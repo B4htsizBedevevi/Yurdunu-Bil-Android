@@ -402,7 +402,7 @@ fun YurdunuBilMainV4() {
                 }
                 Spacer(Modifier.height(14.dp)); Text("Bugün senin çalışma günün.", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.height(6.dp)); Text(if (todaySolved == 0) "12 dakikalık bir rota hazır. Başlamak yeterli." else "${todaySolved} soru çözdün • ${todayCorrect} doğru • +${todayXp} XP", color = Color.White.copy(alpha = .76f), fontSize = 12.sp)
-                Spacer(Modifier.height(12.dp)); Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { StatChip("${todaySolved}/${todayGoal}", "BUGÜN"); StatChip($streak, "SERİ"); StatChip("%$accuracy", "GENEL") }
+                Spacer(Modifier.height(12.dp)); Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { StatChip("${todaySolved}/${todayGoal}", "BUGÜN"); StatChip("$streak", "SERİ"); StatChip("%$accuracy", "GENEL") }
             }
         } }
         item { AppCard(p, Modifier.padding(horizontal = 16.dp), dark = true) {
