@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Speed
@@ -17,13 +17,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -33,7 +33,6 @@ private data class QuickAdminProfile(val role: String? = null)
 fun QuickActionsFloatingEntry() {
     val context = LocalContext.current
     val client = remember { SupabaseClientProvider.client }
-    val scope = rememberCoroutineScope()
     var expanded by rememberSaveable { mutableStateOf(false) }
     var isAdmin by remember { mutableStateOf(false) }
 
@@ -49,7 +48,7 @@ fun QuickActionsFloatingEntry() {
     }
 
     FloatingActionButton(
-        onClick = { expanded = true },
+        onClick = { expanded = !expanded },
         containerColor = Color(0xFF18B982),
         contentColor = Color(0xFF06221A),
         modifier = Modifier.padding(end = 16.dp, bottom = 84.dp)
