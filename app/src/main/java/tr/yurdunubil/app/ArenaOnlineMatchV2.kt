@@ -1,6 +1,8 @@
 package tr.yurdunubil.app
 
+
 import androidx.activity.compose.BackHandler
+import tr.yurdunubil.app.YurdunuBilCopy
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
