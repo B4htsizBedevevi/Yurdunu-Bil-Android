@@ -43,7 +43,7 @@ private object ProfileStatsRepository {
     suspend fun profile(id:String):ProfileStatsProfile?=client.postgrest.from("profiles").select{filter{eq("id",id)}}.decodeSingleOrNull()
     suspend fun progress(id:String):ProfileStatsProgress?=client.postgrest.from("user_progress").select{filter{eq("user_id",id)}}.decodeSingleOrNull()
     suspend fun arena(id:String):ProfileStatsArena?=client.postgrest.from("arena_profiles").select{filter{eq("user_id",id)}}.decodeSingleOrNull()
-    suspend fun leaderboard():List<ArenaLeaderboardRow>=client.postgrest.rpc("get_arena_leaderboard",buildJsonObject{put("p_limit",JsonPrimitive(30))}).decodeList()
+    suspend fun leaderboard(): List<ArenaLeaderboardRow> = client.postgrest.rpc("get_arena_leaderboard", buildJsonObject { put("p_limit", JsonPrimitive(30)) }).decodeList()
 }
 
 data class Achievement(val icon:String,val title:String,val description:String,val unlocked:Boolean)
