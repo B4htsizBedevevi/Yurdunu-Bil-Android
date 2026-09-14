@@ -41,7 +41,7 @@ object QuestionTaxonomy {
 
 object SharedQuestionPool {
     private fun normalizedQuestionText(text: String): String =
-        text.trim().lowercase(Locale("tr", "TR")).replace(Regex("\s+"), " ")
+        text.trim().lowercase(Locale("tr", "TR")).replace(Regex("\\s+"), " ")
 
     private fun contentSignature(q: Question): String {
         val options = q.options.map(::normalizedQuestionText).sorted().joinToString("||")
