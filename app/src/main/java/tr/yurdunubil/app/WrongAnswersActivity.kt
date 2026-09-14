@@ -53,7 +53,7 @@ private object WrongAnswersRepository {
                 eq("correct", false)
             }
             order("created_at", io.github.jan.supabase.postgrest.query.Order.DESCENDING)
-            limit(limit)
+            limit(limit.toLong())
         }.decodeList()
     }
 }
