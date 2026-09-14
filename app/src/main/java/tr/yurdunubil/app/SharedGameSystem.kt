@@ -43,9 +43,15 @@ object SharedQuestionPool {
     private fun normalizedQuestionText(text: String): String =
         text.trim().lowercase(Locale("tr", "TR")).replace(Regex("\\s+"), " ")
 
+    private fun contentSignature(q: Question): String {
+        val options = q.options.map(::normalizedQuestionText).sorted().joinToString("||")
+        val correct = normalizedQuestionText(q.options.getOrElse(q.correctIndex) { "" })
+        return normalizedQuestionText(q.text) + "##" + options + "##" + correct
+    }
+
     val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + CurrentKnowledge2026.all + CurrentExpansion2026.all + RetentionQuestionExpansion.all + QuestionMegaExpansion2.all + AdvancedQuestionBank.all)
         .distinctBy { it.id }
-        .distinctBy { normalizedQuestionText(it.text) }
+        .distinctBy { contentSignature(it) }
         .also { QuestionBankValidator.requireValid(it) }
     private fun shuffleOptions(question: Question, seed: Long): Question {
         val pairs = question.options.mapIndexed { index, option -> index to option }.shuffled(Random(seed xor question.id.toLong()))
