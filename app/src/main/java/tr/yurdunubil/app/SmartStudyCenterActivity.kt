@@ -1,6 +1,8 @@
 package tr.yurdunubil.app
 
+
 import android.content.Intent
+import tr.yurdunubil.app.YurdunuBilCopy
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -94,7 +96,7 @@ private fun SmartStudyCenterScreen(onBack: () -> Unit) {
                     Card(shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = cardAlt)) {
                         Column(Modifier.padding(18.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) { Text("BUGÜNÜN ROTASI", color = green, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp); Text("Seviye $level", color = text, fontSize = 24.sp, fontWeight = FontWeight.Black); Text("$levelXp / 500 XP • toplam $xp XP", color = muted, fontSize = 10.sp) }
+                                Column(Modifier.weight(1f)) { Text("BUGÜN NE ÇALIŞSAK? 👀", color = green, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp); Text("Seviye $level", color = text, fontSize = 24.sp, fontWeight = FontWeight.Black); Text("$levelXp / 500 XP • toplam $xp XP", color = muted, fontSize = 10.sp) }
                                 Icon(Icons.Default.EmojiEvents, null, tint = gold, modifier = Modifier.size(32.dp))
                             }
                             Spacer(Modifier.height(14.dp)); Text("Bugün $todaySolved / $target soru", color = text, fontWeight = FontWeight.Black, fontSize = 15.sp); Spacer(Modifier.height(7.dp)); LinearProgressIndicator(progress = { dailyProgress }, modifier = Modifier.fillMaxWidth().height(8.dp), color = green, trackColor = bg); Spacer(Modifier.height(7.dp)); Text(if (dailyDone) "✓ Günlük görev tamamlandı. Ritmi korudun." else "20 soruya ulaş. Küçük ama düzenli çalışma büyük fark yaratır.", color = if (dailyDone) green else muted, fontSize = 10.sp)
