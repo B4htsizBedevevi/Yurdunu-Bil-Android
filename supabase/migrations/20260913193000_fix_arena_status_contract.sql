@@ -139,6 +139,7 @@ declare
   v_correct boolean;
   v_score_delta int;
   v_answer_count int;
+  v_existing public.arena_answers;
 begin
   if auth.uid() is null then raise exception 'not_authenticated'; end if;
   if p_match_id is null or p_round_no<=0 or p_selected_index is null or p_selected_index<0 or p_selected_index>4 then
@@ -161,8 +162,20 @@ begin
   if v_question.answer_deadline_at is not null and now()>v_question.answer_deadline_at then
     raise exception 'answer_window_expired';
   end if;
-  if exists(select 1 from public.arena_answers where match_id=p_match_id and round_no=p_round_no and user_id=auth.uid()) then
-    raise exception 'duplicate_answer';
+  select * into v_existing
+  from public.arena_answers
+  where match_id=p_match_id and round_no=p_round_no and user_id=auth.uid()
+  limit 1;
+
+  -- Idempotent retry: a lost network response must not turn an already
+  -- accepted answer into a user-visible error or a second score increment.
+  if found then
+    return jsonb_build_object(
+      'correct', v_existing.is_correct,
+      'score_delta', 0,
+      'round', p_round_no,
+      'duplicate', true
+    );
   end if;
 
   select question_payload into v_bank
