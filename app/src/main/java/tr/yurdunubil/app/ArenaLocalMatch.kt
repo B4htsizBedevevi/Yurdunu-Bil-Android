@@ -25,6 +25,7 @@ fun ArenaLocalMatchScreen(darkMode: Boolean, mode: SharedGameMode, onBack: () ->
     var opponentScore by remember { mutableStateOf(0) }
     var seconds by remember { mutableStateOf(mode.seconds) }
     var locked by remember { mutableStateOf(false) }
+    var selectedIndex by remember { mutableStateOf<Int?>(null) }
     var finished by remember { mutableStateOf(false) }
 
     LaunchedEffect(finished) {
@@ -93,14 +94,47 @@ fun ArenaLocalMatchScreen(darkMode: Boolean, mode: SharedGameMode, onBack: () ->
                             if (locked) return@OutlinedButton
                             locked = true
                             if (i == q.correctIndex) score++ else opponentScore++
-                            index++
-                            locked = false
+                            selectedIndex = i
                         },
                         enabled = !locked,
                         modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
                         shape = RoundedCornerShape(13.dp)
                     ) {
                         Text("${('A'.code + i).toChar()}  $option", color = text, modifier = Modifier.fillMaxWidth())
+                    }
+                }
+                selectedIndex?.let { selected ->
+                    Spacer(Modifier.height(10.dp))
+                    Card(
+                        Modifier.fillMaxWidth(),
+                        RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = green.copy(alpha = .10f))
+                    ) {
+                        Column(Modifier.padding(14.dp)) {
+                            Text(
+                                if (selected == q.correctIndex) "DOĞRU • NEDEN?" else "YANLIŞ • DOĞRUSU VE NEDENİ",
+                                color = if (selected == q.correctIndex) green else Color(0xFFE65353),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            Text("Doğru cevap: " + q.options[q.correctIndex], color = text, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(5.dp))
+                            Text(q.explanation, color = muted, fontSize = 12.sp, lineHeight = 18.sp)
+                            Spacer(Modifier.height(10.dp))
+                            Button(
+                                onClick = {
+                                    selectedIndex = null
+                                    index++
+                                    locked = false
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = green),
+                                shape = RoundedCornerShape(13.dp)
+                            ) {
+                                Text(if (index + 1 >= questions.size) "Sonucu Gör" else "Sonraki Soru", color = Color(0xFF06221B), fontWeight = FontWeight.Black)
+                            }
+                        }
                     }
                 }
             }
