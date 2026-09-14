@@ -41,7 +41,7 @@ object QuestionTaxonomy {
 
 object SharedQuestionPool {
     private fun normalizedQuestionText(text: String): String =
-        text.trim().lowercase(Locale("tr", "TR")).replace(Regex("\\s+"), " ")
+        text.trim().lowercase(Locale("tr", "TR")).replace(Regex("\s+"), " ")
 
     private fun contentSignature(q: Question): String {
         val options = q.options.map(::normalizedQuestionText).sorted().joinToString("||")
@@ -49,7 +49,7 @@ object SharedQuestionPool {
         return normalizedQuestionText(q.text) + "##" + options + "##" + correct
     }
 
-    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + CurrentKnowledge2026.all + CurrentExpansion2026.all + RetentionQuestionExpansion.all + QuestionMegaExpansion2.all + AdvancedQuestionBank.all)
+    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + CurrentKnowledge2026.all + CurrentExpansion2026.all + RetentionQuestionExpansion.all + QuestionMegaExpansion2.all + AdvancedQuestionBank.all + PdfQuestionBank.all)
         .distinctBy { it.id }
         .distinctBy { contentSignature(it) }
         .also { QuestionBankValidator.requireValid(it) }
