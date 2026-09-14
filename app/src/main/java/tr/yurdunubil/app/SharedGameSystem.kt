@@ -49,15 +49,17 @@ object SharedQuestionPool {
         return normalizedQuestionText(q.text) + "##" + options + "##" + correct
     }
 
-    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + CurrentKnowledge2026.all + CurrentExpansion2026.all + RetentionQuestionExpansion.all + QuestionMegaExpansion2.all + AdvancedQuestionBank.all + PdfQuestionBank.all)
+    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + CurrentKnowledge2026.all + CurrentExpansion2026.all + RetentionQuestionExpansion.all + QuestionMegaExpansion2.all + AdvancedQuestionBank.all + PdfQuestionBank.all + PdfCuratedQuestionBank.all)
         .distinctBy { it.id }
         .distinctBy { contentSignature(it) }
         .also { QuestionBankValidator.requireValid(it) }
+
     private fun shuffleOptions(question: Question, seed: Long): Question {
         val pairs = question.options.mapIndexed { index, option -> index to option }.shuffled(Random(seed xor question.id.toLong()))
         val correctIndex = pairs.indexOfFirst { it.first == question.correctIndex }
         return question.copy(options = pairs.map { it.second }, correctIndex = correctIndex)
     }
+
     fun pick(mode: SharedGameMode, seed: Long = System.currentTimeMillis()): List<Question> {
         val topicSource = if (mode.topics.isEmpty()) all else all.filter { it.topic in mode.topics }
         val source = if (mode.subtopics.isEmpty()) topicSource else topicSource.filter { QuestionTaxonomy.matches(it, mode.subtopics) }
@@ -65,9 +67,28 @@ object SharedQuestionPool {
         val count = mode.questions.coerceAtMost(fallback.size)
         return fallback.distinctBy { it.id }.shuffled(Random(seed)).take(count).map { shuffleOptions(it, seed) }
     }
+
     fun topicForLibrary(title: String): Set<String> = when (title) {
-        "Coğrafi Konum" -> setOf("Coğrafi Konum"); "Yer Şekilleri" -> setOf("Yer Şekilleri", "Jeolojik Yapı", "Kıyı Tipleri"); "Su Varlığı" -> setOf("Su Varlığı"); "İklim ve Bitki" -> setOf("İklim ve Bitki Örtüsü"); "Nüfus ve Yerleşme" -> setOf("Nüfus ve Yerleşme"); "Tarım ve Hayvancılık" -> setOf("Tarım", "Ekonomik Coğrafya"); "Maden ve Enerji" -> setOf("Maden ve Enerji"); "Sanayi ve Ulaşım" -> setOf("Sanayi ve Ulaşım"); "Turizm" -> setOf("Turizm"); "Bölgeler" -> setOf("Bölgeler"); "Doğal Afetler" -> setOf("Doğal Afetler"); "Harita Bilgisi" -> setOf("Harita Bilgisi"); "Güncel Türkiye" -> setOf("Güncel Türkiye"); "Güncel Göç ve Demografi" -> setOf("Güncel Göç ve Demografi"); "Güncel Tarım ve Üretim" -> setOf("Güncel Tarım ve Üretim"); "Güncel İklim ve Çevre" -> setOf("Güncel İklim ve Çevre"); "Güncel Enerji ve Ulaşım" -> setOf("Güncel Enerji ve Ulaşım"); else -> emptySet()
+        "Coğrafi Konum" -> setOf("Coğrafi Konum")
+        "Yer Şekilleri" -> setOf("Yer Şekilleri", "Jeolojik Yapı", "Kıyı Tipleri")
+        "Su Varlığı" -> setOf("Su Varlığı")
+        "İklim ve Bitki" -> setOf("İklim ve Bitki Örtüsü")
+        "Nüfus ve Yerleşme" -> setOf("Nüfus ve Yerleşme")
+        "Tarım ve Hayvancılık" -> setOf("Tarım", "Ekonomik Coğrafya")
+        "Maden ve Enerji" -> setOf("Maden ve Enerji")
+        "Sanayi ve Ulaşım" -> setOf("Sanayi ve Ulaşım")
+        "Turizm" -> setOf("Turizm")
+        "Bölgeler" -> setOf("Bölgeler")
+        "Doğal Afetler" -> setOf("Doğal Afetler")
+        "Harita Bilgisi" -> setOf("Harita Bilgisi")
+        "Güncel Türkiye" -> setOf("Güncel Türkiye")
+        "Güncel Göç ve Demografi" -> setOf("Güncel Göç ve Demografi")
+        "Güncel Tarım ve Üretim" -> setOf("Güncel Tarım ve Üretim")
+        "Güncel İklim ve Çevre" -> setOf("Güncel İklim ve Çevre")
+        "Güncel Enerji ve Ulaşım" -> setOf("Güncel Enerji ve Ulaşım")
+        else -> emptySet()
     }
+
     fun dailyMode(): SharedGameMode = SharedGameModes.daily(LocalDate.now())
 }
 
