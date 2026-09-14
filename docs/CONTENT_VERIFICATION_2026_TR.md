@@ -40,3 +40,5 @@ Yalnızca birinci taraf kurum kaynakları esas alınır:
 Güncel veri değişebilen sorulara yıl bilgisi eklenir ve soru mümkün olduğunca resmî kaynağın yayımladığı değerle birebir eşleştirilir. Yeni güncel soru eklenirken kaynak URL'si, kaynak notu ve doğrulama zamanı Supabase kaydına işlenmelidir.
 
 Yapısal doğrulama `QuestionBankValidator` tarafından uygulama soru havuzu oluşturulurken zorunlu tutulur. Tam içerik tekrarı soru metni + seçenek kümesi + doğru seçenek imzasıyla kontrol edilir; yalnızca aynı köke sahip fakat farklı seçenekleri olan sorular otomatik olarak silinmez.
+
+**CI kaynak onarımı:** ModernMainV4 içindeki iki hatalı `Text(...)` çağrısı düzeltildi ve tek kullanımlık onarım workflow'u kaldırıldı.
