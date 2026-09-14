@@ -40,7 +40,13 @@ object QuestionTaxonomy {
 }
 
 object SharedQuestionPool {
-    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + CurrentKnowledge2026.all + CurrentExpansion2026.all + RetentionQuestionExpansion.all + QuestionMegaExpansion2.all + AdvancedQuestionBank.all).distinctBy { it.id }.also { QuestionBankValidator.requireValid(it) }
+    private fun normalizedQuestionText(text: String): String =
+        text.trim().lowercase(Locale("tr", "TR")).replace(Regex("\\s+"), " ")
+
+    val all: List<Question> = (FullQuestionBank.all + ExpansionQuestionBank.all + MegaQuestionBank.all + CurrentQuestionBank.all + CurrentKnowledge2026.all + CurrentExpansion2026.all + RetentionQuestionExpansion.all + QuestionMegaExpansion2.all + AdvancedQuestionBank.all)
+        .distinctBy { it.id }
+        .distinctBy { normalizedQuestionText(it.text) }
+        .also { QuestionBankValidator.requireValid(it) }
     private fun shuffleOptions(question: Question, seed: Long): Question {
         val pairs = question.options.mapIndexed { index, option -> index to option }.shuffled(Random(seed xor question.id.toLong()))
         val correctIndex = pairs.indexOfFirst { it.first == question.correctIndex }
