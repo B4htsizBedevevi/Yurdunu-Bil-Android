@@ -1,6 +1,6 @@
 package tr.yurdunubil.app
 
-/** Verified 2025-2026 current-data question bank. Sources are documented in CurrentKnowledgeSources. */
+/** Verified 2025-2026 current-data question bank. Re-checked against official first-party sources on 14 Sep 2026. */
 object CurrentKnowledge2026 {
     val all = listOf(
         Question(9001, topic="Güncel Türkiye", text="2025 sonu Türkiye nüfusu kaçtır?", options=listOf("84.156.734", "85.664.944", "86.092.168", "87.010.123", "88.245.000"), correctIndex=2, explanation="TÜİK, 31 Aralık 2025 itibarıyla nüfusu 86.092.168 olarak açıkladı."),
