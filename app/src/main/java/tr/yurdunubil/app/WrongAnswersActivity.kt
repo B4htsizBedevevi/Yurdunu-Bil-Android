@@ -1,6 +1,8 @@
 package tr.yurdunubil.app
 
+
 import android.content.Intent
+import tr.yurdunubil.app.YurdunuBilCopy
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -94,7 +96,7 @@ private fun WrongAnswersScreen(onBack: () -> Unit) {
         containerColor = bg,
         topBar = {
             TopAppBar(
-                title = { Text("Yanlışlarım", color = text, fontWeight = FontWeight.Black) },
+                title = { Text("Birlikte Tekrar Edelim", color = text, fontWeight = FontWeight.Black) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Geri", tint = text) } },
                 actions = { IconButton(onClick = ::load) { Icon(Icons.Default.Refresh, "Yenile", tint = green) } }
             )
@@ -113,7 +115,7 @@ private fun WrongAnswersScreen(onBack: () -> Unit) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.CheckCircle, null, tint = green, modifier = Modifier.size(48.dp))
                     Spacer(Modifier.height(10.dp))
-                    Text("Harika gidiyorsun! 🎉", color = text, fontSize = 21.sp, fontWeight = FontWeight.Black)
+                    Text("Şimdilik yanlışın yok. Harika! 🎉", color = text, fontSize = 21.sp, fontWeight = FontWeight.Black)
                     Spacer(Modifier.height(4.dp))
                     Text("Kayıtlı yanlışın yok. Yeni sorularla kendini yokla.", color = muted, fontSize = 11.sp)
                 }
@@ -124,7 +126,7 @@ private fun WrongAnswersScreen(onBack: () -> Unit) {
                         Column(Modifier.padding(18.dp)) {
                             Text("TEKRAR MERKEZİ", color = green, fontSize = 10.sp, fontWeight = FontWeight.Black)
                             Spacer(Modifier.height(5.dp))
-                            Text("En son kaçırdıkların burada.", color = text, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                            Text("Takıldığın sorular burada. Hadi beraber kapatalım.", color = text, fontSize = 20.sp, fontWeight = FontWeight.Black)
                             Spacer(Modifier.height(4.dp))
                             Text("${rows.size} yanlış soru • Birine dokun ve çözümü incele.", color = muted, fontSize = 11.sp)
                         }
