@@ -79,9 +79,9 @@ data class ArenaLeaderboardRow(
 private object ProfileStatsRepository {
     private val client get() = SupabaseClientProvider.client
 
-    suspend fun profile(id: String): ProfileStatsProfile = client.postgrest.from("profiles").select { filter { eq("id", id) } }.decodeSingle()
-    suspend fun progress(id: String): ProfileStatsProgress = client.postgrest.from("user_progress").select { filter { eq("user_id", id) } }.decodeSingle()
-    suspend fun arena(id: String): ProfileStatsArena = client.postgrest.from("arena_profiles").select { filter { eq("user_id", id) } }.decodeSingle()
+    suspend fun profile(id: String): ProfileStatsProfile? = client.postgrest.from("profiles").select { filter { eq("id", id) } }.decodeSingleOrNull()
+    suspend fun progress(id: String): ProfileStatsProgress? = client.postgrest.from("user_progress").select { filter { eq("user_id", id) } }.decodeSingleOrNull()
+    suspend fun arena(id: String): ProfileStatsArena? = client.postgrest.from("arena_profiles").select { filter { eq("user_id", id) } }.decodeSingleOrNull()
     suspend fun leaderboard(): List<ArenaLeaderboardRow> = client.postgrest.rpc("get_arena_leaderboard", buildJsonObject { put("p_limit", JsonPrimitive(30)) }).decodeList()
 }
 
@@ -109,10 +109,11 @@ private fun ProfileStatsScreen(onBack: () -> Unit) {
         if (myId == null) { error = "Oturum bulunamadı."; loading = false; return@LaunchedEffect }
         scope.launch {
             runCatching {
-                profile = ProfileStatsRepository.profile(myId)
-                progress = ProfileStatsRepository.progress(myId)
-                arena = ProfileStatsRepository.arena(myId)
-                leaderboard = ProfileStatsRepository.leaderboard()
+                profile = runCatching { ProfileStatsRepository.profile(myId) }.getOrNull()
+                progress = runCatching { ProfileStatsRepository.progress(myId) }.getOrNull()
+                arena = runCatching { ProfileStatsRepository.arena(myId) }.getOrNull()
+                leaderboard = runCatching { ProfileStatsRepository.leaderboard() }.getOrDefault(emptyList())
+                    
             }.onFailure { error = it.message ?: "Profil verileri alınamadı." }
             loading = false
         }
