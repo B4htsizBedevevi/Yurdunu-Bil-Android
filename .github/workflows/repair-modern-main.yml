@@ -1,0 +1,48 @@
+name: Repair ModernMainV4 source
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor == 'B4htsizBedevevi'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Repair malformed Text calls
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/src/main/java/tr/yurdunubil/app/ModernMainV4.kt')
+          s = p.read_text(encoding='utf-8')
+          replacements = {
+              'Text("Hadi bilgini sahaya çıkar."), color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Black)':
+              'Text("Bilgini sahaya çıkar.", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Black)',
+              'Text("Hazırsan kaldığın yerden devam edelim."), color = p.muted, fontSize = 11.sp)':
+              'Text("Hazırsan kaldığın yerden devam edelim.", color = p.muted, fontSize = 11.sp)',
+          }
+          for old, new in replacements.items():
+              s = s.replace(old, new)
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit repaired source and remove one-shot workflow
+        run: |
+          git config user.name 'B4htsizBedevevi'
+          git config user.email '55953865+B4htsizBedevevi@users.noreply.github.com'
+          git rm .github/workflows/repair-modern-main.yml
+          git add app/src/main/java/tr/yurdunubil/app/ModernMainV4.kt
+          if git diff --cached --quiet; then
+            echo 'No repair needed.'
+            exit 0
+          fi
+          git commit -m 'fix: repair ModernMainV4 syntax'
+          git push
