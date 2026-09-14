@@ -1,6 +1,8 @@
 package tr.yurdunubil.app
 
+
 import android.os.Bundle
+import tr.yurdunubil.app.YurdunuBilCopy
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -47,7 +49,7 @@ private fun QuestionReviewScreen(questionId: Int?, onBack: () -> Unit) {
     MaterialTheme(colorScheme = darkColorScheme(primary = green, background = bg, surface = card)) {
         Scaffold(containerColor = bg, topBar = {
             TopAppBar(
-                title = { Text(if (completed) "Tekrar Sonucu" else "Tekrar Çöz", color = text, fontWeight = FontWeight.Black) },
+                title = { Text(if (completed) "Tekrar Sonucu" else "Hadi Bir Daha Deneyelim", color = text, fontWeight = FontWeight.Black) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Geri", tint = text) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = bg)
             )
@@ -93,7 +95,7 @@ private fun QuestionReviewScreen(questionId: Int?, onBack: () -> Unit) {
                                 }
                             }
                         }
-                        item { OutlinedButton(onClick = { selectedIndex = null; completed = false }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) { Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(7.dp)); Text("Bir daha çöz") } }
+                        item { OutlinedButton(onClick = { selectedIndex = null; completed = false }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) { Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(7.dp)); Text("Bir daha deneyelim") } }
                     } else {
                         item { Text("💡 İpucu: Cevabı aramadan önce sorunun kilit kelimelerini düşün.", color = muted, fontSize = 10.sp, lineHeight = 16.sp, modifier = Modifier.padding(top = 3.dp, bottom = 20.dp)) }
                     }
