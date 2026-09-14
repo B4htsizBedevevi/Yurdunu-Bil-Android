@@ -21,6 +21,7 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -101,27 +102,62 @@ fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: S
     var error by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(true) }
 
-    suspend fun refresh() {
-        runCatching {
-            val m = ArenaOnlineRepositoryV2.match(matchId)
-            match = m
-            players = ArenaOnlineRepositoryV2.players(matchId)
-            questions = ArenaOnlineRepositoryV2.questions(matchId)
-            if (m.status == "waiting" || m.status == "ready") ArenaOnlineRepositoryV2.ready(matchId)
-        }.onFailure { error = it.message ?: "Arena verisi alınamadı." }
-        loading = false
+    var readySent by remember { mutableStateOf(false) }
+    var lastSyncAt by remember { mutableStateOf(System.currentTimeMillis()) }
+    var syncHealthy by remember { mutableStateOf(true) }
+
+    suspend fun refresh(loadQuestions: Boolean = false) {
+        try {
+            withTimeout(5000L) {
+                val m = ArenaOnlineRepositoryV2.match(matchId)
+                val p = ArenaOnlineRepositoryV2.players(matchId)
+                match = m
+                players = p
+
+                if (loadQuestions) {
+                    questions = ArenaOnlineRepositoryV2.questions(matchId)
+                }
+
+                // Send READY once per screen lifecycle instead of once per polling tick.
+                if ((m.status == "waiting" || m.status == "ready") && !readySent) {
+                    ArenaOnlineRepositoryV2.ready(matchId)
+                    readySent = true
+                }
+
+                lastSyncAt = System.currentTimeMillis()
+                syncHealthy = true
+                error = null
+            }
+        } catch (e: Exception) {
+            syncHealthy = false
+            error = e.message ?: "Arena verisi alınamadı."
+        } finally {
+            loading = false
+        }
     }
 
-    LaunchedEffect(matchId) { refresh() }
+    LaunchedEffect(matchId) {
+        refresh(loadQuestions = true)
+    }
 
-    // Realtime publication is enabled server-side; this polling path is kept as a
-    // compatibility fallback until the exact Realtime SDK version is upgraded in Gradle.
+    // Match/player state is refreshed frequently; the question list is kept in memory
+    // and refreshed only when the server advances the round. This cuts unnecessary
+    // network traffic while keeping the screen responsive.
     LaunchedEffect(Unit) {
         while (true) {
-            delay(1000L)
-            val m = match ?: continue
-            if (m.status == "finished") continue
-            refresh()
+            val interval = when (match?.status) {
+                "active" -> 700L
+                "waiting", "ready" -> 1200L
+                "finished" -> 6000L
+                else -> 1500L
+            }
+            delay(interval)
+            val beforeRound = match?.current_round
+            refresh(loadQuestions = false)
+            val afterRound = match?.current_round
+            if (afterRound != null && beforeRound != null && afterRound != beforeRound) {
+                refresh(loadQuestions = true)
+            }
         }
     }
 
@@ -156,12 +192,24 @@ fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: S
                     Text("ARENA • CANLI", color = Color(0xFFFFC857), fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.3.sp)
                     Text(mode.title, color = text, fontSize = 20.sp, fontWeight = FontWeight.Black)
                 }
-                Surface(color = Color(0xFF18C986).copy(alpha = .1f), shape = RoundedCornerShape(12.dp)) {
-                    Text(if (finished) "BİTTİ" else "CANLI", color = Color(0xFF18C986), fontSize = 9.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp))
+                Surface(color = (if (syncHealthy) Color(0xFF18C986) else Color(0xFFFFC857)).copy(alpha = .1f), shape = RoundedCornerShape(12.dp)) {
+                    Text(
+                        when { finished -> "BİTTİ"; syncHealthy -> "ANLIK"; else -> "SENKRON KONTROL" },
+                        color = if (syncHealthy) Color(0xFF18C986) else Color(0xFFFFC857),
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Black,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp)
+                    )
                 }
             }
 
             if (error != null) Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF3A211F))) { Text(error!!, color = Color(0xFFFFB5AD), fontSize = 11.sp, modifier = Modifier.padding(12.dp)) }
+            if (!syncHealthy && error != null) {
+                Text("Bağlantı geçici olarak zayıf. Otomatik yeniden denenecek.", color = Color(0xFFFFC857), fontSize = 9.sp, modifier = Modifier.padding(horizontal = 4.dp))
+            } else {
+                val age = ((System.currentTimeMillis() - lastSyncAt) / 1000L).coerceAtLeast(0L)
+                Text(if (age <= 2) "● Sunucu ile senkron" else "○ Son senkron ${age}s önce", color = if (age <= 2) Color(0xFF18C986) else muted, fontSize = 8.sp, modifier = Modifier.padding(horizontal = 4.dp))
+            }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ScoreCardV2("SEN", mine?.score ?: 0, Color(0xFF18C986), text, Modifier.weight(1f))
