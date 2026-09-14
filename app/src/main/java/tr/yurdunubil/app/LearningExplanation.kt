@@ -46,6 +46,12 @@ fun LearningExplanationCard(
                     Text("DOĞRU CEVAP", color = accent, fontSize = 9.sp, fontWeight = FontWeight.Black)
                     Spacer(Modifier.height(4.dp))
                     Text(question.options[question.correctIndex], color = text, fontSize = 14.sp, fontWeight = FontWeight.Black)
+                    if (!correct) {
+                        Spacer(Modifier.height(7.dp))
+                        Text("SENİN CEVABIN", color = Color(0xFFE65353), fontSize = 9.sp, fontWeight = FontWeight.Black)
+                        Spacer(Modifier.height(3.dp))
+                        Text(question.options.getOrElse(selectedIndex) { "Seçim yok" }, color = text, fontSize = 12.sp)
+                    }
                 }
             }
 
