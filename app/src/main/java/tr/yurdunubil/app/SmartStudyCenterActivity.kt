@@ -1,5 +1,6 @@
 package tr.yurdunubil.app
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -71,149 +72,65 @@ private fun SmartStudyCenterScreen(onBack: () -> Unit) {
         if (topicQuestions.isEmpty()) return topic.progress / 100f
         return topicQuestions.map { SmartQuestionSelector.accuracy(prefs, it.topic) }.average().toFloat()
     }
-    val priorities = GeographyData.topics.sortedWith(
-        compareBy<Topic> { topicScore(it) }.thenBy { it.progress }
-    ).take(4)
+    val priorities = GeographyData.topics.sortedWith(compareBy<Topic> { topicScore(it) }.thenBy { it.progress }).take(4)
+    val weakest = priorities.firstOrNull()
+    val weakestTopic = weakest?.let { SharedQuestionPool.topicForLibrary(it.title).firstOrNull() ?: it.title }
     val challengeIndex = LocalDate.now().dayOfYear % GeographyData.provinces.size
     val challenge = GeographyData.provinces[challengeIndex]
-    val optionIndexes = listOf(
-        challengeIndex,
-        (challengeIndex + 3) % GeographyData.provinces.size,
-        (challengeIndex + 7) % GeographyData.provinces.size,
-        (challengeIndex + 11) % GeographyData.provinces.size
-    )
+    val optionIndexes = listOf(challengeIndex, (challengeIndex + 3) % GeographyData.provinces.size, (challengeIndex + 7) % GeographyData.provinces.size, (challengeIndex + 11) % GeographyData.provinces.size)
     var mapSolved by remember(today) { mutableStateOf(prefs.getString("map_challenge_date", "") == today) }
 
-    fun markMapChallenge() {
-        prefs.edit().putString("map_challenge_date", today).apply()
-        mapSolved = true
+    fun markMapChallenge() { prefs.edit().putString("map_challenge_date", today).apply(); mapSolved = true }
+    fun launchWeakTest(topic: String? = null) {
+        context.startActivity(Intent(context, WeakTopicQuizActivity::class.java).apply { if (topic != null) putExtra("topic", topic) })
     }
 
     MaterialTheme(colorScheme = darkColorScheme(primary = green, background = bg, surface = card, onSurface = text)) {
-        Scaffold(
-            containerColor = bg,
-            topBar = {
-                TopAppBar(
-                    title = { Text("Akıllı Çalışma", fontWeight = FontWeight.Black) },
-                    navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Geri") } },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = bg, titleContentColor = text, navigationIconContentColor = text)
-                )
-            }
-        ) { pad ->
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(pad),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 30.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+        Scaffold(containerColor = bg, topBar = {
+            TopAppBar(title = { Text("Akıllı Çalışma", fontWeight = FontWeight.Black) }, navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Geri") } }, colors = TopAppBarDefaults.topAppBarColors(containerColor = bg, titleContentColor = text, navigationIconContentColor = text))
+        }) { pad ->
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(pad), contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 30.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item {
                     Card(shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = cardAlt)) {
                         Column(Modifier.padding(18.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text("BUGÜNÜN ROTASI", color = green, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                                    Text("Seviye $level", color = text, fontSize = 24.sp, fontWeight = FontWeight.Black)
-                                    Text("$levelXp / 500 XP • toplam $xp XP", color = muted, fontSize = 10.sp)
-                                }
+                                Column(Modifier.weight(1f)) { Text("BUGÜNÜN ROTASI", color = green, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp); Text("Seviye $level", color = text, fontSize = 24.sp, fontWeight = FontWeight.Black); Text("$levelXp / 500 XP • toplam $xp XP", color = muted, fontSize = 10.sp) }
                                 Icon(Icons.Default.EmojiEvents, null, tint = gold, modifier = Modifier.size(32.dp))
                             }
-                            Spacer(Modifier.height(14.dp))
-                            Text("Bugün $todaySolved / $target soru", color = text, fontWeight = FontWeight.Black, fontSize = 15.sp)
-                            Spacer(Modifier.height(7.dp))
-                            LinearProgressIndicator(progress = { dailyProgress }, modifier = Modifier.fillMaxWidth().height(8.dp), color = green, trackColor = bg)
-                            Spacer(Modifier.height(7.dp))
-                            Text(if (dailyDone) "✓ Günlük görev tamamlandı. Ritmi korudun." else "20 soruya ulaş. Küçük ama düzenli çalışma büyük fark yaratır.", color = if (dailyDone) green else muted, fontSize = 10.sp)
+                            Spacer(Modifier.height(14.dp)); Text("Bugün $todaySolved / $target soru", color = text, fontWeight = FontWeight.Black, fontSize = 15.sp); Spacer(Modifier.height(7.dp)); LinearProgressIndicator(progress = { dailyProgress }, modifier = Modifier.fillMaxWidth().height(8.dp), color = green, trackColor = bg); Spacer(Modifier.height(7.dp)); Text(if (dailyDone) "✓ Günlük görev tamamlandı. Ritmi korudun." else "20 soruya ulaş. Küçük ama düzenli çalışma büyük fark yaratır.", color = if (dailyDone) green else muted, fontSize = 10.sp)
                         }
                     }
                 }
-
+                item { Row(horizontalArrangement = Arrangement.spacedBy(9.dp), modifier = Modifier.fillMaxWidth()) { MetricCard("$todaySolved", "BUGÜN SORU", Icons.Default.Bolt, green, text, muted, Modifier.weight(1f)); MetricCard("$todayCorrect", "BUGÜN DOĞRU", Icons.Default.CheckCircle, green, text, muted, Modifier.weight(1f)); MetricCard("$todayXp", "BUGÜN XP", Icons.Default.EmojiEvents, gold, text, muted, Modifier.weight(1f)) } }
                 item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(9.dp), modifier = Modifier.fillMaxWidth()) {
-                        MetricCard("$todaySolved", "BUGÜN SORU", Icons.Default.Bolt, green, text, muted, Modifier.weight(1f))
-                        MetricCard("$todayCorrect", "BUGÜN DOĞRU", Icons.Default.CheckCircle, green, text, muted, Modifier.weight(1f))
-                        MetricCard("$todayXp", "BUGÜN XP", Icons.Default.EmojiEvents, gold, text, muted, Modifier.weight(1f))
+                    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = green)) {
+                        Column(Modifier.padding(17.dp)) {
+                            Text("🎯 ŞİMDİ ZAYIF KONUYU KAPAT", color = Color(0xFF052118), fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                            Text(weakest?.title ?: "Akıllı tekrar", color = Color(0xFF052118), fontSize = 21.sp, fontWeight = FontWeight.Black)
+                            Text("Sistem performansına göre seçildi • 10 soruluk mini test", color = Color(0xFF174E3E), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(10.dp))
+                            Button(onClick = { launchWeakTest(weakestTopic) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(13.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF052118), contentColor = Color.White)) { Text("Mini Teste Başla", fontWeight = FontWeight.Black) }
+                        }
                     }
                 }
-
                 item {
                     Card(shape = RoundedCornerShape(19.dp), colors = CardDefaults.cardColors(containerColor = card)) {
-                        Column(Modifier.padding(16.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Whatshot, null, tint = gold, modifier = Modifier.size(22.dp))
-                                Spacer(Modifier.width(8.dp))
-                                Column(Modifier.weight(1f)) {
-                                    Text("Seri koruyucu", color = text, fontWeight = FontWeight.Black, fontSize = 15.sp)
-                                    Text("$streak günlük çalışma serisi", color = muted, fontSize = 10.sp)
-                                }
-                                Text(if (streak >= 7) "Harika gidiyor" else "Devam", color = green, fontSize = 10.sp, fontWeight = FontWeight.Black)
-                            }
-                            Spacer(Modifier.height(10.dp))
-                            Text("Genel doğruluk %$accuracy • $wrong yanlış", color = muted, fontSize = 10.sp)
-                        }
+                        Column(Modifier.padding(16.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Whatshot, null, tint = gold, modifier = Modifier.size(22.dp)); Spacer(Modifier.width(8.dp)); Column(Modifier.weight(1f)) { Text("Seri koruyucu", color = text, fontWeight = FontWeight.Black, fontSize = 15.sp); Text("$streak günlük çalışma serisi", color = muted, fontSize = 10.sp) }; Text(if (streak >= 7) "Harika gidiyor" else "Devam", color = green, fontSize = 10.sp, fontWeight = FontWeight.Black) }; Spacer(Modifier.height(10.dp)); Text("Genel doğruluk %$accuracy • $wrong yanlış", color = muted, fontSize = 10.sp) }
                     }
                 }
-
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) { Icon(YBIcons.Target, null, tint = green, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text("Çalışma öncelikleri", color = text, fontSize = 18.sp, fontWeight = FontWeight.Black) }
-                    Text("Kütüphanedeki ilerleme oranı düşük konularını öne aldık.", color = muted, fontSize = 10.sp)
-                }
-
+                item { Row(verticalAlignment = Alignment.CenterVertically) { Icon(YBIcons.Target, null, tint = green, modifier = Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text("Çalışma öncelikleri", color = text, fontSize = 18.sp, fontWeight = FontWeight.Black) }; Text("Performansı düşük konularını öne aldık. Bir karta dokunup doğrudan mini teste geçebilirsin.", color = muted, fontSize = 10.sp) }
                 items(priorities, key = { it.title }) { topic ->
-                    Card(shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = card), modifier = Modifier.clickable { onBack() }) {
-                        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(42.dp).background(cardAlt, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) { YBGameIcon(topic.icon, green, 21.dp) }
-                            Spacer(Modifier.width(10.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text(topic.title, color = text, fontWeight = FontWeight.Black, fontSize = 13.sp)
-                                Text(topic.subtitle, color = muted, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            }
-                            Text("%${topic.progress}", color = if (topic.progress >= 70) green else gold, fontWeight = FontWeight.Black, fontSize = 12.sp)
-                        }
+                    val mappedTopic = SharedQuestionPool.topicForLibrary(topic.title).firstOrNull() ?: topic.title
+                    Card(shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = card), modifier = Modifier.clickable { launchWeakTest(mappedTopic) }) {
+                        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(42.dp).background(cardAlt, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) { YBGameIcon(topic.icon, green, 21.dp) }; Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text(topic.title, color = text, fontWeight = FontWeight.Black, fontSize = 13.sp); Text(topic.subtitle, color = muted, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }; Text("%${topic.progress}", color = if (topic.progress >= 70) green else gold, fontWeight = FontWeight.Black, fontSize = 12.sp) }
                     }
                 }
-
                 item {
                     Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = cardAlt)) {
-                        Column(Modifier.padding(17.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Map, null, tint = green, modifier = Modifier.size(24.dp))
-                                Spacer(Modifier.width(9.dp))
-                                Column(Modifier.weight(1f)) {
-                                    Text("İL AVI • BUGÜN", color = green, fontSize = 9.sp, fontWeight = FontWeight.Black)
-                                    Text("İpucundan ili yakala", color = text, fontSize = 17.sp, fontWeight = FontWeight.Black)
-                                }
-                            }
-                            Spacer(Modifier.height(10.dp))
-                            Text(challenge.clue, color = text, fontSize = 12.sp, fontWeight = FontWeight.Bold, lineHeight = 18.sp)
-                            Spacer(Modifier.height(10.dp))
-                            optionIndexes.forEach { index ->
-                                val province = GeographyData.provinces[index]
-                                val selectedCorrect = mapSolved && index == challengeIndex
-                                OutlinedButton(
-                                    onClick = { if (!mapSolved && index == challengeIndex) markMapChallenge() },
-                                    enabled = !mapSolved,
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
-                                    shape = RoundedCornerShape(13.dp),
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = if (selectedCorrect) green else text),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, if (selectedCorrect) green else Color.White.copy(alpha = .10f))
-                                ) { Text(if (selectedCorrect) "✓ ${province.name}" else province.name, fontWeight = FontWeight.Bold) }
-                            }
-                            if (mapSolved) Text("✓ Bugünün il avı tamamlandı.", color = green, fontSize = 10.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(top = 6.dp))
-                        }
+                        Column(Modifier.padding(17.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Map, null, tint = green, modifier = Modifier.size(24.dp)); Spacer(Modifier.width(9.dp)); Column(Modifier.weight(1f)) { Text("İL AVI • BUGÜN", color = green, fontSize = 9.sp, fontWeight = FontWeight.Black); Text("İpucundan ili yakala", color = text, fontSize = 17.sp, fontWeight = FontWeight.Black) } }; Spacer(Modifier.height(10.dp)); Text(challenge.clue, color = text, fontSize = 12.sp, fontWeight = FontWeight.Bold, lineHeight = 18.sp); Spacer(Modifier.height(10.dp)); optionIndexes.forEach { index -> val province = GeographyData.provinces[index]; val selectedCorrect = mapSolved && index == challengeIndex; OutlinedButton(onClick = { if (!mapSolved && index == challengeIndex) markMapChallenge() }, enabled = !mapSolved, modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp), shape = RoundedCornerShape(13.dp), colors = ButtonDefaults.outlinedButtonColors(contentColor = if (selectedCorrect) green else text), border = androidx.compose.foundation.BorderStroke(1.dp, if (selectedCorrect) green else Color.White.copy(alpha = .10f))) { Text(if (selectedCorrect) "✓ ${province.name}" else province.name, fontWeight = FontWeight.Bold) } }; if (mapSolved) Text("✓ Bugünün il avı tamamlandı.", color = green, fontSize = 10.sp, fontWeight = FontWeight.Black, modifier = Modifier.padding(top = 6.dp)) }
                     }
                 }
-
-                item {
-                    Card(shape = RoundedCornerShape(19.dp), colors = CardDefaults.cardColors(containerColor = card)) {
-                        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Lightbulb, null, tint = gold, modifier = Modifier.size(25.dp))
-                            Spacer(Modifier.width(10.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text("Mini koç notu", color = gold, fontSize = 9.sp, fontWeight = FontWeight.Black)
-                                Text(if (accuracy < 60) "Önce doğruluğu yükselt; hız sonra gelir." else if (accuracy < 80) "Temelin oluşuyor. Zayıf konuları kısa tekrarlarla kapat." else "Çok iyi. Şimdi zor sorular ve Arena ile seviyeyi yükselt.", color = text, fontSize = 13.sp, fontWeight = FontWeight.Bold, lineHeight = 18.sp)
-                            }
-                        }
-                    }
-                }
+                item { Card(shape = RoundedCornerShape(19.dp), colors = CardDefaults.cardColors(containerColor = card)) { Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Lightbulb, null, tint = gold, modifier = Modifier.size(25.dp)); Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text("Mini koç notu", color = gold, fontSize = 9.sp, fontWeight = FontWeight.Black); Text(if (accuracy < 60) "Önce doğruluğu yükselt; hız sonra gelir." else if (accuracy < 80) "Temelin oluşuyor. Zayıf konuları kısa tekrarlarla kapat." else "Çok iyi. Şimdi zor sorular ve Arena ile seviyeyi yükselt.", color = text, fontSize = 13.sp, fontWeight = FontWeight.Bold, lineHeight = 18.sp) } } } }
             }
         }
     }
@@ -221,12 +138,5 @@ private fun SmartStudyCenterScreen(onBack: () -> Unit) {
 
 @Composable
 private fun MetricCard(value: String, label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, accent: Color, text: Color, muted: Color, modifier: Modifier) {
-    Card(modifier = modifier, shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF10251E))) {
-        Column(Modifier.padding(11.dp)) {
-            Icon(icon, null, tint = accent, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.height(4.dp))
-            Text(value, color = text, fontWeight = FontWeight.Black, fontSize = 18.sp)
-            Text(label, color = muted, fontSize = 7.sp, fontWeight = FontWeight.Bold)
-        }
-    }
+    Card(modifier = modifier, shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF10251E))) { Column(Modifier.padding(11.dp)) { Icon(icon, null, tint = accent, modifier = Modifier.size(18.dp)); Spacer(Modifier.height(4.dp)); Text(value, color = text, fontWeight = FontWeight.Black, fontSize = 18.sp); Text(label, color = muted, fontSize = 7.sp, fontWeight = FontWeight.Bold) } }
 }
