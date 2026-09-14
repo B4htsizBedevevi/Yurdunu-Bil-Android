@@ -271,7 +271,40 @@ fun ArenaOnlineMatchScreenV2(darkMode: Boolean, mode: SharedGameMode, matchId: S
                                 colors = ButtonDefaults.buttonColors(containerColor = if (picked) Color(0xFF18C986).copy(alpha = .18f) else if (darkMode) Color.White.copy(alpha = .05f) else Color.Black.copy(alpha = .04f))
                             ) { Text("${('A'.code + i).toChar()}  $option", color = text, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth()) }
                         }
-                        if (answered) Text("Cevabın kaydedildi. Rakibin bekleniyor…", color = Color(0xFF18C986), fontSize = 10.sp, modifier = Modifier.padding(top = 8.dp))
+                        if (answered) {
+                            val explanationQuestion = current.question_id
+                                ?.let { id -> SharedQuestionPool.all.firstOrNull { it.id.toString() == id.toString() } }
+                            Card(
+                                Modifier.fillMaxWidth().padding(top = 10.dp),
+                                RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (darkMode) Color(0xFF143128) else Color(0xFFEAF8F2)
+                                )
+                            ) {
+                                Column(Modifier.padding(14.dp)) {
+                                    Text(
+                                        if (selected == null) "SORU AÇIKLAMASI" else "SORU AÇIKLAMASI • ÖĞREN",
+                                        color = Color(0xFF18C986),
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Black
+                                    )
+                                    Spacer(Modifier.height(5.dp))
+                                    Text(
+                                        explanationQuestion?.explanation
+                                            ?: "Cevabın kaydedildi. Rakibin cevabı bekleniyor.",
+                                        color = text,
+                                        fontSize = 12.sp,
+                                        lineHeight = 18.sp
+                                    )
+                                }
+                            }
+                            Text(
+                                "Cevabın kaydedildi. Rakibin bekleniyor…",
+                                color = Color(0xFF18C986),
+                                fontSize = 10.sp,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
                     }
                 }
             }
