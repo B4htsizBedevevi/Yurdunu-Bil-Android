@@ -97,7 +97,7 @@ private fun WeakTopicQuizScreen(onExit: () -> Unit) {
                         if (answered) {
                             Spacer(Modifier.height(10.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) { Icon(if (selected == q.correctIndex) Icons.Default.CheckCircle else Icons.Default.Warning, null, tint = if (selected == q.correctIndex) green else red); Spacer(Modifier.width(7.dp)); Text(if (selected == q.correctIndex) "Doğru!" else "Yanlış • Doğru cevap: ${q.options[q.correctIndex]}", color = if (selected == q.correctIndex) green else red, fontWeight = FontWeight.Black) }
-                            Spacer(Modifier.height(7.dp)); Text(q.explanation, color = muted, fontSize = 12.sp, lineHeight = 18.sp)
+                            Spacer(Modifier.height(10.dp)); LearningExplanationCard(question = q, selectedIndex = selected, darkMode = true)
                             Spacer(Modifier.height(12.dp)); Button(onClick = { if (index + 1 >= questions.size) { ProgressTracker.recordQuiz(prefs, mode, questions.size, correct, wrong); finished = true } else { index++; selected = -1 } }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(13.dp)) { Text(if (index + 1 >= questions.size) "Sonucu Gör" else "Sonraki Soru", fontWeight = FontWeight.Black) }
                         }
                     }
