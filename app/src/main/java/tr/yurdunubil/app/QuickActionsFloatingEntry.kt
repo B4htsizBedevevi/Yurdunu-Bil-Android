@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -81,6 +82,16 @@ fun QuickActionsFloatingEntry() {
                     ) {
                         Icon(Icons.Default.EmojiEvents, null)
                         Text("Profil & Liderlik", modifier = Modifier.padding(start = 8.dp))
+                    }
+                    TextButton(
+                        onClick = {
+                            expanded = false
+                            context.startActivity(Intent(context, WrongAnswersActivity::class.java))
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Warning, null)
+                        Text("Yanlışlarım", modifier = Modifier.padding(start = 8.dp))
                     }
                     TextButton(
                         onClick = {
